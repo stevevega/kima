@@ -55,7 +55,7 @@ class UrlShortener
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(array('longUrl' => $url)));
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 
