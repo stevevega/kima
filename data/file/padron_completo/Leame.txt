@@ -1,0 +1,142 @@
+TRIBUNAL SUPREMO DE ELECCIONES
+   REPUBLICA DE COSTA RICA
+          -------
+
+
+           P A D R O N    N A C I O N A L   E L E C T O R A L
+                               
+
+El Tribunal Supremo de Elecciones, con el propósito de fortalecer nues-
+tro sistema democrático,  hace público el Padrón Nacional Electoral por
+medio de Internet, acompañado del presente texto cuya finalidad es ayu-
+darle  a  interpretar la  información  de  los archivos que descargó
+de nuestro Web.
+
+El Padrón Electoral lo puede descargar en tres modalidades diferentes
+las cuales se explican a continuación:
+
+-------------------------------------------------------------------------
+
+                           PADRON COMPLETO
+
+Es un archivo único que contiene la totalidad de ciudadanos en ejercicio 
+inscritos en el Padrón Electoral al cierre del mes que se indica, este 
+archivo se denomina PADRON_COMPLETO.TXT.
+
+-------------------------------------------------------------------------
+
+                   PADRON POR PROVINCIAS Y CONSULADOS 
+
+Esta modalidad le permite descargar ocho archivos, que corresponden a
+cada una de las siete provincias y otro que contiene el detalle de los 
+ciudadanos inscritos en el extranjero, quienes podrán emitir el derecho
+al sufragio a través de los Consulados. El nombre de estos archivos se 
+muestra a continuación: 
+
+                          San José   = SJ
+		          Alajuela   = AL
+		          Cartago    = CA
+		          Heredia    = HE
+		          Guanacaste = GU
+		          Puntarenas = PU
+		          Limón      = LI
+ Voto en el extranjero (Consulados)  = CO
+
+-------------------------------------------------------------------------
+
+                         PADRON POR CANTONES
+
+Son 81 archivos los cuales corresponden a la totalidad de los cantones de
+país. Los nombres de estos archivos se forman de la siguiente manera:
+Las dos primeras letras corresponden a la provincia a la cual pertenece
+el cantón que usted eligió, clasificando las provincias como a continua-
+ción se explica;
+
+		San José   = sj
+		Alajuela   = al
+		Cartago    = ca
+		Heredia    = he
+		Guanacaste = gu
+		Puntarenas = pu
+		Limón      = li
+
+Seguido a estas letras viene el nombre del cantón y en algunos casos un 
+disminutivo de este nombre, principalmente en aquellos cantones en los
+que su nombre es muy largo o esta compuesto, para una mejor comprensión
+de lo anterior observe los siguentes ejemplos:
+
+sjcentral: Este caso se refiere al cantón central de la provincia de San José.
+
+sjtibas: Este sería el cantón de Tibás de la provincia de San José.
+
+hestodomingo: En este caso se utiliza un disminutivo para indicar que se
+trata del cantón de Santo Domingo de la provincia de Heredia.
+
+sjpz: Este disminutivo describre el cantón de Pérez Zeledón de la provincia 
+de San José.
+		
+Estos archivos contienen los electores debidamente inscritos del cantón
+que usted eligió, relacionados con la fecha que se indica. 
+
+-------------------------------------------------------------------------
+
+     DESCRIPCION DE LOS CAMPOS QUE CONFORMAN EL PADRON ELECTORAL
+
+La información de cada una de las modalidades fue extraída de la base de 
+datos del computador central y esta es su descripción:
+
+-----------------------------------------------------------------------
+| CAMPO      | LARGO | DE    A | SIGNIFICADO                          |
+|------------|-------|---------|--------------------------------------|
+| CEDULA     |   9   |  1    9 | # cédula del ciudadano               |
+| CODELEC    |   6   | 10   15 | Código Electoral donde está inscrito |
+| SEXO       |   1   | 16   16 | 1=Masculino   2=Femenino             |
+| FECHACADUC |   8   | 17   24 | Fecha vencimiento de la cédula       |
+| JUNTA      |   5   | 25   29 | # Junta Receptora de Votos           |
+| NOMBRE     |  30   | 30   59 | Nombre completo del ciudadano        |
+| 1.APELLIDO |  26   | 60   85 | Primer apellido                      |
+| 2.APELLIDO |  26   | 86  111 | Segundo apellido                     |
+-----------------------------------------------------------------------
+
+El campo JUNTA se usa para indicarle al ciudadano el número de Junta 
+receptora de  Votos en que deberá ejercer su derecho al sufragio, dato  
+que se  designa al cerrarse el Padrón Electoral que se utilizará en los
+comicios.
+
+El campo CODELEC es un código  que sirve para identificar la  provincia
+(primer dígito), cantón (siguientes dos)  y el distrito  (últimos  tres
+dígitos) en el que está inscrito el elector. Así, por ejemplo el código
+108001 equivale a: Provincia "San José" (1), cantón "Goicoechea" (08) y
+distrito "Ciudad de Guadalupe" (001). Para una mejor comprensión del
+campo CODELEC, le sugerimos consultar el otro archivo que le brindamos
+denominado DISTELEC.TXT el cual contiene  los nombres de todos los 
+distritos electorales del país, para que determine de manera efectiva 
+en dónde está inscrito el elector.
+
+-----------------------------------------------------------------------
+
+    DESCRIPCION DE LOS CAMPOS QUE CONFORMAN EL ARCHIVO DISTELEC.TXT
+
+La descripción de la tabla, de donde se extrajo los datos incluidos  en
+DISTELEC.TXT, es la siguiente:
+
+-----------------------------------------------------------------------
+|CAMPO     | LARGO | DE  A | SIGNIFICADO                              |
+|----------|-------|-------|------------------------------------------|
+|CODELE    |   6   | 1   6 | Seis dígitos del código electoral        |
+|PROVINCIA |  10   | 7  16 | Nombre de la provincia                   |
+|CANTON    |  20   |17  36 | Nombre del cantón electoral              |
+|DISTRITO  |  34   |37  70 | Nombre del distrito electoral            |
+-----------------------------------------------------------------------
+
+Los campos de ambas tablas vienen  separados por comas, para mayor claridad 
+de la información. 
+
+Sus consultas puede dirigirlas  al Departamento de Tecnologías de Información
+y Comunicación del TSE al télefóno: 2287-5753 ó al correo electrónico: 
+
+                       webmaster@tse.go.cr
+
+
+                  TRIBUNAL SUPREMO DE ELECCIONES                  
+                           www.tse.go.cr

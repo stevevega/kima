@@ -1,0 +1,23 @@
+a:3:{i:0;s:17:"{_BLOCK_.content}";s:7:"content";s:362:"
+<div id="main_user">
+    <h2>Main User</h2>
+    <p>{id}: {name}</p>
+</div>
+<div id="users">
+    <h3>Users</h3>
+    <ul>
+        {_BLOCK_.users}
+    </ul>
+</div>
+
+<div>
+    Lorem ipsum dolor sit amet, 
+    consectetur adipisicing elit, 
+    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+</div>
+<div>
+    <a href="{source}">Source</a>
+</div>
+";s:5:"users";s:71:"
+        <li class="user">{id_person}: {name} {last_name}</li>
+        ";}
