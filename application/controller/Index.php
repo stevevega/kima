@@ -18,8 +18,6 @@ class Index extends Controller
      */
     public function index_action()
     {
-        var_dump(Request::getAll('module'));
-        var_dump(getenv('MODULE'));
         # set title
         $this->_view->set('TITLE', 'Hola Mundo!');
         $this->_view->show('title');

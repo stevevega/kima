@@ -33,13 +33,18 @@ class Application
     private static $_config;
 
     /**
-     * config
+     * module
+     */
+    private static $_module;
+
+    /**
+     * controller
      * @var array
      */
     private static $_controller;
 
     /**
-     * config
+     * action
      * @var array
      */
     private static $_action;
@@ -86,8 +91,10 @@ class Application
         // get the controller and action from the request
         $controller = Request::get('controller', 'index');
         $action = Request::get('action', 'index');
+        $module = getenv('MODULE') ? getenv('MODULE') : null;
 
-        // set controller and action
+        // set module, controller and action
+        self::set_module($module);
         self::set_controller($controller);
         self::set_action($action);
 
@@ -119,6 +126,26 @@ class Application
 
         self::$_config = $config;
         return self::$_instance;
+    }
+
+    /**
+     * returns the application module
+     * @return string
+     */
+    public static function get_module()
+    {
+        return self::$_module;
+    }
+
+    /**
+     * sets the application module
+     * @param string $module
+     */
+    public static function set_module($module)
+    {
+        // set the application module
+        self::$_module = $module;
+        return self::$_module;
     }
 
     /**

@@ -43,13 +43,21 @@ class Controller
             if (array_key_exists($param, $this->_template)) {
                 return $this->_template[$param];
             } else {
-                // get the config and application controller-action
+                // get the config and application module-controller-action
                 $config = Application::get_instance()->get_config()->template;
+                $module = Application::get_instance()->get_module();
                 $controller = Application::get_instance()->get_controller();
                 $action = Application::get_instance()->get_action();
 
                 if (!$this->_use_main_view) {
                     unset($config['main']);
+                }
+
+                if ($module) {
+                    $module_folder = Application::get_instance()->get_config()->module['folder'];
+
+                    $config['folder'] = $module_folder . '/' . $module . '/view';
+                    $config['cache']['folder'] .= '/' . $module;
                 }
 
                 // set the view

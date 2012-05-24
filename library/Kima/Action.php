@@ -26,6 +26,7 @@ class Action
     public function __construct()
     {
         // gets the controller and action
+        $module = Application::get_instance()->get_module();
         $controller = Application::get_instance()->get_controller();
         $action = Application::get_instance()->get_action();
 
@@ -39,15 +40,16 @@ class Action
         }
 
         // inits the controller action
-        $this->_run_action($controller, $action);
+        $this->_run_action($module, $controller, $action);
     }
 
     /**
      * runs an action
+     * @param string $module
      * @param string $controller
      * @param string $action
      */
-    private function _run_action($controller, $action)
+    private function _run_action($module, $controller, $action)
     {
         // get the config
         $config = Application::get_instance()->get_config();
@@ -55,7 +57,13 @@ class Action
         // set the needed values
         $action = strtolower($action) . '_action';
         $controller = ucwords(strtolower($controller));
-        $controller_path = $config->controller['folder'] . '/' . $controller . '.php';
+
+        // get the controller path
+        $controller_folder = $module
+            ? $config->module['folder'] . '/' . $module . '/controller'
+            : $config->controller['folder'];
+
+        $controller_path = $controller_folder . '/' . $controller . '.php';
 
         // get the controller
         is_readable($controller_path)

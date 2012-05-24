@@ -15,7 +15,8 @@ class Index extends Controller
      */
     public function index_action()
     {
-        echo 'Admin!';
+        # display content
+        $this->_view->show('content');
     }
 
 }
