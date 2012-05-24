@@ -34,9 +34,9 @@ class Index extends Controller
         $this->_view->populate('users', $people);
 
         # library example
-        /*$shortener = new UrlShortener();
+        $shortener = new UrlShortener();
         $source = $shortener->shorten('http://www.google.com');
-        $this->_view->set('source', $source, 'content');*/
+        $this->_view->set('source', $source, 'content');
 
         # display content
         $this->_view->show('content');
