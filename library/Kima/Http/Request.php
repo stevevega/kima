@@ -68,7 +68,7 @@ class Request
      * @param string $param
      * @param mixed $default
      */
-    public static function getAll($param, $default=null)
+    public static function get_all($param, $default=null)
     {
         // ask for the parameter
         switch (true)
