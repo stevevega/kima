@@ -4,8 +4,6 @@
 
     SetEnvIf Host "admin.kima$" MODULE=admin
 
-    RewriteCond %{HTTP_HOST} (admin).kima$ [NC]
-
     RewriteRule ^$ index.php?{%QUERY_STRING}&controller=index&action=index
     RewriteRule ^/?([a-zA-Z-_]+)$ index.php?{%QUERY_STRING}&controller=$1&action=index
     RewriteRule ^/?([a-zA-Z-_]+)/([a-zA-Z-_]+)$ index.php?{%QUERY_STRING}&controller=$1&action=$2
