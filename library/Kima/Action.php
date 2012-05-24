@@ -66,9 +66,18 @@ class Action
         $controller_path = $controller_folder . '/' . $controller . '.php';
 
         // get the controller
-        is_readable($controller_path)
-            ? require_once $controller_path
-            : Error::set(__METHOD__, ' Cannot access controller file path ' . $controller_path);
+        if (is_readable($controller_path)) {
+            require_once $controller_path;
+        } else {
+            header('HTTP/1.0 404 Not Found');
+            $_GET['status_code'] = 404;
+
+            $controller = 'Error';
+            $controller_path = $config->controller['folder'] . '/Error.php';
+            require_once $controller_path;
+
+            $action = 'index_action';
+        }
 
         // validate-create controller object
         class_exists($controller)
