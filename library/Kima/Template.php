@@ -136,11 +136,11 @@ class Template
      * @access public
      * @param array $options
      */
-    public function __construct($options=array())
+    public function __construct($options = array())
     {
         // set the cache handler
-        $cache_folder = isset($options['cache']['folder']) ? $options['cache']['folder'] : '.';
-        $this->_setCache($cache_folder);
+        $cache_config = array_key_exists('cache', $options) ? $options['cache'] : array();
+        $this->_setCache($cache_config);
 
         // set the template directory
         $folder_path = isset($options['folder']) ? $options['folder'] : '.';
@@ -189,20 +189,13 @@ class Template
 
     /**
      * Set the cache handler
+     * @param array $cache_config
      * @access private
-     * @param string $cache_folder
      */
-    private function _setCache($cache_folder)
+    private function _setCache($cache_config)
     {
-        // create the templates cache directory if not exists
-        if (!is_dir($cache_folder)) {
-            $oldumask = umask(0);
-            mkdir($cache_folder, 0777);
-            umask($oldumask);
-        }
-
         // set the cache instance
-        $this->_cache = new Cache($cache_folder);
+        $this->_cache = Cache::get_instance('File', $cache_config);
     }
 
     /**

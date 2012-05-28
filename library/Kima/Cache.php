@@ -7,7 +7,8 @@ namespace Kima;
 /**
  * Namespaces to use
  */
-use \Kima\Error;
+use \Kima\Cache\File,
+    \Kima\Error;
 
 /**
  * Cache
@@ -15,91 +16,44 @@ use \Kima\Error;
  * Cache system
  * @package Kima
  */
-class Cache
+abstract class Cache
 {
 
     /**
-     * Cache folder path
-     * @access private
-     * @var string
-     */
-    private $_folder_path;
-
-    /**
-     * Constructor
-     * @access public
-     * @param string $folder_path
-     */
-    public function __construct($folder_path='./')
-    {
-        // set the cache folder path
-        $this->_set_folder_path($folder_path);
-    }
-
-    /**
-     * Sets the cache path
-     * @param string $path
-     */
-    private function _set_folder_path($folder_path)
-    {
-        // path should be a writable folder
-        is_dir($folder_path) && is_writable($folder_path)
-            ? $this->_folder_path = $folder_path
-            : Error::set(__METHOD__, ' Cache folder path ' . $folder_path . ' is not accesible or writable');
-    }
-
-    /**
-     * Set the cache
-     * @access public
-     * @param string $cache_file
-     * @param string $content
-     */
-    public function set($cache_file, $content)
-    {
-        // Set the cache
-        $handler = fopen($this->_folder_path . '/' . $cache_file . '.cache', 'w');
-        fwrite($handler, serialize($content));
-        fclose($handler);
-    }
-
-    /**
-     * Gets the cache content by time parameter
-     * @access public
-     * @param string $cache_file
+     * cache get
+     * @param string $key
      * @param int $time
-     * @return string
      */
-    public function get_by_time($cache_file, $time=3600)
-    {
-        // Set the file path
-        $cache_path = $this->_folder_path . '/' . $cache_file . '.cache';
-
-        // can we access the cache file? if so, is the cache on the time frame we need?
-        return (is_readable($cache_path) && time() < (filemtime($cache_path) + $time))
-            ? @unserialize(file_get_contents($cache_path))
-            : null;
-    }
+    public abstract function get($key, $time = 3600);
 
     /**
-     * Gets the cache content by file modification
-     * @access public
-     * @param string $cache_file
+     * cache get by file
+     * @param string $key
      * @param string $original_file_path
-     * @return string
      */
-    public function get_by_file($cache_file, $original_file_path)
-    {
-        // can we access the original file?
-        if (is_readable($original_file_path)) {
-            // set the cache full path
-            $file_path = $this->_folder_path . '/' . $cache_file . '.cache';
+    public abstract function get_by_file($key, $file_path);
 
-            // do we have a valid cache?, if so, is it newer than the last template modification date?
-            return (is_readable($file_path) && filemtime($original_file_path) <= filemtime($file_path))
-                ? unserialize(file_get_contents($file_path))
-                : null;
+    /**
+     * cache set
+     * @param string $key
+     * @param mixed $value
+     * @param time $expiration
+     */
+    public abstract function set($key, $value);
+
+    /**
+     * get instance of the required cache system
+     * @param string $type
+     * @param array $params
+     */
+    public static function get_instance($type, $params = array())
+    {
+        switch ($type) {
+            case 'File' :
+                return new File($params);
+            default :
+                Error::set(__METHOD__, 'Invalid Cache system "' . $type . '" required');
         }
-        return null;
     }
 
 }

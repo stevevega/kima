@@ -53,6 +53,10 @@ class Controller
                     unset($config['main']);
                 }
 
+                // set cache config
+                $config['cache'] = Application::get_instance()->get_config()->cache;
+                $config['cache']['folder'] .= '/template';
+
                 if ($module) {
                     $module_folder = Application::get_instance()->get_config()->module['folder'];
 
