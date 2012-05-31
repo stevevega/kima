@@ -208,7 +208,7 @@ abstract class Paypal
         }
 
         $response = $this->_format_http_response($http_response);
-        if (empty($response) || !array_key_exists('ACK', $response)) {
+        if (empty($response) || !isset($response['ACK'])) {
             $this->_set_last_error('Invalid HTTP Response for POST request using ' . $api_fields);
             return false;
         }
@@ -249,7 +249,7 @@ abstract class Paypal
 
         $missing_fields = array();
         foreach ($required_fields as $field) {
-            if (!array_key_exists($field, $params) || empty($params[$field])) {
+            if (!isset($params[$field]) || empty($params[$field])) {
                 $missing_fields[] = $field;
             }
         }

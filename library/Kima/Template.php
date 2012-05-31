@@ -139,7 +139,7 @@ class Template
     public function __construct($options = array())
     {
         // set the cache handler
-        $cache_config = array_key_exists('cache', $options) ? $options['cache'] : array();
+        $cache_config = isset($options['cache']) ? $options['cache'] : array();
         $this->_setCache($cache_config);
 
         // set the template directory

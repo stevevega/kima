@@ -42,7 +42,7 @@ class Config
     public function __get($key)
     {
         // set the key value if exists
-        array_key_exists($key, $this->_config)
+        isset($this->_config[$key])
             ? $value = $this->_config[$key]
             : Error::set(__METHOD__, 'Config key ' . $key . ' doesn\'t exists', false);
 

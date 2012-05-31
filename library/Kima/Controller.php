@@ -40,7 +40,7 @@ class Controller
     public function __get($param)
     {
         if ($param === '_view') {
-            if (array_key_exists($param, $this->_template)) {
+            if (isset($this->_template[$param])) {
                 return $this->_template[$param];
             } else {
                 // get the config and application module-controller-action
@@ -82,7 +82,7 @@ class Controller
      */
     public function disable_main_view()
     {
-        if (array_key_exists('_view', $this->_template)) {
+        if (isset($this->_template['_view'])) {
             Error::set(__METHOD__, 'disable_main_view() should be called before any view reference');
         }
 

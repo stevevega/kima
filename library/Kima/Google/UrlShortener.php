@@ -32,7 +32,7 @@ class UrlShortener
      */
     public function __construct($options=array())
     {
-        if (isset($options['api']) && array_key_exists('key', $options['api'])) {
+        if (isset($options['api']) && isset($options['key'])) {
             $this->_apiKey = $options['key'];
         }
     }
@@ -72,7 +72,7 @@ class UrlShortener
         $result = json_decode($result, true);
 
         // error?
-        if (array_key_exists('error', $result)) {
+        if (isset($result['error'])) {
             Error::set(__METHOD__, ' Error on the shorten request ' .
                 $result['error']['errors']['locationType'] . ' ' .
                 $result['error']['errors']['location'] . ' ' .
@@ -81,7 +81,7 @@ class UrlShortener
         }
 
         // decode and return the JSON response
-        return array_key_exists('id', $result) ? $result['id'] : null;
+        return isset($result['id']) ? $result['id'] : null;
     }
 
 }

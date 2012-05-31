@@ -33,7 +33,7 @@ class File extends Cache
      */
     public function __construct($options = array())
     {
-        if (array_key_exists('folder', $options)) {
+        if (isset($options['folder'])) {
             $this->_set_folder_path($options['folder']);
         }
     }
