@@ -19,6 +19,9 @@ use \Kima\Cache,
 class Memcached extends PhpMemcached
 {
 
+    /**
+     * Memcached Connection Pool
+     */
     const MEMCACHED_POOL = 'Kima_Memcached';
 
     /**
