@@ -8,6 +8,7 @@ namespace Kima;
  * Namespaces to use
  */
 use \Kima\Cache\File,
+    \Kima\Cache\Memcached,
     \Kima\Error;
 
 /**
@@ -18,6 +19,12 @@ use \Kima\Cache\File,
  */
 abstract class Cache
 {
+
+    /**
+     * cache contruct
+     * @param array $options
+     */
+    public abstract function __construct($options = array());
 
     /**
      * cache get
@@ -49,8 +56,13 @@ abstract class Cache
     public static function get_instance($type, $params = array())
     {
         switch ($type) {
-            case 'File' :
+            case 'file' :
                 return new File($params);
+            case 'memcached' :
+                if (!extension_loaded('Memcached')) {
+                    Error::set(__METHOD__, 'Memcached extension is not enabled on this server.');
+                }
+                return new Memcached($params);
             default :
                 Error::set(__METHOD__, 'Invalid Cache system "' . $type . '" required');
         }

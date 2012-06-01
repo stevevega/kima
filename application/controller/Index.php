@@ -2,7 +2,9 @@
 /**
  * Namespaces to use
  */
-use \Kima\Controller,
+use \Kima\Application,
+    \Kima\Cache,
+    \Kima\Controller,
     \Kima\Google\UrlShortener,
     \Kima\Http\Request,
     \Kima\Payment\Paypal;
@@ -70,6 +72,17 @@ class Index extends Controller
         $response
             ? var_dump($response)
             : var_dump($paypal->get_last_error());
+    }
+
+    public function memcached_action()
+    {
+        $config = Application::get_config()->cache;
+        $memcached = Cache::get_instance('memcached', $config);
+
+        $memcached->set('test', 'Hola Mundo');
+        var_dump($memcached->get('test'));
+        var_dump($memcached->flush());
+        var_dump($memcached->get('test'));
     }
 
 }

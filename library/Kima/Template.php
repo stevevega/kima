@@ -195,7 +195,7 @@ class Template
     private function _setCache($cache_config)
     {
         // set the cache instance
-        $this->_cache = Cache::get_instance('File', $cache_config);
+        $this->_cache = Cache::get_instance('file', $cache_config);
     }
 
     /**
