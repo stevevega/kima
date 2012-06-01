@@ -7,7 +7,8 @@ namespace Kima;
 /**
  * Namespaces to use
  */
-use \Kima\Cache\File,
+use \Kima\Cache\Apc,
+    \Kima\Cache\File,
     \Kima\Cache\Memcached,
     \Kima\Error;
 
@@ -56,13 +57,18 @@ abstract class Cache
     public static function get_instance($type, $params = array())
     {
         switch ($type) {
-            case 'file' :
-                return new File($params);
+            case 'apc' :
+                if (!extension_loaded('apc')) {
+                    Error::set(__METHOD__, 'APC extension is not enabled on this server.');
+                }
+                return new Apc($params);
             case 'memcached' :
                 if (!extension_loaded('Memcached')) {
                     Error::set(__METHOD__, 'Memcached extension is not enabled on this server.');
                 }
                 return new Memcached($params);
+            case 'file' :
+                return new File($params);
             default :
                 Error::set(__METHOD__, 'Invalid Cache system "' . $type . '" required');
         }
