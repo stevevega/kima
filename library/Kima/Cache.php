@@ -32,7 +32,7 @@ abstract class Cache
      * @param string $key
      * @param int $time
      */
-    public abstract function get($key, $time = 3600);
+    public abstract function get($key);
 
     /**
      * cache get by file
@@ -52,26 +52,106 @@ abstract class Cache
     /**
      * get instance of the required cache system
      * @param string $type
-     * @param array $params
+     * @param array $options
      */
-    public static function get_instance($type, $params = array())
+    public static function get_instance($type, $options = array())
     {
         switch ($type) {
+            case 'default' :
+                if (isset($options['default']) && !empty($options['default'])) {
+                    return self::get_instance($options['default'], $options);
+                } else {
+                    return self::_get_prefered_cache($options);
+                }
             case 'apc' :
-                if (!extension_loaded('apc')) {
-                    Error::set(__METHOD__, 'APC extension is not enabled on this server.');
-                }
-                return new Apc($params);
+                return self::_get_apc($options);
             case 'memcached' :
-                if (!extension_loaded('Memcached')) {
-                    Error::set(__METHOD__, 'Memcached extension is not enabled on this server.');
-                }
-                return new Memcached($params);
+                return self::_get_memcached($options);
             case 'file' :
-                return new File($params);
+                return self::_get_file($options);
             default :
-                Error::set(__METHOD__, 'Invalid Cache system "' . $type . '" required');
+                Error::set(__METHOD__, 'Invalid Cache system "' . $type . '" requested');
         }
+    }
+
+    /**
+     * Gets APC instance
+     * @param array $options
+     * @return \Kima\Apc
+     */
+    private static function _get_apc($options)
+    {
+        if (!self::_is_apc_enabled()) {
+            Error::set(__METHOD__, 'APC extension is not enabled on this server.');
+        }
+        return new Apc($options);
+    }
+
+    /**
+     * Gets File cache instance
+     * @param array $options
+     * @return \Kima\File
+     */
+    private static function _get_file($options)
+    {
+        return new File($options);
+    }
+
+    /**
+     * Gets memcached instance
+     * @param array $options
+     * @return \Kima\Memcached
+     */
+    private static function _get_memcached($options)
+    {
+        if (!self::_is_memcached_enabled()) {
+            Error::set(__METHOD__, 'Memcached extension is not enabled on this server.');
+        }
+        return new Memcached($options);
+    }
+
+    /**
+     * Gets the prefered cache system available
+     * @param array $options
+     * @return mixed
+     */
+    private static function _get_prefered_cache($options)
+    {
+        switch (true) {
+            case self::_is_apc_enabled() :
+                return self::_get_apc($options);
+            case self::_is_memcached_enabled() :
+                return self::_get_memcached($options);
+            default :
+                return self::_get_file($options);
+        }
+    }
+
+    /**
+     * Checks whether APC is enabled or not
+     * @return boolean
+     */
+    protected static function _is_apc_enabled()
+    {
+        return extension_loaded('apc');
+    }
+
+    /**
+     * Checks whether Memcached is enabled or not
+     * @return boolean
+     */
+    protected static function _is_memcached_enabled()
+    {
+        return extension_loaded('memcached');
+    }
+
+    /**
+     * gets the current cache type
+     * @return string
+     */
+    public function get_type()
+    {
+        return isset($this->_cache_type) ? $this->_cache_type : null;
     }
 
 }

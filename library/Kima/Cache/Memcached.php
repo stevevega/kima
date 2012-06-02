@@ -16,13 +16,23 @@ use \Kima\Cache,
  *
  * Memcached system
  */
-class Memcached extends PhpMemcached
+class Memcached extends Cache
 {
 
     /**
      * Memcached Connection Pool
      */
     const MEMCACHED_POOL = 'Kima_Memcached';
+
+    /**
+     * @param string $_cache_type
+     */
+    protected $_cache_type = 'memcached';
+
+    /**
+     * @param Memcached $_memcached
+     */
+    protected $_memcached;
 
     /**
      * Constructor
@@ -32,9 +42,9 @@ class Memcached extends PhpMemcached
      */
     public function __construct($options = array())
     {
-        parent::__construct(MEMCACHED_POOL);
+        $this->_memcached = new PhpMemcached(MEMCACHED_POOL);
 
-        if ($this->getServerList()) {
+        if ($this->_memcached->getServerList()) {
             return;
         }
 
@@ -66,7 +76,7 @@ class Memcached extends PhpMemcached
             'timestamp' => time(),
             'value' => $value);
 
-        return parent::set($key, $value, $expiration);
+        return $this->_memcached->set($key, $value, $expiration);
     }
 
     /**
@@ -77,7 +87,7 @@ class Memcached extends PhpMemcached
      */
     public function get($key)
     {
-        $item = parent::get($key);
+        $item = $this->_memcached->get($key);
         return $item ? $item['value'] : null;
     }
 
@@ -92,7 +102,7 @@ class Memcached extends PhpMemcached
     {
         // can we access the original file?
         if (is_readable($original_file_path)) {
-            $item = parent::get($key);
+            $item = $this->_memcached->get($key);
 
             // do we have a valid cache?, if so, is it newer than the last template modification date?
             return (filemtime($original_file_path) <= $item['timestamp'])

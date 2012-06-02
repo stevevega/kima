@@ -189,13 +189,13 @@ class Template
 
     /**
      * Set the cache handler
-     * @param array $cache_config
+     * @param array $config
      * @access private
      */
-    private function _setCache($cache_config)
+    private function _setCache($config)
     {
         // set the cache instance
-        $this->_cache = Cache::get_instance('file', $cache_config);
+        $this->_cache = Cache::get_instance('default', $config);
     }
 
     /**

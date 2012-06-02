@@ -15,8 +15,13 @@ use \Kima\Cache,
  *
  * Alternative PHP Cache system
  */
-class Apc
+class Apc extends Cache
 {
+
+    /**
+     * @param string $_cache_type
+     */
+    protected $_cache_type = 'apc';
 
      /**
      * Constructor

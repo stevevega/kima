@@ -20,6 +20,11 @@ class File extends Cache
 {
 
     /**
+     * @param string $_cache_type
+     */
+    protected $_cache_type = 'file';
+
+    /**
      * Cache folder path
      * @access private
      * @var string
