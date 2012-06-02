@@ -74,15 +74,16 @@ class Index extends Controller
             : var_dump($paypal->get_last_error());
     }
 
-    public function memcached_action()
+    public function cache_action()
     {
         $config = Application::get_config()->cache;
-        $memcached = Cache::get_instance('memcached', $config);
+        $cache = Cache::get_instance('default', $config);
+        var_dump($cache->get_type());
 
-        $memcached->set('test', 'Hola Mundo');
-        var_dump($memcached->get('test'));
-        var_dump($memcached->flush());
-        var_dump($memcached->get('test'));
+        var_dump($cache->get('test'));
+        $cache->set('test', 'Hola Mundo', 10);
+        //var_dump($cache->flush());
+        var_dump($cache->get('test'));
     }
 
 }

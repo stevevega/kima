@@ -1,4 +1,4 @@
-a:3:{i:0;s:14:"{_BLOCK_.main}";s:4:"main";s:289:"
+a:2:{s:10:"expiration";i:1338661952;s:5:"value";a:3:{i:0;s:14:"{_BLOCK_.main}";s:4:"main";s:289:"
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
     <head>
@@ -14,4 +14,4 @@ a:3:{i:0;s:14:"{_BLOCK_.main}";s:4:"main";s:289:"
 </html>
 ";s:5:"title";s:34:"
         <h1>{TITLE}</h1>
-        ";}
+        ";}}

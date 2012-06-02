@@ -1,4 +1,4 @@
-a:3:{i:0;s:17:"{_BLOCK_.content}";s:7:"content";s:362:"
+a:2:{s:10:"expiration";i:1338661952;s:5:"value";a:3:{i:0;s:17:"{_BLOCK_.content}";s:7:"content";s:362:"
 <div id="main_user">
     <h2>Main User</h2>
     <p>{id}: {name}</p>
@@ -20,4 +20,4 @@ a:3:{i:0;s:17:"{_BLOCK_.content}";s:7:"content";s:362:"
 </div>
 ";s:5:"users";s:71:"
         <li class="user">{id_person}: {name} {last_name}</li>
-        ";}
+        ";}}

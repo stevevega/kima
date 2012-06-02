@@ -44,6 +44,67 @@ class File extends Cache
     }
 
     /**
+     * Gets the cache content by time parameter
+     * @access public
+     * @param string $key
+     * @return mixed
+     */
+    public function get($key)
+    {
+        $cache_path = $this->_folder_path . '/' . $key . '.cache';
+        if (!is_readable($cache_path)) {
+            return null;
+        }
+
+        $item = @unserialize(file_get_contents($cache_path));
+        $is_valid_cache = $item['expiration']<=0 || time() < $item['expiration'];
+
+        return $is_valid_cache
+            ? $item['value']
+            : null;
+    }
+
+    /**
+     * Gets the cache content by file modification
+     * @access public
+     * @param string $key
+     * @param string $file_path
+     * @return string
+     */
+    public function get_by_file($key, $file_path)
+    {
+        if (is_readable($file_path)) {
+            $cache_path = $this->_folder_path . '/' . $key . '.cache';
+
+            if (is_readable($cache_path) && filemtime($file_path) <= filemtime($cache_path)) {
+                $item = unserialize(file_get_contents($cache_path));
+                return $item['value'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Set the cache
+     * @access public
+     * @param string $key
+     * @param string $value
+     * @param int $expiration
+     */
+    public function set($key, $value, $expiration = 0)
+    {
+        $expiration = intval($expiration);
+        $value = array(
+            'expiration' => $expiration>0 ? time() + $expiration : 0,
+            'value' => $value);
+
+        $handler = fopen($this->_folder_path . '/' . $key . '.cache', 'w');
+        fwrite($handler, serialize($value));
+        fclose($handler);
+    }
+
+    /**
      * Sets the cache path
      * @param string $path
      */
@@ -59,60 +120,6 @@ class File extends Cache
         is_dir($folder_path) && is_writable($folder_path)
             ? $this->_folder_path = $folder_path
             : Error::set(__METHOD__, ' Cache folder path ' . $folder_path . ' is not accesible or writable');
-    }
-
-    /**
-     * Set the cache
-     * @access public
-     * @param string $cache_file
-     * @param string $content
-     */
-    public function set($cache_file, $content)
-    {
-        // Set the cache
-        $handler = fopen($this->_folder_path . '/' . $cache_file . '.cache', 'w');
-        fwrite($handler, serialize($content));
-        fclose($handler);
-    }
-
-    /**
-     * Gets the cache content by time parameter
-     * @access public
-     * @param string $cache_file
-     * @param int $time
-     * @return string
-     */
-    public function get($cache_file, $time=3600)
-    {
-        // Set the file path
-        $cache_path = $this->_folder_path . '/' . $cache_file . '.cache';
-
-        // can we access the cache file? if so, is the cache on the time frame we need?
-        return (is_readable($cache_path) && time() < (filemtime($cache_path) + $time))
-            ? @unserialize(file_get_contents($cache_path))
-            : null;
-    }
-
-    /**
-     * Gets the cache content by file modification
-     * @access public
-     * @param string $cache_file
-     * @param string $original_file_path
-     * @return string
-     */
-    public function get_by_file($cache_file, $original_file_path)
-    {
-        // can we access the original file?
-        if (is_readable($original_file_path)) {
-            // set the cache full path
-            $file_path = $this->_folder_path . '/' . $cache_file . '.cache';
-
-            // do we have a valid cache?, if so, is it newer than the last template modification date?
-            return (is_readable($file_path) && filemtime($original_file_path) <= filemtime($file_path))
-                ? unserialize(file_get_contents($file_path))
-                : null;
-        }
-        return null;
     }
 
 }

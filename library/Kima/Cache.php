@@ -37,7 +37,7 @@ abstract class Cache
     /**
      * cache get by file
      * @param string $key
-     * @param string $original_file_path
+     * @param string $file_path
      */
     public abstract function get_by_file($key, $file_path);
 
@@ -47,7 +47,7 @@ abstract class Cache
      * @param mixed $value
      * @param time $expiration
      */
-    public abstract function set($key, $value);
+    public abstract function set($key, $value, $expiration = 0);
 
     /**
      * get instance of the required cache system

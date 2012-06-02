@@ -58,25 +58,8 @@ class Memcached extends Cache
                 $servers[] = array($host, $port, $weight);
             }
 
-            $this->addServers($servers);
+            $this->_memcached->addServers($servers);
         }
-    }
-
-    /**
-     * Set the cache
-     * @access public
-     * @param string $key
-     * @param mixed $value
-     * @param int $expiration
-     * @return boolean
-     */
-    public function set($key, $value, $expiration = 0)
-    {
-        $value = array(
-            'timestamp' => time(),
-            'value' => $value);
-
-        return $this->_memcached->set($key, $value, $expiration);
     }
 
     /**
@@ -95,21 +78,38 @@ class Memcached extends Cache
      * Gets the cache content by file modification
      * @access public
      * @param string $key
-     * @param string $original_file_path
+     * @param string $file_path
      * @return string
      */
-    public function get_by_file($key, $original_file_path)
+    public function get_by_file($key, $file_path)
     {
         // can we access the original file?
-        if (is_readable($original_file_path)) {
+        if (is_readable($file_path)) {
             $item = $this->_memcached->get($key);
 
-            // do we have a valid cache?, if so, is it newer than the last template modification date?
-            return (filemtime($original_file_path) <= $item['timestamp'])
+            // is it newer than the last file modification date?
+            return (filemtime($file_path) <= $item['timestamp'])
                 ? $item['value']
                 : null;
         }
         return null;
+    }
+
+    /**
+     * Set the cache
+     * @access public
+     * @param string $key
+     * @param mixed $value
+     * @param int $expiration
+     * @return boolean
+     */
+    public function set($key, $value, $expiration = 0)
+    {
+        $value = array(
+            'timestamp' => time(),
+            'value' => $value);
+
+        return $this->_memcached->set($key, $value, $expiration);
     }
 
 }
