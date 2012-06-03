@@ -2,7 +2,7 @@
     RewriteEngine On
     RewriteBase /
 
-    SetEnvIf Host "admin.kima$" MODULE=admin
+    SetEnvIf Host "([a-zA-Z-_]+).kima$" MODULE=$1
 
     RewriteRule ^$ index.php?{%QUERY_STRING}&controller=index&action=index
     RewriteRule ^/?([a-zA-Z-_]+)$ index.php?{%QUERY_STRING}&controller=$1&action=index
