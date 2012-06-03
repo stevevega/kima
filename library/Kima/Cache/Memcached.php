@@ -44,6 +44,10 @@ class Memcached extends Cache
     {
         $this->_memcached = new PhpMemcached(MEMCACHED_POOL);
 
+        if (isset($options['prefix'])) {
+            $this->_set_prefix($options['prefix']);
+        }
+
         if ($this->_memcached->getServerList()) {
             return;
         }
@@ -70,6 +74,7 @@ class Memcached extends Cache
      */
     public function get($key)
     {
+        $key = $this->_get_key($key);
         $item = $this->_memcached->get($key);
         return $item ? $item['value'] : null;
     }
@@ -85,6 +90,7 @@ class Memcached extends Cache
     {
         // can we access the original file?
         if (is_readable($file_path)) {
+            $key = $this->_get_key($key);
             $item = $this->_memcached->get($key);
 
             // is it newer than the last file modification date?
@@ -105,6 +111,7 @@ class Memcached extends Cache
      */
     public function set($key, $value, $expiration = 0)
     {
+        $key = $this->_get_key($key);
         $value = array(
             'timestamp' => time(),
             'value' => $value);

@@ -50,6 +50,12 @@ abstract class Cache
     public abstract function set($key, $value, $expiration = 0);
 
     /**
+     * The cache key prefix
+     * @var string
+     */
+    private $_prefix;
+
+    /**
      * get instance of the required cache system
      * @param string $type
      * @param array $options
@@ -152,6 +158,27 @@ abstract class Cache
     public function get_type()
     {
         return isset($this->_cache_type) ? $this->_cache_type : null;
+    }
+
+    /**
+     * Returns the key with prefix included if needed
+     * @param string $key
+     * @return string
+     */
+    protected function _get_key($key)
+    {
+        return empty($this->_prefix)
+            ? $key
+            : $this->_prefix . '_' . $key;
+    }
+
+    /**
+     * Sets the cache key prefix
+     */
+    protected function _set_prefix($prefix)
+    {
+        $this->_prefix = (string)$prefix;
+        return $this;
     }
 
 }

@@ -212,8 +212,8 @@ class Template
         }
 
         // get the blocks from cache?
-        $cache_file = str_replace(DIRECTORY_SEPARATOR, '-', $template_file);
-        $blocks = $this->_cache->get_by_file($cache_file, $this->_folder_path . '/' . $template_file);
+        $cache_key = str_replace(DIRECTORY_SEPARATOR, '-', $template_file);
+        $blocks = $this->_cache->get_by_file($cache_key, $this->_folder_path . '/' . $template_file);
 
         // do we have cached content?
         if (empty($blocks)) {
@@ -224,7 +224,7 @@ class Template
             $blocks = $this->_get_blocks($template, $template_file);
 
             // set the blocks on cache
-            $this->_cache->set($cache_file, $blocks);
+            $this->_cache->set($cache_key, $blocks);
         }
 
         // set the blocks

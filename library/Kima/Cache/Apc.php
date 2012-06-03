@@ -28,7 +28,11 @@ class Apc extends Cache
      * @access public
      * @param array $options
      */
-    public function __construct($options = array()){}
+    public function __construct($options = array()){
+        if (isset($options['prefix'])) {
+            $this->_set_prefix($options['prefix']);
+        }
+    }
 
     /**
      * Gets a cache item
@@ -38,6 +42,7 @@ class Apc extends Cache
      */
     public function get($key)
     {
+        $key = $this->_get_key($key);
         $item = apc_fetch($key);
         return $item ? $item['value'] : null;
     }
@@ -53,6 +58,7 @@ class Apc extends Cache
     {
         // can we access the original file?
         if (is_readable($file_path)) {
+            $key = $this->_get_key($key);
             $item = apc_fetch($key);
 
             // do we have a valid cache?, if so, is it newer than the last template modification date?
@@ -73,6 +79,7 @@ class Apc extends Cache
      */
     public function set($key, $value, $expiration = 0)
     {
+        $key = $this->_get_key($key);
         $value = array(
             'timestamp' => time(),
             'value' => $value);

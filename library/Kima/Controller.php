@@ -61,7 +61,7 @@ class Controller
                     $module_folder = Application::get_instance()->get_config()->module['folder'];
 
                     $config['folder'] = $module_folder . '/' . $module . '/view';
-                    $config['cache']['folder'] .= '/' . $module;
+                    $config['cache']['prefix'] = $module;
                 }
 
                 // set the view

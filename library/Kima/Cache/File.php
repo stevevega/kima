@@ -38,6 +38,10 @@ class File extends Cache
      */
     public function __construct($options = array())
     {
+        if (isset($options['prefix'])) {
+            $this->_set_prefix($options['prefix']);
+        }
+
         if (isset($options['folder'])) {
             $this->_set_folder_path($options['folder']);
         }
@@ -51,6 +55,7 @@ class File extends Cache
      */
     public function get($key)
     {
+        $key = $this->_get_key($key);
         $cache_path = $this->_folder_path . '/' . $key . '.cache';
         if (!is_readable($cache_path)) {
             return null;
@@ -74,6 +79,7 @@ class File extends Cache
     public function get_by_file($key, $file_path)
     {
         if (is_readable($file_path)) {
+            $key = $this->_get_key($key);
             $cache_path = $this->_folder_path . '/' . $key . '.cache';
 
             if (is_readable($cache_path) && filemtime($file_path) <= filemtime($cache_path)) {
@@ -95,6 +101,7 @@ class File extends Cache
     public function set($key, $value, $expiration = 0)
     {
         $expiration = intval($expiration);
+        $key = $this->_get_key($key);
         $value = array(
             'expiration' => $expiration>0 ? time() + $expiration : 0,
             'value' => $value);
