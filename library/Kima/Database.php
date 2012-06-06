@@ -77,7 +77,7 @@ class Database
     public function _get_connection()
     {
         # lets check if we already got a connection to this host
-        if (empty($this->$_connection)) {
+        if (empty($this->_connection)) {
             # set the username and password
             $config = Application::get_instance()->get_config();
             $user = $config->database['user'];
