@@ -9,12 +9,12 @@ namespace Kima;
  */
 use \Kima\Application;
 use \Kima\Error;
+use \PDO;
 
 /**
  * Database
  *
- * Handles database using mysqli
- * @package Kima
+ * Handles database using PDO
  */
 class Database
 {
@@ -27,44 +27,41 @@ class Database
 
     /**
      * Database connection
-     * @access private
-     * @var Mysqli
+     * @var PDO
      */
-    private static $_connection;
+    private $_connection;
 
     /**
      * Database host
-     * @access private
      * @var string
      */
-    private static $_host = '';
+    private $_host = '';
 
     /**
      * Database name
-     * @access private
      * @var string
      */
-    private static $_database = '';
+    private $_database = '';
 
     /**
      * constructor
      */
     private function __construct()
     {
-        # make sure mysqli exists
-        if (!function_exists('mysqli_connect')) {
-            Error::set(__METHOD__, 'mysqli is not present on this server');
+        # make sure pdo is available
+        if (!extension_loaded('pdo')) {
+            Error::set(__METHOD__, 'PDO extension is not present on this server');
         }
 
         # just set the default host and database name
         $config = Application::get_instance()->get_config();
-        self::$_database = $config->database['name'];
-        self::$_host = $config->database['host'];
+        $this->set_database($config->database['name'])
+            ->set_host($config->database['host']);
     }
 
     /**
      * gets the Database instance
-     * @return Kima_Database
+     * @return Kima\Database
      */
     public static function get_instance()
     {
@@ -75,114 +72,86 @@ class Database
     /**
      * checks database connection status
      * if theres no connection creates a new one
-     * @access private
+     * @return PDO
      */
     public function _get_connection()
     {
         # lets check if we already got a connection to this host
-        if (empty(self::$_connection)) {
+        if (empty($this->$_connection)) {
             # set the username and password
             $config = Application::get_instance()->get_config();
             $user = $config->database['user'];
             $password = $config->database['password'];
 
             # make the connection
-            self::_connect($user, $password);
+            $this->_connect($user, $password);
         }
 
-        return self::$_connection;
+        return $this->_connection;
     }
 
     /**
      * creates a new database connection
-     * @access private
      * @param string $user
      * @param string $password
+     * @return PDO
      */
     private function _connect($user, $password)
     {
         # make the database connection
+        $dsn = 'mysql:dbname=' . $this->_database .';host=' . $this->_host;
         try {
-            $connection = mysqli_connect(self::$_host, $user, $password, self::$_database);
-        } catch(Exception $e) {
-            var_dump($e);
+            $this->_connection = new PDO($dsn, $user, $password);
+            return $this->_connection;
+        } catch (PDOException $e) {
+            Error::set( __METHOD__, 'PDO Connection failed: ' . $e->getMessage());
         }
-
-        # store the connection when success, otherwise we set the error message
-        if (mysqli_connect_errno()<=0) {
-            self::$_connection = $connection;
-            return true;
-        } else {
-            Error::set( __METHOD__, 'DbManager: mysqli connection error: '.mysqli_connect_error());
-        }
-
-        # return the connection result
-        return false;
     }
 
     /**
      * executes a query
-     * @access public
      * @param string $query
      * @param boolean $select_query
      * @param mixed $model
      * @param boolean $fetch_all
+     * @return mixed
      */
     public function execute($query, $select_query=true, $model=null, $fetch_all=false)
     {
         # validate query
         if (empty($query)) {
-            Error::set(__METHOD__ , 'mysqli query error: empty query');
+            Error::set(__METHOD__ , 'Database query error: empty query');
         }
 
-        # get the connection to the host
-        $connection = self::_get_connection();
+        try {
+            $statement = $this->_get_connection()->prepare($query);
+            $statement->execute();
 
-        $rs = $connection->query($query);
-
-        # lets try to run the query
-        if ($rs) {
-            # when is a select query we need to return the results
             if ($select_query) {
-                while($row = $rs->fetch_object($model)) {
+                while ($row = $statement->fetchObject($model)) {
                     $result[] = $row;
                 }
-
-                # return the result
                 return !$fetch_all && isset($result[0]) ? $result[0] : $result;
-
-                # free the result set
-                $rs->close();
             }
 
             # in a normal query we just let the user it succeed
             return true;
+        } catch (PDOException $e) {
+            Error::set( __METHOD__, 'PDO execute failed: ' . $e->getMessage());
         }
-
-        # an error message if the query failed
-        Error::set(__METHOD__, 'DbManager: mysqli query error: ' . $connection->error);
     }
 
     /**
      * Escapes the string to prepare it for db queries
-     * @access public
      * @param string $string
-     * @param boolean $extra_safe
      * @return string
      */
-    public function escape($string, $extra_safe=false)
+    public function escape($string)
     {
         // escape strings
         if (is_string($string)) {
             # get the current database connection
-            $connection = self::_get_connection();
-
-            $string = $extra_safe==true
-                ? addcslashes($connection->real_escape_string($data), '%_')
-                : $connection->real_escape_string($string);
-
-            # clear garbage
-            unset($connection);
+            $this->_get_connection()->quote($string);
         }
 
         return $string;
@@ -190,65 +159,66 @@ class Database
 
     /**
      * gets the last inserted id
-     * @access public
      * @return mixed
      */
     public function get_last_id()
     {
-        # get the connection
-        $connection = self::_get_connection();
-
         # get the last insert id
-        $last_id = $connection->insert_id;
-
-        # clean memory
-        unset($connection);
-
-        # ask for the last inserted id
-        return $last_id;
+        return $this->_get_connection()->lastInsertId();
     }
 
     /**
      * begins a transaction
-     * @access public
+     * @return boolean
      */
     public function begin()
     {
-        # starts the transaction
-        $this->execute('BEGIN', false);
+        # begins transaction
+        return $this->_get_connection()->beginTransaction();
     }
 
     /**
-     * finish transaction
-     * @access public
-     * @param boolean commit
+     * commits transaction
+     * @return boolean
      */
-    public function finish($commit=true)
+    public function commit()
     {
-        # end a started transaction
-        $this->execute(($commit ? 'COMMIT' : 'ROLLBACK'), false);
+        # commits a transaction
+        return $this->_get_connection()->commit();
+    }
+
+    /**
+     * rollbacks transaction
+     * @return boolean
+     */
+    public function rollback()
+    {
+        # roll backs a transaction
+        return $this->_get_connection()->rollBack();
     }
 
     /**
      * sets the current database host
-     * @access public
      * @param string $host
+     * @return Kima\Database
      */
     public function set_host($host)
     {
         # set the current host
         $this->_host = $host;
+        return $this;
     }
 
     /**
      * sets the current database
-     * @access public
      * @param $string $database
+     * @return Kima\Database
      */
     public function set_database($database)
     {
         # set the current database
         $this->_database = $database;
+        return $this;
     }
 
 }

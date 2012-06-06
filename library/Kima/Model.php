@@ -260,8 +260,8 @@ abstract class Model
         $fields = array();
         foreach ($this->_fields as $field => $value) {
             $fields[] = is_string($field)
-                ? $field . '="' . Database::get_instance()->escape($value) . '"'
-                : $value . '="' . Database::get_instance()->escape($this->{$value}) . '"';
+                ? $field . '=' . Database::get_instance()->escape($value)
+                : $value . '=' . Database::get_instance()->escape($this->{$value});
         }
 
         return implode(',', $fields);
