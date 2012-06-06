@@ -20,7 +20,7 @@ class Request
      */
     public static function get($param, $default=null)
     {
-        return isset($_GET[$param]) ? $_GET[$param] : $default;
+        return !empty($_GET[$param]) ? $_GET[$param] : $default;
     }
 
     /**
@@ -30,7 +30,7 @@ class Request
      */
     public static function post($param, $default=null)
     {
-        return isset($_POST[$param]) ? $_POST[$param] : $default;
+        return !empty($_POST[$param]) ? $_POST[$param] : $default;
     }
 
     /**
@@ -40,7 +40,7 @@ class Request
      */
     public static function coockie($param, $default=null)
     {
-        return isset($_COOKIE[$param]) ? $_COOKIE[$param] : $default;
+        return !empty($_COOKIE[$param]) ? $_COOKIE[$param] : $default;
     }
 
     /**
@@ -50,7 +50,7 @@ class Request
      */
     public static function server($param, $default=null)
     {
-        return isset($_SERVER[$param]) ? $_SERVER[$param] : $default;
+        return !empty($_SERVER[$param]) ? $_SERVER[$param] : $default;
     }
 
     /**
@@ -60,7 +60,7 @@ class Request
      */
     public static function env($param, $default=null)
     {
-        return isset($_ENV[$param]) ? $_ENV[$param] : $default;
+        return !empty($_ENV[$param]) ? $_ENV[$param] : $default;
     }
 
     /**
@@ -74,19 +74,19 @@ class Request
         switch (true)
         {
             // GET param
-            case isset($_GET[$param]):
+            case !empty($_GET[$param]):
                 return $_GET[$param];
             // POST param
-            case isset($_POST[$param]):
+            case !empty($_POST[$param]):
                 return $_POST[$param];
             // COOCKIE param
-            case isset($_COOKIE[$param]):
+            case !empty($_COOKIE[$param]):
                 return $_COOKIE[$param];
             // SERVER param
-            case isset($_SERVER[$param]):
+            case !empty($_SERVER[$param]):
                 return $_SERVER[$param];
             // ENV param
-            case isset($_ENV[$param]):
+            case !empty($_ENV[$param]):
                 return $_ENV[$param];
             // send the default value if nothing found
             default:
