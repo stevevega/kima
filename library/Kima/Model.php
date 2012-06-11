@@ -245,16 +245,18 @@ abstract class Model
             $this->limit(1);
         }
 
+        $params = array(
+            'fields' => $this->_fields,
+            'table' => $this->_table,
+            'joins' => $this->_joins,
+            'filters' => $this->_filters,
+            'group' => $this->_group,
+            'order' => $this->_order,
+            'limit' => $this->_limit,
+            'start' => $this->_start);
+
         # build the select query
-        $this->query_string = $this->_database->get_fetch_query(
-            $this->_fields,
-            $this->_table,
-            $this->_joins,
-            $this->_filters,
-            $this->_group,
-            $this->_order,
-            $this->_limit,
-            $this->_start);
+        $this->query_string = $this->_database->get_fetch_query($params);
 
         # get result from the query
         return Database::get_instance()->execute($this->query_string, true, $this->_model, $fetch_all);
@@ -266,12 +268,14 @@ abstract class Model
      */
     private function _update()
     {
-        $this->query_string = $this->_database->get_update_query(
-            $this->_fields,
-            $this->_table,
-            $this->_filters,
-            $this->_order,
-            $this->_limit);
+        $params = array(
+            'fields' => $this->_fields,
+            'table' => $this->_table,
+            'filters' => $this->_filters,
+            'order' => $this->_order,
+            'limit' => $this->_limit);
+
+        $this->query_string = $this->_database->get_update_query($params);
 
         # run the query
         return Database::get_instance()->execute($this->query_string, false);
@@ -287,7 +291,11 @@ abstract class Model
             return $this->_update();
         }
 
-        $this->query_string = $this->_database->get_put_query($fields, $table);
+        $params = array(
+            'fields' => $this->_fields,
+            'table' => $this->_table);
+
+        $this->query_string = $this->_database->get_put_query($params);
 
         return Database::get_instance()->execute($this->query_string, false);
     }
@@ -298,7 +306,13 @@ abstract class Model
      */
     public function delete()
     {
-        $this->query_string = $this->_database->get_delete_query($table, $joins, $filters, $limit);
+        $params = array(
+            'table' => $this->_table,
+            'joins' => $this->_joins,
+            'filters' => $this->_filters,
+            'limit' => $this->_limit);
+
+        $this->query_string = $this->_database->get_delete_query($paramss);
 
         return Database::get_instance()->execute($this->query_string, false);
     }

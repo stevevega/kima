@@ -7,7 +7,8 @@ namespace Kima\Model;
 /**
  * Namespaces to use
  */
-use \Kima\Database;
+use \Kima\Database,
+    \Kima\Model\IModel;
 
 /**
  * Mysql
@@ -15,7 +16,7 @@ use \Kima\Database;
  * Mysql Model Class
  * @package Kima
  */
-class Mysql
+class Mysql implements IModel
 {
 
 	/**
@@ -37,6 +38,7 @@ class Mysql
      * @param string $key
      * @param string $join_key
      * @param string $database
+     * @return string
      */
     public function get_join($table, $key, $join_key='', $database='')
     {
@@ -53,7 +55,6 @@ class Mysql
 
     /**
      * Gets the order syntax for the query
-     * @access public
      * @param string $field
      * @param string $order
      * @return string
@@ -161,51 +162,54 @@ class Mysql
     }
 
     /**
-     * Fetch one field of data from the database
-     * @access public
+     * Gets fetch query
+     * @param array $params
+     * @return string
      */
-    public function get_fetch_query($fields, $table, $joins, $filters, $group, $order, $limit, $start)
+    public function get_fetch_query($params)
     {
         $query_string =
             'SELECT ' .
-                $this->prepare_fetch_fields($fields) .
-                ' FROM ' . $table .
-                $this->prepare_joins($joins) .
-                $this->prepare_filters($filters) .
-                $this->prepare_group($group) .
-                $this->prepare_order($order) .
-                $this->prepare_limit($limit, $start);
+                $this->prepare_fetch_fields($params['fields']) .
+                ' FROM ' . $params['table'] .
+                $this->prepare_joins($params['joins']) .
+                $this->prepare_filters($params['filters']) .
+                $this->prepare_group($params['group']) .
+                $this->prepare_order($params['order']) .
+                $this->prepare_limit($params['limit'], $params['start']);
 
         return $query_string;
     }
 
     /**
-     * Updates data
-     * @access public
+     * Gets update query
+     * @param array $params
+     * @return string
      */
-    private function get_update_query($fields, $table, $filters, $order, $limit)
+    public function get_update_query($params)
     {
         $query_string =
-            'UPDATE ' . $table .
+            'UPDATE ' . $params['table'] .
                 ' SET ' .
-                $this->prepare_save_fields($fields) .
-                $this->prepare_filters($filters) .
-                $this->prepare_order($order) .
-                $this->prepare_limit($limit);
+                $this->prepare_save_fields($params['fields']) .
+                $this->prepare_filters($params['filters']) .
+                $this->prepare_order($params['order']) .
+                $this->prepare_limit($params['limit']);
 
         return $query_string;
     }
 
     /**
-     * Inserts/updates data
-     * @access public
+     * Gets insert/update query
+     * @param array $params
+     * @return string
      */
-    public function get_put_query($fields, $table)
+    public function get_put_query($params)
     {
-       $fields = $this->prepare_save_fields($fields);
+       $fields = $this->prepare_save_fields($params['fields']);
 
        $query_string =
-            'INSERT INTO ' . $table .
+            'INSERT INTO ' . $params['table'] .
                 ' SET ' .
                 $fields .
                 ' ON DUPLICATE KEY UPDATE ' .
@@ -215,16 +219,17 @@ class Mysql
     }
 
     /**
-     * Deletes data
-     * @access public
+     * Gets delete query
+     * @param array $params
+     * @return string
      */
-    public function get_delete_query($table, $joins, $filters, $limit)
+    public function get_delete_query($params)
     {
         $query_string = 'DELETE' .
-                    ' FROM ' .$table .
-                    $this->prepare_joins($joins) .
-                    $this->prepare_filters($filters) .
-                    $this->prepare_limit($limit);
+                    ' FROM ' . $params['table'] .
+                    $this->prepare_joins($params['joins']) .
+                    $this->prepare_filters($params['filters']) .
+                    $this->prepare_limit($params['limit']);
 
         return $query_string;
     }
