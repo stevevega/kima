@@ -7,7 +7,7 @@ namespace Kima\Cache;
 /**
  * Namespaces to use
  */
-use \Kima\Cache,
+use \Kima\Cache\ACache,
     \Kima\Error;
 
 /**
@@ -15,7 +15,7 @@ use \Kima\Cache,
  *
  * Alternative PHP Cache system
  */
-class Apc extends Cache
+class Apc extends ACache
 {
 
     /**
@@ -29,6 +29,10 @@ class Apc extends Cache
      * @param array $options
      */
     public function __construct($options = array()){
+        if (!extension_loaded($this->_cache_type)) {
+            Error::set(__METHOD__, 'APC extension is not enabled on this server.');
+        }
+
         if (isset($options['prefix'])) {
             $this->_set_prefix($options['prefix']);
         }

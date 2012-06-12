@@ -7,7 +7,7 @@ namespace Kima\Cache;
 /**
  * Namespaces to use
  */
-use \Kima\Cache,
+use \Kima\Cache\ACache,
     \Kima\Error;
 
 /**
@@ -16,7 +16,7 @@ use \Kima\Cache,
  * File Cache system
  * @package Kima
  */
-class File extends Cache
+class File extends ACache
 {
 
     /**

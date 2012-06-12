@@ -7,7 +7,7 @@ namespace Kima\Cache;
 /**
  * Namespaces to use
  */
-use \Kima\Cache,
+use \Kima\Cache\ACache,
     \Kima\Error,
     \Memcached as PhpMemcached;
 
@@ -16,7 +16,7 @@ use \Kima\Cache,
  *
  * Memcached system
  */
-class Memcached extends Cache
+class Memcached extends ACache
 {
 
     /**
@@ -42,6 +42,10 @@ class Memcached extends Cache
      */
     public function __construct($options = array())
     {
+        if (!extension_loaded($this->_cache_type)) {
+            Error::set(__METHOD__, 'Memcached extension is not enabled on this server.');
+        }
+
         $this->_memcached = new PhpMemcached(MEMCACHED_POOL);
 
         if (isset($options['prefix'])) {
