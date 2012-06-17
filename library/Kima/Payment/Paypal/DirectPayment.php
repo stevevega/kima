@@ -7,12 +7,12 @@ namespace Kima\Payment\Paypal;
 /**
  * Namespaces to use
  */
-use \Kima\Payment\Paypal;
+use \Kima\Payment\Paypal\APaypal;
 
 /**
  * Paypal Direct Payment
  */
-class DirectPayment extends Paypal
+class DirectPayment extends APaypal
 {
 
     /**
@@ -37,11 +37,11 @@ class DirectPayment extends Paypal
     );
 
     /**
-     * Makes a direct payment using Paypal
+     * Makes an API request
      * @see https://cms.paypal.com/us/cgi-bin/?cmd=_render-content&content_ID=developer/e_howto_api_nvp_r_DoDirectPayment
      * @param array $params
      */
-    public function direct_payment($params)
+    public function request($params)
     {
         $this->_validate_required_fields($params, $this->_required_fields, self::METHOD);
 
