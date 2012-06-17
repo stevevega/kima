@@ -7,7 +7,7 @@ use \Kima\Application,
     \Kima\Controller,
     \Kima\Google\UrlShortener,
     \Kima\Http\Request,
-    \Kima\Payment\Paypal;
+    \Kima\Payment\Paypal\DirectPayment;
 
 /**
  * Index
@@ -21,11 +21,11 @@ class Index extends Controller
     public function index_action()
     {
         # set title
-        $this->_view->set('TITLE', 'Hola Mundo!');
+        $this->_view->set('TITLE', 'Hola Mundo!', 'title');
         $this->_view->show('title');
 
         # one user example
-        $id_person = Request::get('id', 112530105);
+        $id_person = Request::get('id', 106300624);
         $person = Person::get($id_person);
 
         $this->_view->set('id', $person->id_person, 'content');
@@ -36,9 +36,9 @@ class Index extends Controller
         $this->_view->populate('users', $people);
 
         # library example
-        $shortener = new UrlShortener();
+        /*$shortener = new UrlShortener();
         $source = $shortener->shorten('http://www.google.com');
-        $this->_view->set('source', $source, 'content');
+        $this->_view->set('source', $source, 'content');*/
 
         # display content
         $this->_view->show('content');
@@ -51,7 +51,7 @@ class Index extends Controller
             'password' => '1332970086',
             'signature' => 'AK4VwepUGH5sWY.MIqlpqKCT0T2pA9vdQwGcsOX9LRSl3Azy7aQkSw9v');
 
-        $paypal = Paypal::get_instance(Paypal::DIRECT_PAYMENT, $credentials, true);
+        $direct_payment = new DirectPayment($credentials, true);
 
         $params = array(
                 'CREDITCARDTYPE' => 'Visa',
@@ -68,10 +68,10 @@ class Index extends Controller
                 'AMT' => 10
             );
 
-        $response = $paypal->direct_payment($params);
+        $response = $direct_payment->request($params);
         $response
             ? var_dump($response)
-            : var_dump($paypal->get_last_error());
+            : var_dump($direct_payment->get_last_error());
     }
 
     public function cache_action()
