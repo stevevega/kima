@@ -338,7 +338,7 @@ class Template
      * @param string $value
      * @param string $template
      */
-    public function set($name, $value, $template='')
+    public function set($name, $value, $template = '')
     {
         if (empty($template)) {
             // set global variable
@@ -436,7 +436,7 @@ class Template
      * @param boolean $is_block
      * @return string
      */
-    private function _set_value($var, $value, $template, $is_block=true)
+    private function _set_value($var, $value, $template, $is_block = true)
     {
         // extra cleaning for block
         if ($is_block) {
@@ -504,7 +504,7 @@ class Template
      * @param string $content
      * @param boolean $http_equiv
      */
-    public function meta($name, $content, $http_equiv=false)
+    public function meta($name, $content, $http_equiv = false)
     {
         // make sure we are on a html template
         if ($this->_content_type != 'html') {
@@ -607,7 +607,7 @@ class Template
      * @param boolean $set_headers
      * @return string
      */
-    public function get_template($template, $set_headers=true)
+    public function get_template($template, $set_headers = true)
     {
         // make sure template exists
         if (empty($this->_parsed_blocks[$template])) {

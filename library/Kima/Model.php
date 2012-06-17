@@ -140,7 +140,7 @@ abstract class Model
      * @param string $table
      * @param string $database
      */
-    protected function _set_table($table, $database='', $prefix=null)
+    protected function _set_table($table, $database = '', $prefix = null)
     {
         if (is_null($prefix)) {
             $prefix = $this->_prefix;
@@ -176,7 +176,7 @@ abstract class Model
      * @param string $join_key
      * @param string $database
      */
-    public function join($table, $key, $join_key='', $database='')
+    public function join($table, $key, $join_key = '', $database = '')
     {
         $this->_joins[] = $this->_database->get_join($table, $key, $join_key, $database);
         return $this;
@@ -210,7 +210,7 @@ abstract class Model
      * @param string $field
      * @param string $order
      */
-    public function order($field, $order='ASC')
+    public function order($field, $order = 'ASC')
     {
         $this->_order[] = $this->_database->get_order($field, $order);
         return $this;
@@ -222,7 +222,7 @@ abstract class Model
      * @param int $limit
      * @param int $page
      */
-    public function limit($limit, $page=0)
+    public function limit($limit, $page = 0)
     {
         $limit = intval($limit);
         $page = intval($page);

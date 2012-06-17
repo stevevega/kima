@@ -40,7 +40,7 @@ class Mysql implements IModel
      * @param string $database
      * @return string
      */
-    public function get_join($table, $key, $join_key='', $database='')
+    public function get_join($table, $key, $join_key = '', $database = '')
     {
     	$join_table = empty($database) ? $table : $database . '.' . $table;
         $join_query = ' LEFT JOIN ' . $join_table;
@@ -59,7 +59,7 @@ class Mysql implements IModel
      * @param string $order
      * @return string
      */
-    public function get_order($field, $order='ASC')
+    public function get_order($field, $order = 'ASC')
     {
         $order = $order === 'DESC' ? $order : 'ASC';
         return $field . ' ' . $order;

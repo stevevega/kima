@@ -30,7 +30,7 @@ class UrlShortener
      *
      * @param array the options to set
      */
-    public function __construct($options=array())
+    public function __construct($options = array())
     {
         if (isset($options['api']) && isset($options['key'])) {
             $this->_apiKey = $options['key'];
