@@ -116,7 +116,7 @@ class Database
      * @param boolean $fetch_all
      * @return mixed
      */
-    public function execute($query, $select_query=true, $model=null, $fetch_all=false)
+    public function execute($query, $select_query = true, $model = null, $fetch_all = false)
     {
         # validate query
         if (empty($query)) {

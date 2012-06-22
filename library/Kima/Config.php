@@ -30,7 +30,7 @@ class Config
      * @access public
      * @param string $path
      */
-    public function __construct($path='./config.ini')
+    public function __construct($path = './config.ini')
     {
         $this->_parse_config($path);
     }

@@ -18,29 +18,24 @@ abstract class ACache
 {
 
     /**
-     * @var string $_cache_type
-     */
-    protected $_cache_type;
-
-    /**
      * cache contruct
      * @param array $options
      */
-    public abstract function __construct($options = array());
+    abstract function __construct($options = array());
 
     /**
      * cache get
      * @param string $key
      * @param int $time
      */
-    public abstract function get($key);
+    abstract function get($key);
 
     /**
      * cache get by file
      * @param string $key
      * @param string $file_path
      */
-    public abstract function get_by_file($key, $file_path);
+    abstract function get_by_file($key, $file_path);
 
     /**
      * cache set
@@ -48,7 +43,12 @@ abstract class ACache
      * @param mixed $value
      * @param time $expiration
      */
-    public abstract function set($key, $value, $expiration = 0);
+    abstract function set($key, $value, $expiration = 0);
+
+    /**
+     * @var string $_cache_type
+     */
+    protected $_cache_type;
 
     /**
      * The cache key prefix

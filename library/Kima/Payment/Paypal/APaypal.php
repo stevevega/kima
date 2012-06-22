@@ -1,21 +1,28 @@
 <?php
 /**
- * Yeah Namespace
+ * Namespace Kima
  */
-namespace Kima\Payment;
+namespace Kima\Payment\Paypal;
 
 /**
- * Namespaces used
+ * Namespaces to use
  */
-use \Kima\Error,
-    \Kima\Payment\Paypal\DirectPayment;
+use \Kima\Error;
 
 /**
- * Yeah Paypal
+ * Abstract Paypal
  *
+ * Paypal Abstract class
  */
-abstract class Paypal
+abstract class APaypal
 {
+
+    /**
+     * Makes an API request
+     * @see method documentation URL
+     * @param array $params
+     */
+    abstract function request($params);
 
     /**
      * API endpoints
@@ -24,15 +31,14 @@ abstract class Paypal
     const API_SANDBOX_ENDPOINT = 'https://api-3t.sandbox.paypal.com/nvp';
 
     /**
-     * API methods
-     * @see https://cms.paypal.com/us/cgi-bin/?cmd=_render-content&content_ID=developer/howto_api_reference
+     * API Version
+     * @see https://cms.paypal.com/us/cgi-bin/?cmd=_render-content&content_ID=developer/e_howto_api_nvp_PayPalAPIWhatsNewNVP
      */
-    const DIRECT_PAYMENT = 'Direct Payment';
+    const API_VERSION = '89.0';
 
     /**
      * General Paypal properties
      */
-    private $_api_version = '85.0';
     private $_use_sandbox = false;
     private $_api_username;
     private $_api_password;
@@ -55,23 +61,6 @@ abstract class Paypal
         if ($use_sandbox) {
             $this->use_sandbox();
         }
-    }
-
-    /**
-     * Get the required API instance
-     * @param string $type
-     * @param array $credentials ['username', 'password', 'signature']
-     * @param bool $use_sandbox
-     */
-    public static function get_instance($type, $credentials, $use_sandbox = false)
-    {
-        switch($type) {
-            case self::DIRECT_PAYMENT :
-                return new DirectPayment($credentials, $use_sandbox);
-                break;
-        }
-
-        Error::set( __METHOD__, 'Invalid Paypal type ('. $type . ') requested');
     }
 
     /**
@@ -226,7 +215,7 @@ abstract class Paypal
     {
         $paypal_fields = array(
             'METHOD' => $method,
-            'VERSION' => $this->_api_version,
+            'VERSION' => self::API_VERSION,
             'PWD' => $this->_api_password,
             'USER' => $this->_api_username,
             'SIGNATURE' => $this->_api_signature);

@@ -18,7 +18,7 @@ class Request
      * @param string $param
      * @param mixed $default
      */
-    public static function get($param, $default=null)
+    public static function get($param, $default = null)
     {
         return !empty($_GET[$param]) ? $_GET[$param] : $default;
     }
@@ -28,7 +28,7 @@ class Request
      * @param string $param
      * @param mixed $default
      */
-    public static function post($param, $default=null)
+    public static function post($param, $default = null)
     {
         return !empty($_POST[$param]) ? $_POST[$param] : $default;
     }
@@ -38,7 +38,7 @@ class Request
      * @param string $param
      * @param mixed $default
      */
-    public static function coockie($param, $default=null)
+    public static function coockie($param, $default = null)
     {
         return !empty($_COOKIE[$param]) ? $_COOKIE[$param] : $default;
     }
@@ -48,7 +48,7 @@ class Request
      * @param string $param
      * @param mixed $default
      */
-    public static function server($param, $default=null)
+    public static function server($param, $default = null)
     {
         return !empty($_SERVER[$param]) ? $_SERVER[$param] : $default;
     }
@@ -58,7 +58,7 @@ class Request
      * @param string $param
      * @param mixed $default
      */
-    public static function env($param, $default=null)
+    public static function env($param, $default = null)
     {
         return !empty($_ENV[$param]) ? $_ENV[$param] : $default;
     }
@@ -68,7 +68,7 @@ class Request
      * @param string $param
      * @param mixed $default
      */
-    public static function get_all($param, $default=null)
+    public static function get_all($param, $default = null)
     {
         // ask for the parameter
         switch (true)

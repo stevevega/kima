@@ -27,7 +27,7 @@ class Error
      * @param string $message
      * @param boolean $isFatalError
      */
-    public static function set($caller, $message, $is_critical=true)
+    public static function set($caller, $message, $is_critical = true)
     {
         // set the error handler
         set_error_handler("self::error_handler");
