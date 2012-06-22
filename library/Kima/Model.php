@@ -8,7 +8,7 @@ namespace Kima;
  * Namespaces to use
  */
 use \Kima\Model\Mysql,
-    \Kima\String;
+    \Kima\Util\String;
 
 /**
  * Model

@@ -1,14 +1,13 @@
 <?php
 /**
- * Namespace Kima
+ * Namespace Kima\Util
  */
-namespace Kima;
+namespace Kima\Util;
 
 /**
  * String
  *
  * A class with a number of string utilities static methods
- * @package Kima
  */
 class String
 {
