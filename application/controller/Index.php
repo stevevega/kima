@@ -7,7 +7,8 @@ use \Kima\Application,
     \Kima\Controller,
     \Kima\Google\UrlShortener,
     \Kima\Http\Request,
-    \Kima\Payment\Paypal\DirectPayment;
+    \Kima\Payment\Paypal\DirectPayment,
+    \Kima\Util\Html;
 
 /**
  * Index
@@ -84,6 +85,12 @@ class Index extends Controller
         $cache->set('test', 'Hola Mundo', 10);
         //var_dump($cache->flush());
         var_dump($cache->get('test'));
+    }
+
+    public function html_action()
+    {
+        $html_path = ROOT_FOLDER . '/application/view/main.html';
+        Html::get_text($html_path, true);
     }
 
 }
