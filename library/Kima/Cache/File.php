@@ -112,6 +112,15 @@ class File extends ACache
     }
 
     /**
+     * Gets the folder path
+     * @return string
+     */
+    public function get_folder_path()
+    {
+        return $this->_folder_path;
+    }
+
+    /**
      * Sets the cache path
      * @param string $path
      */

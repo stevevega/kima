@@ -13,7 +13,7 @@ class Person extends Controller
     /**
      * index
      */
-    public function index_action()
+    public function index_get()
     {
         echo 'hola';
     }

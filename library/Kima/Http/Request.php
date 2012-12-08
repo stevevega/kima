@@ -79,7 +79,7 @@ class Request
             // POST param
             case !empty($_POST[$param]):
                 return $_POST[$param];
-            // COOCKIE param
+            // COOKIE param
             case !empty($_COOKIE[$param]):
                 return $_COOKIE[$param];
             // SERVER param
@@ -92,6 +92,15 @@ class Request
             default:
                 return $default;
         }
+    }
+
+    /**
+     * Gets the requested method to the server
+     * @return string
+     */
+    public static function get_method()
+    {
+        return $_SERVER['REQUEST_METHOD'];
     }
 
 }

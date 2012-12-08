@@ -7,11 +7,14 @@ namespace Kima;
 /**
  * Namespaces to use
  */
-use \Kima\Error;
-use \Kima\Controller;
+use \Kima\Error,
+    \Kima\Controller,
+    \Kima\Http\Request,
+    \Kima\Http\StatusCode;
 
 /**
  * Action
+ * Implementation of the Front Controller design pattern
  *
  * @package Kima
  */
@@ -19,43 +22,96 @@ class Action
 {
 
     /**
-     * constructor
-     * @param string $controller
-     * @param string $action
+     * url parameters
+     * @var array
      */
-    public function __construct()
+    private $_url_parameters = array();
+
+    /**
+     * constructor
+     * @param array $urls
+     */
+    public function __construct(array $urls)
     {
-        // gets the controller and action
-        $module = Application::get_instance()->get_module();
-        $controller = Application::get_instance()->get_controller();
-        $action = Application::get_instance()->get_action();
+        // set the url parameters
+        $this->set_url_parameters();
+
+        // set the application language
+        $language = $this->get_language();
+        Application::get_instance()->set_language($language);
+
+        $controller = $this->_get_controller($urls);
 
         // validate controller and action
         if (empty($controller)) {
-            Error::set(__METHOD__, ' Controller was not set');
+            $this->set_error_action(404);
+            return;
         }
 
-        if (empty($action)) {
-            Error::set(__METHOD__, ' Action was not set');
-        }
+        // set the action controller
+        Application::get_instance()->set_controller($controller);
 
         // inits the controller action
-        $this->_run_action($module, $controller, $action);
+        $this->_run_action($controller);
+    }
+
+
+    /**
+     * gets the url match route to follow
+     * returns the required controller to process the action
+     * @param array $urls
+     */
+    private function _get_controller(array $urls)
+    {
+        // gets the URL path needed parameters
+        $url_parameters = $this->get_url_parameters();
+        $url_parameters_count = count($url_parameters);
+
+
+        // loop the defined urls looking for a match
+        foreach ($urls as $url => $controller) {
+            // if the path is the same as the match, don't go any further
+            if ($path === $url) {
+               return $controller;
+            }
+
+            // split the url elements
+            $url_elements = array_values(array_filter(explode('/', $url)));
+
+            // just compare if the elements size match
+            if ($url_parameters_count === count($url_elements)) {
+                $is_match = true;
+
+                // loop each url elements
+                foreach ($url_elements as $key => $url_element) {
+                    // match the url element with the path element
+                    preg_match('/^' . $url_element . '$/', $url_parameters[$key], $matches);
+                    if (!$matches) {
+                        $is_match = false;
+                        break;
+                    }
+                }
+
+                // if all the elements matched, return its controller
+                if ($is_match) {
+                    return $controller;
+                }
+            }
+        }
     }
 
     /**
-     * runs an action
-     * @param string $module
+     * runs an application action
      * @param string $controller
-     * @param string $action
      */
-    private function _run_action($module, $controller, $action)
+    private function _run_action($controller)
     {
-        // get the config
+        // get the application values
         $config = Application::get_instance()->get_config();
+        $module = Application::get_instance()->get_module();
+        $method = Application::get_instance()->get_method();
 
-        // set the needed values
-        $action = strtolower($action) . '_action';
+        // format the controller
         $controller = ucwords(strtolower($controller));
 
         // get the controller path
@@ -69,20 +125,14 @@ class Action
         if (is_readable($controller_path)) {
             require_once $controller_path;
         } else {
-            header('HTTP/1.0 404 Not Found');
-            $_GET['status_code'] = 404;
-
-            $controller = 'Error';
-            $controller_path = $config->controller['folder'] . '/Error.php';
-            require_once $controller_path;
-
-            $action = 'index_action';
+            Error::set(__METHOD__, ' Class ' . $controller . ' not found on ' . $controller_path);
+            return;
         }
 
         // validate-create controller object
         class_exists($controller)
             ? $controller_obj = new $controller
-            : Error::set(__METHOD__, ' Class ' . $controller . ' not found on ' . $controller_path);
+            : Error::set(__METHOD__, ' Class ' . $controller . ' not declared on ' . $controller_path);
 
         // validate controller is instance of Kima\Controller
         if (!$controller_obj instanceof Controller) {
@@ -90,9 +140,93 @@ class Action
         }
 
         // validate-call action
-        method_exists($controller, $action)
-            ? $controller_obj->$action()
-            : Error::set(__METHOD__, ' Method ' . $action . ' not found on ' . $controller . ' controller');
+        $methods = $this->get_controller_methods($controller);
+        if (!in_array($method, $methods)) {
+            $this->set_error_action(405);
+            return;
+        }
+
+        $params = $this->get_url_parameters();
+        $controller_obj->$method($params);
+    }
+
+    /**
+     * gets the controller available methods
+     * removes the parent references
+     * @param string $controller
+     * @return array
+     */
+    private function get_controller_methods($controller)
+    {
+        $parent_methods = get_class_methods('Kima\Controller');
+        $controller_methods = get_class_methods($controller);
+
+        return array_diff($controller_methods, $parent_methods);
+    }
+
+    /**
+     * set an http error for the page
+     * @param int $status_code
+     */
+    private function set_error_action($status_code)
+    {
+        $config = Application::get_instance()->get_config();
+
+        $status_message = StatusCode::get_message($status_code);
+        header('HTTP/1.0 ' . $status_code . ' ' . $status_message);
+        $_GET['status_code'] = $status_code;
+
+        $controller = 'Error';
+        $controller_path = $config->controller['folder'] . '/Error.php';
+        require_once $controller_path;
+
+        $method = 'get';
+        $controller_obj = new $controller;
+        $controller_obj->$method();
+    }
+
+    /**
+     * gets the language required for the current action
+     * @return string
+     */
+    public function get_language()
+    {
+        // get the possible language
+        $language = array_shift($this->get_url_parameters());
+
+        // get the list of available languages
+        $languages = Application::get_instance()->get_config()->language['available'];
+        $languages = explode(',', $languages);
+
+        // return the desired languages
+        if (in_array($language, $languages)) {
+            array_shift($this->_url_parameters);
+        } else {
+            $language = Application::get_instance()->get_config()->language['default'];
+        }
+
+        return $language;
+    }
+
+    /**
+     * Sets the url parameters
+     */
+    public function set_url_parameters()
+    {
+        $path = array_shift(explode('?', $_SERVER['REQUEST_URI']));
+        $path_elements = array_values(array_filter(explode('/', $path)));
+
+        $this->_url_parameters = $path_elements;
+        return $this;
+    }
+
+    /**
+     * gets the url parameters
+     * @return array
+     */
+    public function get_url_parameters()
+    {
+        return $this->_url_parameters;
     }
 
 }

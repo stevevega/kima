@@ -15,7 +15,7 @@ class Error extends Controller
     /**
      * index
      */
-    public function index_action()
+    public function get()
     {
         $status_code = Request::get('status_code');
         $status_message = StatusCode::get_message($status_code);

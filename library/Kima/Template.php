@@ -7,7 +7,8 @@ namespace Kima;
 /**
  * Namespaces to use
  */
-use \Kima\Cache,
+use \Kima\Application,
+    \Kima\Cache,
     \Kima\Error;
 
 /**
@@ -132,6 +133,13 @@ class Template
     private $_compression;
 
     /**
+     * Locale option for template translation
+     * @access private
+     * @var boolean
+     */
+    private $_locale;
+
+    /**
      * Constructor
      * @access public
      * @param array $options
@@ -146,17 +154,20 @@ class Template
         $folder_path = isset($options['folder']) ? $options['folder'] : '.';
         $this->_set_folder_path($folder_path);
 
-        // set the main template file path
-        if (isset($options['main']['file'])) {
-            $this->load($options['main']['file']);
-            $this->_has_main_view = true;
-        }
-
         // set auto display option
         $this->set_auto_display(isset($options['autodisplay']) ? $options['autodisplay'] : false);
 
         // set the compression option
         $this->set_compression(isset($options['compression']) ? $options['compression'] : false);
+
+        // set the locale option
+        $this->set_locale(isset($options['locale']) ? $options['locale'] : false);
+
+        // set the main template file path
+        if (isset($options['main']['file'])) {
+            $this->load($options['main']['file']);
+            $this->_has_main_view = true;
+        }
     }
 
     /**
@@ -227,8 +238,83 @@ class Template
             $this->_cache->set($cache_key, $blocks);
         }
 
+        if ($this->_locale) {
+          $blocks = $this->_get_block_strings($blocks, $template_file);
+        }
+
         // set the blocks
         $this->_blocks = array_merge($this->_blocks, $blocks);
+    }
+
+    /**
+     * get block strings based on locale settings
+     * @param $blocks
+     * @param $template_file
+     * @return array
+     */
+    private function _get_block_strings(array $blocks, $template_file)
+    {
+        $language = Application::get_language();
+        $language_default = Application::get_config()->language['default'];
+
+        $strings_path = Application::get_config()->strings['folder'];
+        $strings_path .= $language_default === $language
+            ? 'default.ini' :
+            $language . '.ini';
+
+        if (!is_readable($strings_path)) {
+            Error::set(__METHOD__, 'Cannot access strings path ' . $strings_path);
+        }
+//todo cache, template cache root folder
+        $strings = parse_ini_file($strings_path, true); // todo cache
+
+        $module = Application::get_module();
+        $info = pathinfo($template_file);
+
+        $language_prefix = $info['dirname']!='.' ? str_replace('/', '-', $info['dirname']) : '';
+        $language_prefix = !empty($module)
+            ? $module . '-' . $language_prefix
+            : $language_prefix;
+        $language_key = !empty($language_prefix)
+            ? $language_prefix . '-' . $info['filename']
+            : $info['filename'];
+
+        foreach ($blocks as &$block) {
+            $vars = array();
+            preg_match_all('|\[([A-Za-z0-9._]+?)\]|', $block, $vars);
+            $keys = !empty($vars[1]) ? $vars[1] : array();
+            $vars = !empty($vars[0]) ? $vars[0] : array();
+
+            foreach ($vars as $key => $var) {
+                if (!empty($var)) {
+                    switch (true) {
+                        // [module]-controller-action
+                        case (!empty($strings[$language_key])
+                            && array_key_exists($keys[$key], $strings[$language_key])
+                            && !empty($strings[$language_key][$keys[$key]])) :
+                            $value = $strings[$language_key][$keys[$key]];
+                            break;
+                        // [module]-controller
+                        case (!empty($strings[$language_prefix])
+                            && array_key_exists($keys[$key], $strings[$language_prefix])
+                            && !empty($strings[$language_prefix][$keys[$key]])) :
+                            $value = $strings[$language_prefix][$keys[$key]];
+                            break;
+                        // global
+                        case (!empty($strings['global'])
+                            && array_key_exists($keys[$key], $strings['global'])
+                            && !empty($strings['global'][$keys[$key]])) :
+                            $value = $strings['global'][$keys[$key]];
+                            break;
+                        default:
+                            $value = '';
+                            break;
+                    }
+                    $block = str_replace($var, $value, $block);
+                }
+            }
+        }
+        return $blocks;
     }
 
     /**
@@ -765,6 +851,15 @@ class Template
     public function set_compression($compression)
     {
         $this->_compression = (boolean)$compression;
+    }
+
+    /**
+     * Sets the locale option from the template
+     * @access public
+     */
+    public function set_locale($locale)
+    {
+        $this->_locale = (boolean)$locale;
     }
 
     /**

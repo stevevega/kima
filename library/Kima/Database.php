@@ -10,6 +10,7 @@ namespace Kima;
 use \Kima\Application;
 use \Kima\Error;
 use \PDO;
+use \PDOStatement;
 
 /**
  * Database
@@ -111,12 +112,13 @@ class Database
     /**
      * executes a query
      * @param string $query
+     * @param array $binds
      * @param boolean $select_query
      * @param mixed $model
      * @param boolean $fetch_all
      * @return mixed
      */
-    public function execute($query, $select_query = true, $model = null, $fetch_all = false)
+    public function execute($query, array $binds = array(), $select_query = true, $model = null, $fetch_all = false)
     {
         # validate query
         if (empty($query)) {
@@ -125,6 +127,7 @@ class Database
 
         try {
             $statement = $this->_get_connection()->prepare($query);
+            $this->bind_values(&$statement, $binds);
             $statement->execute();
 
             if ($select_query) {
@@ -141,6 +144,35 @@ class Database
         }
     }
 
+
+    /**
+     * Binds values using PDO prepare statements
+     * @param PDOStatement $statement
+     * @param array $binds
+     */
+    private function bind_values(PDOStatement $statement, array $binds)
+    {
+        foreach ($binds as $key => $bind) {
+            switch (true) {
+                case is_int($value) :
+                    $type = PDO::PARAM_INT;
+                    break;
+                case is_bool($value) :
+                    $type = PDO::PARAM_BOOL;
+                    break;
+                case is_null($value) :
+                    $type = PDO::PARAM_NULL;
+                    break;
+                default :
+                    $type = PDO::PARAM_STR;
+                    break;
+            }
+
+            $statement->bindValue($key, $bind, $type);
+        }
+    }
+
+
     /**
      * Escapes the string to prepare it for db queries
      * @param string $string
@@ -153,7 +185,6 @@ class Database
             # get the current database connection
             $this->_get_connection()->quote($string);
         }
-
         return $string;
     }
 

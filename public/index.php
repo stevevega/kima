@@ -12,13 +12,19 @@ if (!defined('ROOT_FOLDER')) {
 }
 
 // Set the library directory to the include path
-set_include_path(implode(PATH_SEPARATOR, 
+set_include_path(implode(PATH_SEPARATOR,
     array(realpath(ROOT_FOLDER . '/library'), get_include_path())));
 
 // set the configuration path
 $config_path = ROOT_FOLDER . '/application/config/application.ini';
 
+$urls = array(
+      '/' => 'index',
+      '/index/([A-Za-z0-9]+)/' => 'index',
+      '/cache/' => 'cache',
+      '/paypal/' => 'paypal');
+
 require_once('Kima/Application.php');
 $application = Application::get_instance()
     ->set_config($config_path)
-        ->run();
+        ->run($urls);

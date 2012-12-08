@@ -60,6 +60,15 @@ abstract class Model
      */
     private $_filters = array();
 
+
+    /**
+     * Query binds for prepare statements
+     * @access private
+     * @var array
+     */
+    private $_binds = array();
+
+
     /**
      * The query limit
      * @access private
@@ -193,6 +202,19 @@ abstract class Model
         return $this;
     }
 
+
+    /**
+     * Set binds used for prepare statements
+     * @param array $binds
+     * @return \Kima\Model
+     */
+    public function bind(array $binds)
+    {
+        $this->_binds = $binds;
+        return $this;
+    }
+
+
     /**
      * Sets a group join
      * @access public
@@ -259,7 +281,7 @@ abstract class Model
         $this->query_string = $this->_database->get_fetch_query($params);
 
         # get result from the query
-        return Database::get_instance()->execute($this->query_string, true, $this->_model, $fetch_all);
+        return Database::get_instance()->execute($this->query_string, $this->_binds, true, $this->_model, $fetch_all);
     }
 
     /**
@@ -278,7 +300,7 @@ abstract class Model
         $this->query_string = $this->_database->get_update_query($params);
 
         # run the query
-        return Database::get_instance()->execute($this->query_string, false);
+        return Database::get_instance()->execute($this->query_string, $this->_binds, false);
     }
 
     /**
@@ -297,7 +319,7 @@ abstract class Model
 
         $this->query_string = $this->_database->get_put_query($params);
 
-        return Database::get_instance()->execute($this->query_string, false);
+        return Database::get_instance()->execute($this->query_string, $this->_binds, false);
     }
 
     /**
@@ -314,7 +336,7 @@ abstract class Model
 
         $this->query_string = $this->_database->get_delete_query($paramss);
 
-        return Database::get_instance()->execute($this->query_string, false);
+        return Database::get_instance()->execute($this->query_string, $this->_binds, false);
     }
 
 }

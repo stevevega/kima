@@ -44,10 +44,16 @@ class Application
     private static $_controller;
 
     /**
-     * action
+     * method
      * @var array
      */
-    private static $_action;
+    private static $_method;
+
+    /**
+     * language
+     * @var array
+     */
+    private static $_language;
 
     /**
      * constructor
@@ -81,25 +87,24 @@ class Application
 
     /**
      * run the application
+     * @param array $urls
      * @return void
      */
-    public static function run()
+    public static function run(array $urls)
     {
         // get the config
         $config = self::get_config();
 
         // get the controller and action from the request
-        $controller = Request::get('controller', 'index');
-        $action = Request::get('action', 'index');
         $module = getenv('MODULE') ? getenv('MODULE') : null;
+        $method = strtolower(Request::get_method());
 
         // set module, controller and action
         self::set_module($module);
-        self::set_controller($controller);
-        self::set_action($action);
+        self::set_method($method);
 
         // run the action
-        $action = new Action();
+        $action = new Action($urls);
     }
 
     /**
@@ -169,22 +174,42 @@ class Application
     }
 
     /**
-     * returns the application action
+     * returns the application method
      * @return string
      */
-    public static function get_action()
+    public static function get_method()
     {
-        return self::$_action;
+        return self::$_method;
     }
 
     /**
-     * sets the action
-     * @param string $action
+     * sets the method
+     * @param string $method
      */
-    public static function set_action($action)
+    public static function set_method($method)
     {
-        // set the application action
-        self::$_action = $action;
+        // set the application method
+        self::$_method = $method;
+        return self::$_instance;
+    }
+
+    /**
+     * returns the application language
+     * @return string
+     */
+    public static function get_language()
+    {
+        return self::$_language;
+    }
+
+    /**
+     * sets the language
+     * @param string $language
+     */
+    public static function set_language($language)
+    {
+        // set the application language
+        self::$_language = $language;
         return self::$_instance;
     }
 

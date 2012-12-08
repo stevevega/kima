@@ -47,7 +47,7 @@ class Controller
                 $config = Application::get_instance()->get_config()->template;
                 $module = Application::get_instance()->get_module();
                 $controller = Application::get_instance()->get_controller();
-                $action = Application::get_instance()->get_action();
+                $method = Application::get_instance()->get_method();
 
                 if (!$this->_use_main_view) {
                     unset($config['main']);
@@ -68,7 +68,7 @@ class Controller
                 $this->_template['_view'] = new Template($config);
 
                 // load the action view
-                $view_path = $controller . '/' . $action . '.html';
+                $view_path = $controller . '/' . $method . '.html';
                 $this->_template['_view']->load($view_path);
                 return $this->_template['_view'];
             }

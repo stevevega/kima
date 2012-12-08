@@ -13,7 +13,7 @@ class Index extends Controller
     /**
      * index
      */
-    public function index_action()
+    public function get()
     {
         # display content
         $this->_view->show('content');

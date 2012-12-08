@@ -33,7 +33,7 @@ class Error
         set_error_handler("self::error_handler");
 
         // create the error
-        trigger_error($caller . ':' . $message, $is_critical ? E_USER_ERROR : E_USER_NOTICE);
+        trigger_error($caller . ' : ' . $message, $is_critical ? E_USER_ERROR : E_USER_NOTICE);
 
         // restore the system error handler
         restore_error_handler();

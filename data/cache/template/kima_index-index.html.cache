@@ -1,22 +1,20 @@
-a:2:{s:10:"expiration";i:0;s:5:"value";a:3:{i:0;s:17:"{_BLOCK_.content}";s:7:"content";s:362:"
+a:2:{s:10:"expiration";i:0;s:5:"value";a:3:{i:0;s:17:"{_BLOCK_.content}";s:7:"content";s:256:"
 <div id="main_user">
-    <h2>Main User</h2>
-    <p>{id}: {name}</p>
+    <h2>[title]</h2>
+    <p>{id_person}: {name}</p>
 </div>
 <div id="users">
-    <h3>Users</h3>
+    <h3>[users_title]</h3>
     <ul>
         {_BLOCK_.users}
     </ul>
 </div>
 
 <div>
-    Lorem ipsum dolor sit amet, 
-    consectetur adipisicing elit, 
-    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    [description]
 </div>
 <div>
-    <a href="{source}">Source</a>
+    <a href="{source}">[source]</a>
 </div>
 ";s:5:"users";s:71:"
         <li class="user">{id_person}: {name} {last_name}</li>

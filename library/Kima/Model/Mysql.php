@@ -29,7 +29,7 @@ class Mysql implements IModel
     public function get_table($table, $database = '', $prefix = '')
     {
         $table = empty($prefix) ? $table : $prefix . '_' . $table;
-		return empty($database) ? $table : $database . '.' . $table;
+		    return empty($database) ? $table : $database . '.' . $table;
     }
 
     /**
