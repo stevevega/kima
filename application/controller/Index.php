@@ -4,8 +4,8 @@
  */
 use \Kima\Application,
     \Kima\Controller,
-    \Kima\Google\UrlShortener,
-    \Kima\Http\Request;
+    \Kima\Http\Request,
+    \Kima\Google\UrlShortener;
 
 /**
  * Index
