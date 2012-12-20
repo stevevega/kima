@@ -1,68 +1,72 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Abstract Cache
+ * @author Steve Vega
  */
 namespace Kima\Cache;
 
-/**
- * Namespaces to use
- */
 use \Kima\Error;
 
 /**
- * Abstract Cache
- *
- * Cache Abstract class
+ * Abstract class for cache systems adapters
  */
 abstract class ACache
 {
 
     /**
-     * cache contruct
-     * @param array $options
+     * Construct
+     * @param array $options the config options
      */
-    abstract function __construct($options = array());
+    abstract function __construct(array $options = array());
 
     /**
-     * cache get
-     * @param string $key
-     * @param int $time
+     * Gets a cache key
+     * @param string $key the cache key
+     * @return mixed
      */
     abstract function get($key);
 
     /**
-     * cache get by file
-     * @param string $key
-     * @param string $file_path
+     * Gets a cache key using the file last mofication
+     * as reference instead of the cache expiration
+     * @param string $key the cache key
+     * @param string $file_path the file path
+     * @return mixed
      */
     abstract function get_by_file($key, $file_path);
 
     /**
-     * cache set
-     * @param string $key
+     * Sets the cache key
+     * @param string $key the cache key
      * @param mixed $value
      * @param time $expiration
      */
     abstract function set($key, $value, $expiration = 0);
 
     /**
-     * @var string $_cache_type
+     * Error messages
      */
-    protected $_cache_type;
+     const ERROR_NO_CACHE_SYSTEM = '%s extension is not enabled on this server.';
+
+    /**
+     * The cache system type
+     * @var string $cache_type
+     */
+    protected $cache_type;
 
     /**
      * The cache key prefix
      * @var string
      */
-    private $_prefix;
+    private $prefix;
 
     /**
-     * gets the current cache type
+     * Gets the current cache type
      * @return string
      */
     public function get_type()
     {
-        return isset($this->_cache_type) ? $this->_cache_type : null;
+        return isset($this->cache_type) ? $this->cache_type : null;
     }
 
     /**
@@ -70,17 +74,18 @@ abstract class ACache
      * @param string $key
      * @return string
      */
-    protected function _get_key($key)
+    protected function get_key($key)
     {
-        return empty($this->_prefix)
+        return empty($this->prefix)
             ? $key
-            : $this->_prefix . '_' . $key;
+            : $this->prefix . '_' . $key;
     }
 
     /**
      * Sets the cache key prefix
+     * @param string $prefix
      */
-    protected function _set_prefix($prefix)
+    protected function set_prefix($prefix)
     {
         $this->_prefix = (string)$prefix;
         return $this;

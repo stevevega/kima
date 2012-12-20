@@ -1,58 +1,97 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Status Code
+ * @author Steve Vega
  */
 namespace Kima\Http;
 
+use \Kima\Error;
+
 /**
  * Status Code
- *
- * Status Code class
+ * Handles the status codes
  */
 class StatusCode
 {
 
+    /**
+     * Error messages
+     */
+    const ERROR_UNKNOWN_STATUS_CODE = 'Unknown status code "%d"';
+
+    /**
+     * Status codes messages
+     * @var array $status_code_messages
+     */
+    public static $status_code_messages = [
+        // Informational
+        100 => 'Continue',
+        101 => 'Switching Protocols',
+
+        // Success
+        200 => 'OK',
+        201 => 'Created',
+        202 => 'Accepted',
+        203 => 'Non-Authoritative Information',
+        204 => 'No Content',
+        205 => 'Reset Content',
+        206 => 'Partial Content',
+
+        // Redirection
+        300 => 'Multiple Choices',
+        301 => 'Moved Permanently',
+        302 => 'Moved Temporarily',
+        303 => 'See Other',
+        304 => 'Not Modified',
+        305 => 'Use Proxy',
+        307 => 'Temporary Redirect',
+
+        // Client Error
+        400 => 'Bad Request',
+        401 => 'Unauthorized',
+        402 => 'Payment Required',
+        403 => 'Forbidden',
+        404 => 'Not Found',
+        405 => 'Method Not Allowed',
+        406 => 'Not Acceptable',
+        407 => 'Proxy Authentication Required',
+        408 => 'Request Time-out',
+        409 => 'Conflict',
+        410 => 'Gone',
+        411 => 'Length Required',
+        412 => 'Precondition Failed',
+        413 => 'Request Entity Too Large',
+        414 => 'Request-URI Too Large',
+        415 => 'Unsupported Media Type',
+        416 => 'Requested Range Not Satisfiable',
+        417 => 'Expectation Failed',
+
+        // Server Error
+        500 => 'Internal Server Error',
+        501 => 'Not Implemented',
+        502 => 'Bad Gateway',
+        503 => 'Service Unavailable',
+        504 => 'Gateway Time-out',
+        505 => 'HTTP Version not supported',
+        509 => 'Bandwidth Limit Exceeded',
+    ];
+
+    /**
+     * Get the message of a status code
+     * @param string $code The status code
+     * @return string
+     */
     public static function get_message($code)
     {
-        switch ($code) {
-            case 100: $message = 'Continue'; break;
-            case 101: $message = 'Switching Protocols'; break;
-            case 200: $message = 'OK'; break;
-            case 201: $message = 'Created'; break;
-            case 202: $message = 'Accepted'; break;
-            case 203: $message = 'Non-Authoritative Information'; break;
-            case 204: $message = 'No Content'; break;
-            case 205: $message = 'Reset Content'; break;
-            case 206: $message = 'Partial Content'; break;
-            case 300: $message = 'Multiple Choices'; break;
-            case 301: $message = 'Moved Permanently'; break;
-            case 302: $message = 'Moved Temporarily'; break;
-            case 303: $message = 'See Other'; break;
-            case 304: $message = 'Not Modified'; break;
-            case 305: $message = 'Use Proxy'; break;
-            case 400: $message = 'Bad Request'; break;
-            case 401: $message = 'Unauthorized'; break;
-            case 402: $message = 'Payment Required'; break;
-            case 403: $message = 'Forbidden'; break;
-            case 404: $message = 'Not Found'; break;
-            case 405: $message = 'Method Not Allowed'; break;
-            case 406: $message = 'Not Acceptable'; break;
-            case 407: $message = 'Proxy Authentication Required'; break;
-            case 408: $message = 'Request Time-out'; break;
-            case 409: $message = 'Conflict'; break;
-            case 410: $message = 'Gone'; break;
-            case 411: $message = 'Length Required'; break;
-            case 412: $message = 'Precondition Failed'; break;
-            case 413: $message = 'Request Entity Too Large'; break;
-            case 414: $message = 'Request-URI Too Large'; break;
-            case 415: $message = 'Unsupported Media Type'; break;
-            case 500: $message = 'Internal Server Error'; break;
-            case 501: $message = 'Not Implemented'; break;
-            case 502: $message = 'Bad Gateway'; break;
-            case 503: $message = 'Service Unavailable'; break;
-            case 504: $message = 'Gateway Time-out'; break;
-            case 505: $message = 'HTTP Version not supported'; break;
-            default: $message = 'Unknown http status code "' . $code . '"';
+        $code = (int)$code;
+        if (array_key_exists($code, self::$status_code_messages))
+        {
+            $message = self::$status_code_messages[$code];
+        }
+        else
+        {
+            $message = sprintf(self::ERROR_UNKNOWN_STATUS_CODE, $code);
+            Error::set($message, false);
         }
 
         return $message;

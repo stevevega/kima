@@ -1,25 +1,28 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Mysql Model
+ * @author Steve Vega
  */
 namespace Kima\Model;
 
-/**
- * Namespaces to use
- */
 use \Kima\Database,
+    \Kima\Error,
     \Kima\Model\IModel;
 
 /**
  * Mysql
- *
  * Mysql Model Class
- * @package Kima
  */
 class Mysql implements IModel
 {
 
-	/**
+    /**
+     * Error messages
+     */
+     const ERROR_EMPTY_FIELDS = 'Fields for save data query not provided';
+     const ERROR_JOIN_NOT_ARRAY = 'Join array should contain an array with joins';
+
+    /**
      * Gets the table name format for the database
      * @param string $table
      * @param string $database
@@ -28,59 +31,56 @@ class Mysql implements IModel
      */
     public function get_table($table, $database = '', $prefix = '')
     {
-        $table = empty($prefix) ? $table : $prefix . '_' . $table;
-		    return empty($database) ? $table : $database . '.' . $table;
+        $table = empty($prefix) ? $table : $prefix . $table;
+        return empty($database) ? $table : $database . '.' . $table;
     }
 
     /**
      * Gets the join syntax for the query
-     * @param string $table
-     * @param string $key
-     * @param string $join_key
-     * @param string $database
+     * @param array $options
      * @return string
      */
-    public function get_join($table, $key, $join_key = '', $database = '')
+    public function get_join(array $options)
     {
-    	$join_table = empty($database) ? $table : $database . '.' . $table;
-        $join_query = ' LEFT JOIN ' . $join_table;
+        $join_table = $options['table'];
 
-        # use join key if necessary
-        $join_query .= empty($join_key)
-            ? ' USING ( ' . $key . ' )'
-            : $join_query .= ' ON ( ' . $table . '.' . $key . '=' . $this->_table . '.' . $join_key . ' )';
+        $join_type = !empty($options['type']) ? $options['type'] : 'LEFT';
+        $join_query = ' ' . $join_type . ' JOIN ' . $join_table;
+
+        // use join key if necessary
+        $join_query .= empty($options['joiner'])
+            ? ' USING (' . $options['key'] . ')'
+            : ' ON ( ' . $join_table . '.' . $options['key'] . '=' . $options['joiner'] . ' )';
 
         return $join_query;
     }
 
     /**
-     * Gets the order syntax for the query
-     * @param string $field
-     * @param string $order
-     * @return string
-     */
-    public function get_order($field, $order = 'ASC')
-    {
-        $order = $order === 'DESC' ? $order : 'ASC';
-        return $field . ' ' . $order;
-    }
-
-    /**
      * Prepares the fields for a fetch query
      * @param array $fields
+     * @param string $table
      * @return string
      */
-    public function prepare_fetch_fields($fields)
+    public function prepare_fetch_fields(array $fields, $table)
     {
         # select * fields if none were added
-        if (empty($fields)) {
+        if (empty($fields))
+        {
             return '*';
         }
 
         # prepare every field
         $fields_query = array();
-        foreach ($fields as $field => $value) {
-            $fields_query[] = is_string($field) ? $field . ' AS ' . $value : $value;
+        foreach ($fields as $field => $value)
+        {
+            $field_name = is_string($field) ? $field . ' AS ' . $value : $value;
+
+            if (false === strpos($field_name, '.'))
+            {
+                $field_name = $table . '.' . $field_name;
+            }
+
+            $fields_query[] = $field_name;
         }
 
         return implode(',', $fields_query);
@@ -92,16 +92,18 @@ class Mysql implements IModel
      * @param array $fields
      * @return string
      */
-    public function prepare_save_fields($fields)
+    public function prepare_save_fields(array $fields)
     {
         # save queries should always provide at least one field
-        if (empty($fields)) {
-            Error::set(__METHOD__, 'fields for save data were not provided');
+        if (empty($fields))
+        {
+            Error::set(self::ERROR_EMPTY_FIELDS);
         }
 
         # prepare every field
         $fields_query = array();
-        foreach ($fields as $field => $value) {
+        foreach ($fields as $field => $value)
+        {
             $fields_query[] = is_string($field)
                 ? $field . '=' . Database::get_instance()->escape($value)
                 : $value . '=' . Database::get_instance()->escape($this->{$value});
@@ -115,9 +117,18 @@ class Mysql implements IModel
      * @param array $joins
      * @return string
      */
-    public function prepare_joins($joins)
+    public function prepare_joins(array $joins)
     {
-        return empty($joins) ? '' : implode(' ', $joins);
+        $join_query = [];
+        foreach ($joins as $join)
+        {
+            if (!is_array($join))
+            {
+                Error::set(self::ERROR_JOIN_NOT_ARRAY);
+            }
+            $join_query[] = $this->get_join($join);
+        }
+        return empty($join_query) ? '' : implode(' ', $join_query);
     }
 
     /**
@@ -125,7 +136,7 @@ class Mysql implements IModel
      * @param array $filters
      * @return string
      */
-    public function prepare_filters($filters)
+    public function prepare_filters(array $filters)
     {
         return empty($filters) ? '' : ' WHERE ' . implode(' AND ', $filters);
     }
@@ -135,19 +146,27 @@ class Mysql implements IModel
      * @param array $group
      * @return string
      */
-    public function prepare_group($group)
+    public function prepare_group(array $group)
     {
         return empty($group) ? '' : ' GROUP BY ' . implode(', ', $group);
     }
 
     /**
      * Prepares query order values
-     * @param array $order
+     * @param array $orders
      * @return string
      */
-    public function prepare_order($order)
+    public function prepare_order(array $orders)
     {
-        return empty($order) ? '' : ' ORDER BY ' . implode(', ', $order);
+        $order_query = [];
+
+        foreach ($orders as $order => $asc)
+        {
+            $order_asc = $asc === 'DESC' ? 'DESC' : 'ASC';
+            $order_query[] = $order . ' ' . $order_asc;
+        }
+
+        return empty($order) ? '' : ' ORDER BY ' . implode(', ', $order_query);
     }
 
     /**
@@ -166,12 +185,14 @@ class Mysql implements IModel
      * @param array $params
      * @return string
      */
-    public function get_fetch_query($params)
+    public function get_fetch_query(array $params)
     {
+        $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
+
         $query_string =
             'SELECT ' .
-                $this->prepare_fetch_fields($params['fields']) .
-                ' FROM ' . $params['table'] .
+                $this->prepare_fetch_fields($params['fields'], $table) .
+                ' FROM ' . $table .
                 $this->prepare_joins($params['joins']) .
                 $this->prepare_filters($params['filters']) .
                 $this->prepare_group($params['group']) .
@@ -186,10 +207,12 @@ class Mysql implements IModel
      * @param array $params
      * @return string
      */
-    public function get_update_query($params)
+    public function get_update_query(array $params)
     {
+        $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
+
         $query_string =
-            'UPDATE ' . $params['table'] .
+            'UPDATE ' . $table .
                 ' SET ' .
                 $this->prepare_save_fields($params['fields']) .
                 $this->prepare_filters($params['filters']) .
@@ -204,12 +227,13 @@ class Mysql implements IModel
      * @param array $params
      * @return string
      */
-    public function get_put_query($params)
+    public function get_put_query(array $params)
     {
+       $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
        $fields = $this->prepare_save_fields($params['fields']);
 
        $query_string =
-            'INSERT INTO ' . $params['table'] .
+            'INSERT INTO ' . $table .
                 ' SET ' .
                 $fields .
                 ' ON DUPLICATE KEY UPDATE ' .
@@ -223,10 +247,12 @@ class Mysql implements IModel
      * @param array $params
      * @return string
      */
-    public function get_delete_query($params)
+    public function get_delete_query(array $params)
     {
+        $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
+
         $query_string = 'DELETE' .
-                    ' FROM ' . $params['table'] .
+                    ' FROM ' . $table .
                     $this->prepare_joins($params['joins']) .
                     $this->prepare_filters($params['filters']) .
                     $this->prepare_limit($params['limit']);

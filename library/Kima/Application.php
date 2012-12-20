@@ -1,62 +1,59 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Application
+ * @author Steve Vega
  */
 namespace Kima;
 
-/**
- * Namespaces to use
- */
-use \Kima\Action;
-use \Kima\Config;
-use \Kima\Http\Request;
+use \Kima\Action,
+    \Kima\Config,
+    \Kima\Http\Request;
 
 /**
  * Application
- *
- * Framework Application
- * @package Kima
+ * Kima Application class
  */
 class Application
 {
 
     /**
      * instance
-     * @var Kima_Application
+     * @var \Kima\Application
      */
-    private static $_instance;
+    private static $instance;
 
     /**
      * config
      * @var array
      */
-    private static $_config;
+    private static $config;
 
     /**
      * module
+     * @var string
      */
-    private static $_module;
+    private static $module;
 
     /**
      * controller
-     * @var array
+     * @var string
      */
-    private static $_controller;
+    private static $controller;
 
     /**
      * method
-     * @var array
+     * @var string
      */
-    private static $_method;
+    private static $method;
 
     /**
      * language
-     * @var array
+     * @var string
      */
-    private static $_language;
+    private static $language;
 
     /**
-     * constructor
+     * Construct
      */
     private function __construct()
     {
@@ -65,13 +62,13 @@ class Application
     }
 
     /**
-     * gets the Application instance
-     * @return Kima_Application
+     * Get the application instance
+     * @return \Kima\Application
      */
     public static function get_instance()
     {
-        isset(self::$_instance) || self::$_instance = new self;
-        return self::$_instance;
+        isset(self::$instance) || self::$instance = new self;
+        return self::$instance;
     }
 
     /**
@@ -86,9 +83,8 @@ class Application
     }
 
     /**
-     * run the application
+     * Run the application
      * @param array $urls
-     * @return void
      */
     public static function run(array $urls)
     {
@@ -108,16 +104,16 @@ class Application
     }
 
     /**
-     * returns the application config
+     * Return the application config
      * @return array
      */
     public static function get_config()
     {
-        return self::$_config;
+        return self::$config;
     }
 
     /**
-     * sets the config
+     * Set the config
      * @param string $path
      */
     public static function set_config($path)
@@ -127,90 +123,87 @@ class Application
 
         // add the model to the include path
         set_include_path(implode(PATH_SEPARATOR,
-            array(realpath($config->application['folder'] . '/model'), get_include_path())));
+            array(realpath($config->application['folder'] . '/model'),
+            get_include_path())));
 
-        self::$_config = $config;
-        return self::$_instance;
+        self::$config = $config;
+        return self::$instance;
     }
 
     /**
-     * returns the application module
+     * Return the application module
      * @return string
      */
     public static function get_module()
     {
-        return self::$_module;
+        return self::$module;
     }
 
     /**
-     * sets the application module
+     * Set the application module
      * @param string $module
      */
     public static function set_module($module)
     {
-        // set the application module
-        self::$_module = $module;
-        return self::$_module;
+        self::$module = (string)$module;
+        return self::$module;
     }
 
     /**
-     * returns the application controller
+     * Return the application controller
      * @return string
      */
     public static function get_controller()
     {
-        return self::$_controller;
+        return self::$controller;
     }
 
     /**
-     * sets the application controller
+     * Set the application controller
      * @param string $controller
      */
     public static function set_controller($controller)
     {
-        // set the application controller
-        self::$_controller = $controller;
-        return self::$_instance;
+        self::$controller = (string)$controller;
+        return self::$instance;
     }
 
     /**
-     * returns the application method
+     * Returns the application method
      * @return string
      */
     public static function get_method()
     {
-        return self::$_method;
+        return self::$method;
     }
 
     /**
-     * sets the method
+     * Set the method
      * @param string $method
      */
     public static function set_method($method)
     {
-        // set the application method
-        self::$_method = $method;
-        return self::$_instance;
+        self::$method = (string)$method;
+        return self::$instance;
     }
 
     /**
-     * returns the application language
+     * Return the application language
      * @return string
      */
     public static function get_language()
     {
-        return self::$_language;
+        return self::$language;
     }
 
     /**
-     * sets the language
+     * Sets the language
      * @param string $language
      */
     public static function set_language($language)
     {
-        // set the application language
-        self::$_language = $language;
-        return self::$_instance;
+        self::$language = (string)$language;
+        return self::$instance;
     }
 
 }

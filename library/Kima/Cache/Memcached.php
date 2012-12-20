@@ -1,20 +1,16 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Cache Memcached
+ * @author Steve Vega
  */
 namespace Kima\Cache;
 
-/**
- * Namespaces to use
- */
 use \Kima\Cache\ACache,
     \Kima\Error,
     \Memcached as PhpMemcached;
 
 /**
- * Memcached
- *
- * Memcached system
+ * Memcached Adapter for Kima Cache
  */
 class Memcached extends ACache
 {
@@ -25,77 +21,75 @@ class Memcached extends ACache
     const MEMCACHED_POOL = 'Kima_Memcached';
 
     /**
-     * @param string $_cache_type
+     * @var string $cache_type
      */
-    protected $_cache_type = 'memcached';
+    protected $cache_type = 'memcached';
 
     /**
-     * @param Memcached $_memcached
+     * @var Memcached $memcached
      */
-    protected $_memcached;
+    protected $memcached;
 
     /**
-     * Constructor
-     * Creates memcached connections, add servers
-     * @access public
-     * @param array $options
+     * Construct
+     * @param array $options the config options
      */
-    public function __construct($options = array())
+    public function __construct(array $options = array())
     {
-        if (!extension_loaded($this->_cache_type)) {
-            Error::set(__METHOD__, 'Memcached extension is not enabled on this server.');
+        if (!extension_loaded($this->cache_type))
+        {
+            Error::set(sprintf(self::ERROR_NO_CACHE_SYSTEM, $this->cache_type));
         }
 
-        $this->_memcached = new PhpMemcached(MEMCACHED_POOL);
+        $this->memcached = new PhpMemcached(MEMCACHED_POOL);
 
-        if (isset($options['prefix'])) {
-            $this->_set_prefix($options['prefix']);
+        if (isset($options['prefix']))
+        {
+            $this->set_prefix($options['prefix']);
         }
 
-        if ($this->_memcached->getServerList()) {
-            return;
-        }
-
-        if (isset($options['memcached']['server'])) {
+        if (!$this->memcached->getServerList() && isset($options['memcached']['server']))
+        {
             $servers = array();
 
-            foreach ($options['memcached']['server'] as $server) {
+            foreach ($options['memcached']['server'] as $server)
+            {
                 $host = isset($server['host']) ? $server['host'] : '127.0.0.1';
                 $port = isset($server['port']) ? $server['port'] : '11211';
                 $weight = isset($server['weight']) ? $server['weight'] : 0;
                 $servers[] = array($host, $port, $weight);
             }
 
-            $this->_memcached->addServers($servers);
+            $this->memcached->addServers($servers);
         }
     }
 
     /**
-     * Gets a cache item
-     * @access public
-     * @param string $key
+     * Gets a cache key
+     * @param string $key the cache key
      * @return mixed
      */
     public function get($key)
     {
-        $key = $this->_get_key($key);
-        $item = $this->_memcached->get($key);
+        $key = $this->get_key($key);
+        $item = $this->memcached->get($key);
         return $item ? $item['value'] : null;
     }
 
     /**
-     * Gets the cache content by file modification
-     * @access public
-     * @param string $key
-     * @param string $file_path
-     * @return string
+     * Gets a cache key using the file last mofication
+     * as reference instead of the cache expiration
+     * @param string $key the cache key
+     * @param string $file_path the file path
+     * @return mixed
      */
     public function get_by_file($key, $file_path)
     {
         // can we access the original file?
-        if (is_readable($file_path)) {
-            $key = $this->_get_key($key);
-            $item = $this->_memcached->get($key);
+        if (is_readable($file_path))
+        {
+            $key = $this->get_key($key);
+            $item = $this->memcached->get($key);
 
             // is it newer than the last file modification date?
             return (filemtime($file_path) <= $item['timestamp'])
@@ -106,21 +100,19 @@ class Memcached extends ACache
     }
 
     /**
-     * Set the cache
-     * @access public
-     * @param string $key
+     * Sets the cache key
+     * @param string $key the cache key
      * @param mixed $value
-     * @param int $expiration
-     * @return boolean
+     * @param time $expiration
      */
     public function set($key, $value, $expiration = 0)
     {
-        $key = $this->_get_key($key);
+        $key = $this->get_key($key);
         $value = array(
             'timestamp' => time(),
             'value' => $value);
 
-        return $this->_memcached->set($key, $value, $expiration);
+        return $this->memcached->set($key, $value, $expiration);
     }
 
 }

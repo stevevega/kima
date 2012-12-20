@@ -1,204 +1,312 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Model
+ * @author Steve Vega
  */
 namespace Kima;
 
-/**
- * Namespaces to use
- */
-use \Kima\Model\Mysql,
+use \Kima\Config,
+    \Kima\Database,
+    \Kima\Model\Mysql,
+    \Kima\Model\Mongo,
     \Kima\Util\String;
 
 /**
  * Model
- *
- * Base class for models
- * @package Kima
+ * Gets a model with the corresponding db engine
  */
 abstract class Model
 {
 
     /**
-     * The model name
-     * @access private
-     * @var string
+     * Error messages
      */
-    private $_model = '';
+     const ERROR_NO_DEFAULT_DB_ENGINE = 'Default database engine is not present in the app config';
+     const ERROR_INVALID_DB_MODEL = 'Invalid database engine: "%s"';
+     const ERROR_NO_TABLE = 'Required constant "TABLE" not present in model "%s"';
+     const ERROR_NO_JOIN_TABLE = 'Required join table field is empty';
 
     /**
-     * The database system
+     * The model name
      * @var string
      */
-    private $_database = '';
+    private $model;
+
+    /**
+     * The model adapter
+     * @var string
+     */
+    private $adapter;
+
+    /**
+     * The model database
+     * @var string
+     */
+    private $database;
+
+    /**
+     * The model prefix
+     * @var string
+     */
+    private $prefix;
 
     /**
      * The database table name
-     * @access private
      * @var string
      */
-    private $_table = '';
+    private $table;
 
     /**
      * Query fields
-     * @access private
      * @var array
      */
-    private $_fields = array();
+    private $fields = [];
 
     /**
      * Query joins
-     * @access private
      * @var array
      */
-    private $_joins = array();
+    private $joins = [];
 
     /**
      * Query filters/conditions
-     * @access private
      * @var array
      */
-    private $_filters = array();
-
+    private $filters = [];
 
     /**
      * Query binds for prepare statements
-     * @access private
      * @var array
      */
-    private $_binds = array();
-
+    private $binds = [];
 
     /**
      * The query limit
-     * @access private
      * @var string
      */
-    private $_limit = 0;
+    private $limit = 0;
 
     /**
      * Query start value for pagination
-     * @access private
      * @var string
      */
-    private $_start = 0;
+    private $start = 0;
 
     /**
      * Query grouping field
-     * @access private
      * @var string
      */
-    private $_group = array();
+    private $group = [];
 
     /**
      * Query order
-     * @access private
      * @var string
      */
-    private $_order = array();
+    private $order = [];
 
     /**
      * The query string created
-     * @access public
      * @var string
      */
-    public $query_string = '';
+    private $query_string;
+
+    /**
+     * The db engine
+     */
+    private $db_engine;
+
+
+    /**
+     * The primary key
+     */
+    private $primary_key;
 
     /**
      * constructor
      */
     public function __construct()
     {
+        // get the application config
         $config = Application::get_instance()->get_config();
 
-        if (!isset($config->database['system'])) {
-            Error::set(__METHOD__, 'Default database.system is not present in the app config');
-        }
+        // set the default model
+        $this->set_default_model();
 
-        $database = $config->database['system'];
-        switch ($database) {
+        // set the default db engine
+        $this->set_default_db_engine($config);
+
+        // set the model adapter
+        $this->set_model_adapter();
+
+        // set a database prefix
+        if (isset($config->database[$this->db_engine]['prefix']))
+        {
+            $this->set_prefix($config->database[$this->db_engine]['prefix']);
+        }
+    }
+
+    /**
+     * Sets the default database engine for the model
+     * @param \Kima\Config
+     */
+    private function set_default_db_engine(Config $config)
+    {
+        if (!defined($this->model . '::DB_ENGINE'))
+        {
+            if (!isset($config->database['default']))
+            {
+                Error::set(self::ERROR_NO_DEFAULT_DB_ENGINE);
+            }
+
+            $this->set_db_engine($config->database['default']);
+        }
+        else
+        {
+            $this->db_engine = constant($this->model . '::DB_ENGINE');
+        }
+    }
+
+    /**
+     * Sets the database engine for the model
+     * @param string $db_engine
+     * @return Model
+     */
+    public function set_db_engine($db_engine)
+    {
+        $this->db_engine = (string)$db_engine;
+        return $this;
+    }
+
+    /**
+     * Set the model adapter
+     * @return mixed
+     */
+    private function set_model_adapter()
+    {
+        // get the database model instance
+        switch ($this->db_engine)
+        {
             case 'mysql':
-                $this->_database = new Mysql();
+                $this->adapter = new Mysql();
+                $this->primary_key = defined($this->model . '::PRMARY_KEY')
+                    ? constant($this->model . '::PRMARY_KEY')
+                    : 'id_' . strtolower($this->model);
                 break;
-
+            case 'mongo':
+                $this->adapter = null;
+                $this->primary_key = '_id';
+                break;
             default:
-                Error::set(__METHOD__, 'Invalid database system: ' . $database);
+                Error::set(sprintf(self::ERROR_INVALID_DB_MODEL, $this->db_engine));
                 break;
         }
+    }
 
-        if (isset($config->database['prefix'])) {
-            $this->_prefix = $config->database['prefix'];
-        }
+    /**
+     * Sets the model table/collection default prefix
+     * @param string $prefix
+     */
+    private function set_prefix($prefix)
+    {
+        $this->prefix = (string)$prefix;
+        return $this;
+    }
 
-        # set the model if it was extended by a model class
+    /**
+     * Set the default model
+     */
+    private function set_default_model()
+    {
+        // set the model
         $model = get_called_class();
+        $this->set_model($model);
+    }
 
-        if ($model != get_class()) {
-            # set the model
-            $this->_model = $model;
+    /**
+     * Sets the model name and table used
+     * @param string $model
+     * @return Model
+     */
+    public function set_model($model)
+    {
+        // set the model
+        $model = (string)$model;
+        $this->model = $model;
 
-            # set the table name based on the model
-            $table = String::camel_case_to_underscore($model);
-            $this->_set_table($table);
+        // set the table for this model
+        if (!defined($model . '::TABLE'))
+        {
+            Error::set(sprintf(self::ERROR_NO_TABLE, $model));
         }
+
+        $table = constant($model . '::TABLE');
+
+        $this->set_table($table);
+        return $this;
+    }
+
+    /**
+     * Set the database to use
+     * @param string $database
+     */
+    protected function set_database($database)
+    {
+        $this->database = (string)$database;
+        return $this;
     }
 
     /**
      * Sets the database table which should be used for insertion
-     * @access protected
      * @param string $table
-     * @param string $database
      */
-    protected function _set_table($table, $database = '', $prefix = null)
+    protected function set_table($table)
     {
-        if (is_null($prefix)) {
-            $prefix = $this->_prefix;
+        $this->table = (string)$table;
+        return $this;
+    }
+
+    /**
+     * Sets a join with another table(s) for a query
+     * @param array $joins
+     */
+    public function join(array $joins)
+    {
+        // get the fields on each join
+        foreach ($joins as &$join)
+        {
+            if (!empty($join['fields']) && is_array($join['fields']))
+            {
+                if (empty($join['table']))
+                {
+                    Error::set(self::ERROR_NO_JOIN_TABLE);
+                }
+
+                $join['table'] = !empty($join['database'])
+                    ? $join_database . '.' . $join['table']
+                    : $join['table'];
+
+                foreach ($join['fields'] as $key => $field)
+                {
+                    is_string($key)
+                        ? $this->fields[$join['table'] . '.' . $key] = $field
+                        : $this->fields[] = $join['table'] . '.' . $field;
+                }
+
+                unset($join['database'], $join['fields']);
+            }
         }
 
-        $this->_table = $this->_database->get_table($table, $database, $prefix);
+        $this->joins = $joins;
         return $this;
     }
 
     /**
-     * Sets fields required for a query
-     * Example values:
-     * SELECT queries: array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
-     * INSERT/UPDATE queries: array('id_user' => 1, 'name' => 'Pizcuilo', 'id_city' => 1)
-     * @access protected
-     * @param string $fields
+     * Sets the query filters
+     * @param array $filter
      */
-    public function fields($fields)
+    public function filter(array $filters)
     {
-        # fields should be an array
-        is_array($fields)
-            ? $this->_fields = $fields
-            : Error::set(__METHOD__, 'expecting an array for query fields', false);
-
-        return $this;
-    }
-
-    /**
-     * Sets a join with another table for a query
-     * @access public
-     * @param string $table
-     * @param string $key
-     * @param string $join_key
-     * @param string $database
-     */
-    public function join($table, $key, $join_key = '', $database = '')
-    {
-        $this->_joins[] = $this->_database->get_join($table, $key, $join_key, $database);
-        return $this;
-    }
-
-    /**
-     * Sets a query filter
-     * @access public
-     * @param string $filter
-     */
-    public function filter($filter)
-    {
-        $this->_filters[] = $filter;
+        $this->filters = $filters;
         return $this;
     }
 
@@ -210,37 +318,33 @@ abstract class Model
      */
     public function bind(array $binds)
     {
-        $this->_binds = $binds;
+        $this->binds = $binds;
         return $this;
     }
 
 
     /**
      * Sets a group join
-     * @access public
      * @param string $field
      */
     public function group($field)
     {
-        $this->_group[] = $field;
+        $this->group[] = $field;
         return $this;
     }
 
     /**
      * Sets a response order
-     * @access public
-     * @param string $field
-     * @param string $order
+     * @param array $options
      */
-    public function order($field, $order = 'ASC')
+    public function order($order)
     {
-        $this->_order[] = $this->_database->get_order($field, $order);
+        $this->order = $order;
         return $this;
     }
 
     /**
      * Sets a query limit and start pagination value if necessary
-     * @access public
      * @param int $limit
      * @param int $page
      */
@@ -250,93 +354,192 @@ abstract class Model
         $page = intval($page);
 
         if ($limit > 0) {
-            $this->_limit = $limit;
-            $this->_start = $page > 0 ? $limit * ($page - 1) : 0;
+            $this->limit = $limit;
+            $this->start = $page > 0 ? $limit * ($page - 1) : 0;
         }
 
         return $this;
     }
 
     /**
-     * Fetch one field of data from the database
-     * @access public
+     * Sets the query fields to fetch/insert
+     * @param array $fields
      */
-    public function fetch($fetch_all = false)
+    private function set_fields(array $fields)
     {
-        if (!$fetch_all) {
-            $this->limit(1);
-        }
+        $this->fields = array_merge($fields, $this->fields);
+        return $this->fields;
+    }
 
-        $params = array(
-            'fields' => $this->_fields,
-            'table' => $this->_table,
-            'joins' => $this->_joins,
-            'filters' => $this->_filters,
-            'group' => $this->_group,
-            'order' => $this->_order,
-            'limit' => $this->_limit,
-            'start' => $this->_start);
+    /**
+     * Get the query parameters
+     * @return array
+     */
+    private function get_query_params()
+    {
+        return [
+            'fields' => $this->fields,
+            'database' => $this->database,
+            'prefix' => $this->prefix,
+            'table' => $this->table,
+            'joins' => $this->joins,
+            'filters' => $this->filters,
+            'group' => $this->group,
+            'order' => $this->order,
+            'limit' => $this->limit,
+            'start' => $this->start
+        ];
+    }
 
-        # build the select query
-        $this->query_string = $this->_database->get_fetch_query($params);
+    /**
+     * Fetch one result of data from the database
+     * Example $fields values:
+     * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
+     * @param array $fields
+     */
+    public function fetch(array $fields = [])
+    {
+        // make sure we limit one result
+        $this->limit(1);
+        $result = $this->fetch_results($fields, false);
+        return !empty($result[0]) ? $result[0] : null;
+    }
 
-        # get result from the query
-        return Database::get_instance()->execute($this->query_string, $this->_binds, true, $this->_model, $fetch_all);
+    /**
+     * Fetch multiple results from the database
+     * Example $fields values:
+     * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
+     * @param array $fields
+     */
+    public function fetch_all(array $fields = [])
+    {
+        return $this->fetch_results($fields, true);
+    }
+
+    /**
+     * Fetch query results
+     * @param boolean $fetch_all
+     */
+    private function fetch_results(array $fields, $fetch_all = false)
+    {
+        // make sure we have the primary key
+        $fields = $this->ensure_primary_key($fields);
+        $this->fields = $this->set_fields($fields);
+        $params = $this->get_query_params();
+
+        // build the query using the adapter
+        $this->query_string = $this->adapter
+            ? $this->adapter->get_fetch_query($params)
+            : null;
+
+        // set execution options
+        $options = [
+            'query' => $params,
+            'query_string' => $this->query_string,
+            'binds' => $this->binds,
+            'model' => $this->model,
+            'fetch_all' => $fetch_all
+        ];
+
+        // get result from the query
+        $result = Database::get_instance($this->db_engine)->fetch($options);
+        return $result;
     }
 
     /**
      * Updates data
-     * @access public
+     * Use this method for batch or custom updates
+     * @param array $fields
      */
-    private function _update()
+    public function update_model()
     {
-        $params = array(
-            'fields' => $this->_fields,
-            'table' => $this->_table,
-            'filters' => $this->_filters,
-            'order' => $this->_order,
-            'limit' => $this->_limit);
+        $params = $this->get_query_params();
 
-        $this->query_string = $this->_database->get_update_query($params);
+        // build the query using the adapter
+        $this->query_string = $this->adapter
+            ? $this->adapter->get_update_query($params)
+            : null;
+
+        // set execution options
+        $options = [
+            'query' => $params,
+            'query_string' => $this->query_string,
+            'binds' => $this->binds
+        ];
 
         # run the query
-        return Database::get_instance()->execute($this->query_string, $this->_binds, false);
+        return Database::get_instance($this->db_engine)->put($options);
     }
 
     /**
-     * Inserts/updates data
-     * @access public
+     * Inserts/updates data one at a time
+     * @param array $fields
      */
-    public function put()
+    public function put(array $fields = [])
     {
-        if (!empty($this->_filters)) {
-            return $this->_update();
+        $this->fields = $this->set_fields($fields);
+        if (!empty($this->filters))
+        {
+            return $this->update_model();
         }
 
-        $params = array(
-            'fields' => $this->_fields,
-            'table' => $this->_table);
+        // set the primary key if is an existing model
+        if (!empty($this->{$this->primary_key}))
+        {
+            $this->filters = [$this->primary_key => $this->{$this->primary_key}];
+        }
+        $params = $this->get_query_params();
 
-        $this->query_string = $this->_database->get_put_query($params);
+        // build the query using the adapter
+        $this->query_string = $this->adapter
+            ? $this->adapter->get_put_query($params)
+            : null;
 
-        return Database::get_instance()->execute($this->query_string, $this->_binds, false);
+        // set execution options
+        $options = [
+            'query' => $params,
+            'query_string' => $this->query_string,
+            'binds' => $this->binds
+        ];
+
+        return Database::get_instance($this->db_engine)->put($options);
     }
 
     /**
      * Deletes data
-     * @access public
+     * @param array $fields
      */
     public function delete()
     {
-        $params = array(
-            'table' => $this->_table,
-            'joins' => $this->_joins,
-            'filters' => $this->_filters,
-            'limit' => $this->_limit);
+        $params = $this->get_query_params();
 
-        $this->query_string = $this->_database->get_delete_query($paramss);
+        // build the query using the adapter
+        $this->query_string = $this->adapter
+            ? $this->adapter->get_delete_query($params)
+            : null;
 
-        return Database::get_instance()->execute($this->query_string, $this->_binds, false);
+        // set execution options
+        $options = [
+            'query' => $params,
+            'query_string' => $this->query_string,
+            'binds' => $this->binds
+        ];
+
+        return Database::get_instance($this->db_engine)->delete($options);
+    }
+
+    /**
+     * Ensures the primary key is added to the fetch query
+     * @param array $fields
+     */
+    private function ensure_primary_key(array $fields)
+    {
+        if (!empty($fields) && !array_key_exists($this->primary_key, $fields))
+        {
+            array_unshift($fields, $this->primary_key);
+        }
+
+        return $fields;
     }
 
 }

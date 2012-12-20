@@ -19,10 +19,11 @@ set_include_path(implode(PATH_SEPARATOR,
 $config_path = ROOT_FOLDER . '/application/config/application.ini';
 
 $urls = array(
-      '/' => 'index',
-      '/index/([A-Za-z0-9]+)/' => 'index',
-      '/cache/' => 'cache',
-      '/paypal/' => 'paypal');
+      '/' => 'Index',
+      '/index/([A-Za-z0-9]+)/' => 'Index',
+      '/cache/' => 'Cache',
+      '/mongo/' => 'MongoTest',
+      '/paypal/' => 'Paypal');
 
 require_once('Kima/Application.php');
 $application = Application::get_instance()

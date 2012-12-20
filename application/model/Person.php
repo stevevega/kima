@@ -10,6 +10,10 @@ use \Kima\Model;
 class Person extends Model
 {
 
+    /**
+     * Table name
+     */
+    const TABLE = 'person';
 
     /**
      * get
@@ -17,14 +21,22 @@ class Person extends Model
     public static function get($id_person)
     {
         $user = new self();
+        $binds = [':id_person' => $id_person];
 
-        $fields = array('id_person', 'name');
-        $binds = array(':id_person' => $id_person);
+        $joins = [
+            ['table' => 'location',
+            'key' => 'id_location',
+            'fields' => ['name' => 'location']],
 
-        return $user->fields($fields)
-            ->filter('id_person=:id_person')
+            ['table' => 'city',
+            'key' => 'id_city',
+            'fields' => ['name' => 'city']]
+        ];
+
+        return $user->filter(['id_person = :id_person'])
             ->bind($binds)
-            ->fetch();
+            ->join($joins)
+            ->fetch(['name']);
     }
 
     /**
@@ -35,23 +47,22 @@ class Person extends Model
         $user = new self();
         $binds = array(':name' => 'Steve');
 
-        return $user->filter('name=:name')
+        return $user->filter(['name = :name'])
             ->bind($binds)
-            ->order('id_person')
+            ->order(['id_person' => 'ASC'])
             ->limit($limit)
-            ->fetch(true);
+            ->fetch_all();
     }
 
     /**
      * update people
      */
-    public function update()
+    public function put_person()
     {
         # set fields
         $fields = array('id_person', 'name');
 
-        return $this->fields($fields)
-            ->save();
+        return $this->put($fields);
     }
 
 

@@ -178,7 +178,8 @@ class Template
     private function _set_content_type($template_file)
     {
         // set the content type
-        $content_type = end(explode('.', $template_file));
+        $template_file_parts = explode('.', $template_file);
+        $content_type = end($template_file_parts);
 
         in_array($content_type, $this->_content_types)
             ? $this->_content_type = $content_type
@@ -448,7 +449,7 @@ class Template
         // make a copy of template if exists
         isset($this->_blocks[$template])
             ? $copy = $this->_blocks[$template]
-            : Error::set(__METHOD__, ' Template ' . $template . ' doesn\'t exist');
+            : Error::set(' Template ' . $template . ' doesn\'t exist');
 
         // set the vars array
         $vars = Array();
@@ -501,7 +502,7 @@ class Template
     public function populate($template, $data)
     {
         foreach ($data as $object) {
-            $object = is_array($object) ? $object : get_object_vars($object);
+            $object = is_object($object) ? get_object_vars($object) : (array)$object;
 
             if ($object) {
                 foreach ($object as $item => $value) {
@@ -748,7 +749,7 @@ class Template
                 $this->_parsed_blocks[$template] =
                     str_replace('</head>', $headers . '</head>', $this->_parsed_blocks[$template]);
             } else {
-                Error::set(__METHOD__, ' invalid html format, <head> needed for meta and styles', false);
+                Error::set(' invalid html format, <head> needed for meta and styles', false);
             }
         }
     }
@@ -769,7 +770,7 @@ class Template
                 $this->_parsed_blocks[$template] =
                     str_replace('</body>', $scripts . '</body>', $this->_parsed_blocks[$template]);
             } else {
-                Error::set(__METHOD__, ' invalid html format, <body> needed for javascripts', false);
+                Error::set(' invalid html format, <body> needed for javascripts', false);
             }
         }
     }

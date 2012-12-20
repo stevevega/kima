@@ -1,12 +1,10 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Action
+ * @author Steve Vega
  */
 namespace Kima;
 
-/**
- * Namespaces to use
- */
 use \Kima\Error,
     \Kima\Controller,
     \Kima\Http\Request,
@@ -15,8 +13,6 @@ use \Kima\Error,
 /**
  * Action
  * Implementation of the Front Controller design pattern
- *
- * @package Kima
  */
 class Action
 {
@@ -70,11 +66,6 @@ class Action
 
         // loop the defined urls looking for a match
         foreach ($urls as $url => $controller) {
-            // if the path is the same as the match, don't go any further
-            if ($path === $url) {
-               return $controller;
-            }
-
             // split the url elements
             $url_elements = array_values(array_filter(explode('/', $url)));
 
@@ -111,9 +102,6 @@ class Action
         $module = Application::get_instance()->get_module();
         $method = Application::get_instance()->get_method();
 
-        // format the controller
-        $controller = ucwords(strtolower($controller));
-
         // get the controller path
         $controller_folder = $module
             ? $config->module['folder'] . '/' . $module . '/controller'
@@ -125,18 +113,18 @@ class Action
         if (is_readable($controller_path)) {
             require_once $controller_path;
         } else {
-            Error::set(__METHOD__, ' Class ' . $controller . ' not found on ' . $controller_path);
+            Error::set(' Class ' . $controller . ' not found on ' . $controller_path);
             return;
         }
 
         // validate-create controller object
         class_exists($controller)
             ? $controller_obj = new $controller
-            : Error::set(__METHOD__, ' Class ' . $controller . ' not declared on ' . $controller_path);
+            : Error::set(' Class ' . $controller . ' not declared on ' . $controller_path);
 
         // validate controller is instance of Kima\Controller
         if (!$controller_obj instanceof Controller) {
-            Error::set(__METHOD__, ' Object ' . $controller . ' is not an instance of Kima\Controller');
+            Error::set(' Object ' . $controller . ' is not an instance of Kima\Controller');
         }
 
         // validate-call action
@@ -170,12 +158,10 @@ class Action
      */
     private function set_error_action($status_code)
     {
+        // set the status code
+        http_response_code($status_code);
+
         $config = Application::get_instance()->get_config();
-
-        $status_message = StatusCode::get_message($status_code);
-        header('HTTP/1.0 ' . $status_code . ' ' . $status_message);
-        $_GET['status_code'] = $status_code;
-
         $controller = 'Error';
         $controller_path = $config->controller['folder'] . '/Error.php';
         require_once $controller_path;
@@ -192,7 +178,8 @@ class Action
     public function get_language()
     {
         // get the possible language
-        $language = array_shift($this->get_url_parameters());
+        $url_parameters = $this->get_url_parameters();
+        $language = array_shift($url_parameters);
 
         // get the list of available languages
         $languages = Application::get_instance()->get_config()->language['available'];
@@ -213,7 +200,8 @@ class Action
      */
     public function set_url_parameters()
     {
-        $path = array_shift(explode('?', $_SERVER['REQUEST_URI']));
+        $path_parts = explode('?', $_SERVER['REQUEST_URI']);
+        $path = array_shift($path_parts);
         $path_elements = array_values(array_filter(explode('/', $path)));
 
         $this->_url_parameters = $path_elements;

@@ -16,7 +16,7 @@ class Index extends Controller
     public function get()
     {
         # display content
-        $this->_view->show('content');
+        $this->view->show('content');
     }
 
 }

@@ -1,12 +1,10 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Cache
+ * @author Steve Vega
  */
 namespace Kima;
 
-/**
- * Namespaces to use
- */
 use \Kima\Cache\Apc,
     \Kima\Cache\File,
     \Kima\Cache\Memcached,
@@ -14,40 +12,51 @@ use \Kima\Cache\Apc,
 
 /**
  * Cache
- *
- * Cache system
- * @package Kima
+ * Abstract Factory implementation for Cache
  */
 class Cache
 {
 
     /**
-     * constructor
+     * Error messages
+     */
+    const ERROR_DEFAULT_NOT_SET = 'No cache system was enabled in the application config';
+    const ERROR_INVALID_CACHE_SYSTEM = '"%s" is not a valid cache system';
+
+    /**
+     * private construct
      */
      private function __construct(){}
 
     /**
-     * get instance of the required cache system
-     * @param string $type
-     * @param array $options
+     * Get an instance of the required cache system
+     * @param string $type the cache type
+     * @param array $options the config options set for the cache system
+     * @return Apc|Memcached|File
      */
-    public static function get_instance($type, $options = array())
+    public static function get_instance($type, array $options = array())
     {
-        switch ($type) {
-            case 'default' :
-                if (isset($options['default']) && !empty($options['default'])) {
+        switch ($type)
+        {
+            case 'default':
+                if (isset($options['default']) && !empty($options['default']))
+                {
                     return self::get_instance($options['default'], $options);
-                } else {
-                    Error::set(__METHOD__, 'No cache system was enabled in the config', false);
                 }
-            case 'apc' :
+                else
+                {
+                    Error::set(self::ERROR_DEFAULT_NOT_SET, false);
+                    break;
+                }
+            case 'apc':
                 return new Apc($options);
             case 'memcached' :
                 return new Memcached($options);
-            case 'file' :
+            case 'file':
                 return new File($options);
-            default :
-                Error::set(__METHOD__, 'Invalid Cache system "' . $type . '" requested');
+            default:
+                Error::set(sprintf(self::ERROR_INVALID_CACHE_SYSTEM, $type));
+                break;
         }
     }
 

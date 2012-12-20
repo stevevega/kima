@@ -1,37 +1,37 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Model
+ * @author Steve Vega
  */
 namespace Kima;
 
-/**
- * Namespaces to use
- */
 use \Kima\Application,
     \Kima\Error,
     \Kima\Template;
 
 /**
  * Controller
- *
- * @package Kima
  */
 class Controller
 {
 
     /**
-     * The controller template
-     * @access protected
-     * @var array
+     * Error messages
      */
-    protected $_template = array();
+     const ERROR_DISABLE_LAYOUT = 'Method disable layout() should be called before any view reference';
+
 
     /**
-     * Use main template?
-     * @access protected
+     * The controller template
+     * @var array
+     */
+    protected $template = array();
+
+    /**
+     * Use view layout?
      * @var boolean
      */
-    private $_use_main_view = true;
+    private $use_layout = true;
 
     /**
      * __get magic method
@@ -39,54 +39,77 @@ class Controller
      */
     public function __get($param)
     {
-        if ($param === '_view') {
-            if (isset($this->_template[$param])) {
-                return $this->_template[$param];
-            } else {
+        if ('view' === $param)
+        {
+            if (isset($this->template[$param]))
+            {
+                return $this->template[$param];
+            }
+            else
+            {
                 // get the config and application module-controller-action
                 $config = Application::get_instance()->get_config()->template;
                 $module = Application::get_instance()->get_module();
                 $controller = Application::get_instance()->get_controller();
                 $method = Application::get_instance()->get_method();
 
-                if (!$this->_use_main_view) {
-                    unset($config['main']);
-                }
-
-                // set cache config
-                $config['cache'] = Application::get_instance()->get_config()->cache;
-                $config['cache']['folder'] .= '/template';
-
-                if ($module) {
-                    $module_folder = Application::get_instance()->get_config()->module['folder'];
-
-                    $config['folder'] = $module_folder . '/' . $module . '/view';
-                    $config['cache']['prefix'] = $module;
-                }
+                // get the config adapted for the view
+                $config = $this->get_view_config($config, $module);
 
                 // set the view
-                $this->_template['_view'] = new Template($config);
+                $this->template['view'] = new Template($config);
 
                 // load the action view
-                $view_path = $controller . '/' . $method . '.html';
-                $this->_template['_view']->load($view_path);
-                return $this->_template['_view'];
+                $view_path = strtolower($controller) . '/' . $method . '.html';
+                $this->template['view']->load($view_path);
+                return $this->template['view'];
             }
         }
+
         return null;
     }
 
     /**
-     * Disables the main view for the current
-     * controller action
+     * Gets the config adapted for the current view
+     * @param array $config The view config
+     * @param string $module
      */
-    public function disable_main_view()
+    private function get_view_config(array $config, $module)
     {
-        if (isset($this->_template['_view'])) {
-            Error::set(__METHOD__, 'disable_main_view() should be called before any view reference');
+        // disable layout if not wanted
+        if (!$this->use_layout)
+        {
+            unset($config['main']);
         }
 
-        $this->_use_main_view = false;
+        // set cache config
+        $config['cache'] = Application::get_instance()->get_config()->cache;
+        $config['cache']['folder'] .= '/template';
+
+        // set module config if necessary
+        if ($module)
+        {
+            $module_folder = Application::get_instance()->get_config()->module['folder'];
+
+            $config['folder'] = $module_folder . '/' . $module . '/view';
+            $config['cache']['prefix'] = $module;
+        }
+
+        return $config;
+    }
+
+    /**
+     * Disables the view layout for the controller
+     */
+    public function disable_layout()
+    {
+        if (isset($this->template['view']))
+        {
+            Error::set(self::ERROR_DISABLE_LAYOUT);
+        }
+
+        $this->layout = false;
+        return $this;
     }
 
 }

@@ -1,19 +1,15 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Cache APC
+ * @author Steve Vega
  */
 namespace Kima\Cache;
 
-/**
- * Namespaces to use
- */
 use \Kima\Cache\ACache,
     \Kima\Error;
 
 /**
- * APC
- *
- * Alternative PHP Cache system
+ * APC Adapter for Kima Cache
  */
 class Apc extends ACache
 {
@@ -21,48 +17,49 @@ class Apc extends ACache
     /**
      * @param string $_cache_type
      */
-    protected $_cache_type = 'apc';
+    protected $cache_type = 'apc';
 
-     /**
-     * Constructor
-     * @access public
-     * @param array $options
+    /**
+     * Construct
+     * @param array $options the config options
      */
-    public function __construct($options = array()){
-        if (!extension_loaded($this->_cache_type)) {
-            Error::set(__METHOD__, 'APC extension is not enabled on this server.');
+    public function __construct(array $options = array()) {
+        if (!extension_loaded($this->cache_type))
+        {
+            Error::set(sprintf(self::ERROR_NO_CACHE_SYSTEM, $this->cache_type));
         }
 
-        if (isset($options['prefix'])) {
-            $this->_set_prefix($options['prefix']);
+        if (isset($options['prefix']))
+        {
+            $this->set_prefix($options['prefix']);
         }
     }
 
     /**
-     * Gets a cache item
-     * @access public
-     * @param string $key
+     * Gets a cache key
+     * @param string $key the cache key
      * @return mixed
      */
     public function get($key)
     {
-        $key = $this->_get_key($key);
+        $key = $this->get_key($key);
         $item = apc_fetch($key);
         return $item ? $item['value'] : null;
     }
 
     /**
-     * Gets the cache content by file modification
-     * @access public
-     * @param string $key
-     * @param string $file_path
-     * @return string
+     * Gets a cache key using the file last mofication
+     * as reference instead of the cache expiration
+     * @param string $key the cache key
+     * @param string $file_path the file path
+     * @return mixed
      */
     public function get_by_file($key, $file_path)
     {
         // can we access the original file?
-        if (is_readable($file_path)) {
-            $key = $this->_get_key($key);
+        if (is_readable($file_path))
+        {
+            $key = $this->get_key($key);
             $item = apc_fetch($key);
 
             // do we have a valid cache?, if so, is it newer than the last template modification date?
@@ -74,16 +71,14 @@ class Apc extends ACache
     }
 
     /**
-     * Set the cache
-     * @access public
-     * @param string $key
+     * Sets the cache key
+     * @param string $key the cache key
      * @param mixed $value
-     * @param int $expiration
-     * @return boolean
+     * @param time $expiration
      */
     public function set($key, $value, $expiration = 0)
     {
-        $key = $this->_get_key($key);
+        $key = $this->get_key($key);
         $value = array(
             'timestamp' => time(),
             'value' => $value);

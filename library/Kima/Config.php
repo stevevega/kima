@@ -1,38 +1,38 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Config
+ * @author Steve Vega
  */
 namespace Kima;
 
-/**
- * Namespaces to use
- */
 use \Kima\Error;
 
 /**
  * Config
- *
- * Framework Config
- * @package Kima
+ * Application config
  */
 class Config
 {
 
     /**
+     * Error messages
+     */
+     const ERROR_NO_KEY = 'Config key "%s" doesn\'t exists';
+     const ERROR_CONFIG_PATH = 'Cannot access config file on "%s"';
+
+    /**
      * Config associative array
-     * @access private
      * @var array
      */
-    private $_config = array();
+    private $config = array();
 
     /**
      * Constructor
-     * @access public
      * @param string $path
      */
     public function __construct($path)
     {
-        $this->_parse_config($path);
+        $this->parse_config($path);
     }
 
     /**
@@ -42,9 +42,9 @@ class Config
     public function __get($key)
     {
         // set the key value if exists
-        isset($this->_config[$key])
-            ? $value = $this->_config[$key]
-            : Error::set(__METHOD__, 'Config key ' . $key . ' doesn\'t exists', false);
+        isset($this->config[$key])
+            ? $value = $this->config[$key]
+            : Error::set(sprintf(self::ERROR_NO_KEY, $key), false);
 
         return isset($value) ? $value : null;
     }
@@ -53,7 +53,7 @@ class Config
      * Parse the config file
      * @param string $path
      */
-    private function _parse_config($path)
+    private function parse_config($path)
     {
         // gets the enviroment
         $environment = getenv('ENVIRONMENT') ? getenv('ENVIRONMENT') : 'default';
@@ -61,16 +61,17 @@ class Config
         // parse using ini file if file exists
         is_readable($path)
             ? $config = parse_ini_file($path, true)
-            : Error::set(__METHOD__, ' Cannot access config file on ' . $path);
+            : Error::set(sprintf(ERROR_CONFIG_PATH, $path));
 
         // merge the environment values with the default
-        $config = $environment!='default'
+        $config = 'default' !== $environment
             ? array_merge($config['default'], $config[$environment])
             : $config['default'];
 
         // create an associative array using the keys
-        foreach ($config as $key => $value) {
-            $this->_config = array_merge_recursive($this->_config, $this->_parse_keys($key, $value));
+        foreach ($config as $key => $value)
+        {
+            $this->config = array_merge_recursive($this->config, $this->parse_keys($key, $value));
         }
     }
 
@@ -78,15 +79,16 @@ class Config
      * Parse the keys on the config file
      * @param string $key
      * @param string $value
+     * @return array
      */
-    private function _parse_keys($key, $value)
+    private function parse_keys($key, $value)
     {
         // search for a key separator
-        if (strpos($key, '.')!==false)
+        if (false !== strpos($key, '.'))
         {
             // split the key in 2 parts and parse recursively the following key
             $keys = explode('.', $key, 2);
-            return array($keys[0] => $this->_parse_keys($keys[1], $value));
+            return array($keys[0] => $this->parse_keys($keys[1], $value));
         }
         else
         {

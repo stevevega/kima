@@ -1,24 +1,53 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Model Mongo
+ * @author Steve Vega
  */
 namespace Kima\Model;
 
+use \Kima\Database,
+    \Kima\Model\IModel;
+
 /**
- * Model Interface
- *
- * Interface used for databases model
+ * Mongo
+ * Mongo Model Class
  */
-interface IModel
+class Mongo implements IModel
 {
+
+    /**
+     * Gets the table name format for the database
+     * @param string $table
+     * @param string $database
+     * @param string $prefix
+     * @return string
+     */
+    function get_table($table, $database = '', $prefix = '');
+
+    /**
+     * Gets the join syntax for the query
+     * @param string $table
+     * @param string $key
+     * @param string $join_key
+     * @param string $database
+     * @return string
+     */
+    function get_join($table, $key, $join_key = '', $database = '');
+
+    /**
+     * Gets the order syntax for the query
+     * @param string $field
+     * @param string $order
+     * @return string
+     */
+    function get_order($field, $order = 'ASC');
 
     /**
      * Prepares the fields for a fetch query
      * @param array $fields
-     * @param string $table
      * @return string
      */
-    function prepare_fetch_fields(array $fields, $table);
+    function prepare_fetch_fields(array $fields);
 
     /**
      * Prepares the fields for a save query

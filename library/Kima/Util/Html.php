@@ -23,7 +23,7 @@ class Html
      */
     public static function get_text($html, $is_file = false)
     {
-    	$doc = self::load_html($html, $is_file);
+        $doc = self::load_html($html, $is_file);
 
         $remove_tags = array('script', 'link', 'style');
         $doc = self::remove_tags($doc, $remove_tags);
@@ -47,7 +47,7 @@ class Html
         }
         var_dump($values);
 
-		var_dump($doc->saveHTML());
+        var_dump($doc->saveHTML());
     }
 
     /**
@@ -55,15 +55,15 @@ class Html
      */
     public static function load_html($html, $is_file = false)
     {
-    	$doc = new DOMDocument();
-		$result = $is_file ? $doc->loadHTMLFile($html) : $doc->loadHTML($html);
+        $doc = new DOMDocument();
+        $result = $is_file ? $doc->loadHTMLFile($html) : $doc->loadHTML($html);
 
-		if (!$result) {
-			$html_source = $is_file ? 'file' : 'string';
-			Error::set(__METHOD__, 'Unable to load HTML from ' . $html_source);
-		}
+        if (!$result) {
+            $html_source = $is_file ? 'file' : 'string';
+            Error::set(__METHOD__, 'Unable to load HTML from ' . $html_source);
+        }
 
-		return $doc;
+        return $doc;
     }
 
     /**
