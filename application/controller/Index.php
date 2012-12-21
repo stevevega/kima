@@ -22,7 +22,7 @@ class Index extends Controller
     {
         # set title
         $this->view->set('TITLE', 'Hola Mundo!');
-        //$this->_view->show('title');
+        $this->view->show('title');
 
         # one user example
         $id_person = Request::get_all('id_person', 106300624);

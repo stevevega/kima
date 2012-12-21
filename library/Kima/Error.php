@@ -5,7 +5,8 @@
  */
 namespace Kima;
 
-use \Exception;
+use \Exception,
+    \Kima\Logger;
 
 /**
  * Handles user trigger errors in the application
@@ -23,6 +24,21 @@ class Error
         <div>Args: %s.</div>';
 
     /**
+     * Error levels
+     */
+    const ERROR = E_USER_ERROR;
+    const WARNING = E_USER_WARNING;
+    const NOTICE = E_USER_NOTICE;
+
+    /**
+     * Error levels list
+     */
+    private static $error_levels = [
+        self::ERROR => Logger::ERROR,
+        self::WARNING => Logger::WARNING,
+        self::NOTICE => Logger::NOTICE];
+
+    /**
      * Error class cannot be instanced directly
      */
     private function __contruct(){}
@@ -32,21 +48,14 @@ class Error
      * @param string $message the error message
      * @param boolean $is_critical whether is a critical error or not
      */
-    public static function set($message, $is_critical = true)
+    public static function set($message, $level = null)
     {
         // sets the error handler
         set_error_handler("self::error_handler");
 
-        if ($is_critical)
-        {
-            $error_level = E_USER_ERROR;
-            $error_level_name = 'Error';
-        }
-        else
-        {
-            $error_level = E_USER_NOTICE;
-            $error_level_name = 'Notice';
-        }
+        // make sure the error level is valid
+        $error_level = array_key_exists($level, self::$error_levels) ? $level : self::ERROR;
+        $error_level_name = self::$error_levels[$error_level];
 
         // get the error caller
         $error_caller = self::get_error_caller();
@@ -59,6 +68,9 @@ class Error
             $error_caller['function'],
             $error_caller['file'],
             print_r($error_caller['args'], true));
+
+        // log the error
+        Logger::log($error_message, 'error', $error_level_name);
 
         // send the error
         trigger_error($error_message, $error_level);

@@ -27,14 +27,19 @@ class Logger extends Model
     /**
      * Log levels
      */
-    const INFO = 'information';
+    const INFO = 'Information';
+    const ERROR = 'Error';
+    const WARNING = 'Warning';
+    const NOTICE = 'Notice';
 
     /**
      * Log levels list
      */
     private static $log_levels = [
-        self::INFO
-    ];
+        self::INFO,
+        self::ERROR,
+        self::WARNING,
+        self::NOTICE];
 
     /**
      * Logs new content into the logger
@@ -53,7 +58,7 @@ class Logger extends Model
         $fields = ['log_level' => $level, 'log_timestamp' => time()];
 
         // add custom content, objects will be store as fields
-        $content = is_object($content) ? get_object_vars($content) : ['content', $content];
+        $content = is_object($content) ? get_object_vars($content) : ['content' => $content];
         $fields = array_merge($fields, $content);
 
         $logger->put($fields);

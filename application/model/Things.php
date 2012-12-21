@@ -48,4 +48,5 @@ class Things extends Model
         $this->filter(['name' => 'testing'])
             ->put(['name' => 'testing']);
     }
+
 }
