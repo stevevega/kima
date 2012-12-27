@@ -1,4 +1,4 @@
 kima
 ====
 
-Kima Framework
+Kima PHP Framework
