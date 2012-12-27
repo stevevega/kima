@@ -111,14 +111,20 @@ class Solr
 
     /**
      * Fetch values from the Solr index
-     * @param string $query
      * @param array $fields
+     * @param string $query_string
+     * @param string $filter_query
      * @return SolrQueryResponse
      */
-    public function fetch(array $fields = [], $query_string = '*:*')
+    public function fetch(array $fields = [], $query_string = '*:*', $filter_query = '')
     {
         $query = new SolrQuery();
         $query->setQuery((string)$query_string);
+
+        if (!empty($filter_query))
+        {
+            $query->addFilterQuery((string)$filter_query);
+        }
 
         if (!empty($this->start))
         {

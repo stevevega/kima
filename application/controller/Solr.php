@@ -39,7 +39,7 @@ class Solr extends Controller
         $solr = KimaSolr::get_instance();
         $solr->put([$doc, $doc2]);
 
-        var_dump($solr->limit(2, 1)->fetch(['id', 'name'], '*'));
+        var_dump($solr->limit(2, 1)->fetch(['id', 'name'], '*', 'name:Kima*'));
     }
 
 }
