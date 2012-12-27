@@ -17,7 +17,7 @@ abstract class ACache
      * Construct
      * @param array $options the config options
      */
-    abstract function __construct(array $options = array());
+    abstract function __construct(array $options = []);
 
     /**
      * Gets a cache key

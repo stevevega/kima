@@ -122,9 +122,9 @@ class Application
         $config = new Config($path);
 
         // add the model to the include path
-        set_include_path(implode(PATH_SEPARATOR,
-            array(realpath($config->application['folder'] . '/model'),
-            get_include_path())));
+        set_include_path(
+            implode(PATH_SEPARATOR,
+            [realpath($config->application['folder'] . '/model'), get_include_path()]));
 
         self::$config = $config;
         return self::$instance;

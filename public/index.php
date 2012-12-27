@@ -13,17 +13,18 @@ if (!defined('ROOT_FOLDER')) {
 
 // Set the library directory to the include path
 set_include_path(implode(PATH_SEPARATOR,
-    array(realpath(ROOT_FOLDER . '/library'), get_include_path())));
+    [realpath(ROOT_FOLDER . '/library'), get_include_path()]));
 
 // set the configuration path
 $config_path = ROOT_FOLDER . '/application/config/application.ini';
 
-$urls = array(
+$urls = [
       '/' => 'Index',
       '/index/([A-Za-z0-9]+)/' => 'Index',
       '/cache/' => 'Cache',
       '/mongo/' => 'MongoTest',
-      '/paypal/' => 'Paypal');
+      '/paypal/' => 'Paypal',
+      '/solr/' => 'Solr'];
 
 require_once('Kima/Application.php');
 $application = Application::get_instance()

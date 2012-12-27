@@ -353,7 +353,8 @@ abstract class Model
         $limit = intval($limit);
         $page = intval($page);
 
-        if ($limit > 0) {
+        if ($limit > 0)
+        {
             $this->limit = $limit;
             $this->start = $page > 0 ? $limit * ($page - 1) : 0;
         }

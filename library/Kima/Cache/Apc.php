@@ -23,7 +23,7 @@ class Apc extends ACache
      * Construct
      * @param array $options the config options
      */
-    public function __construct(array $options = array()) {
+    public function __construct(array $options = []) {
         if (!extension_loaded($this->cache_type))
         {
             Error::set(sprintf(self::ERROR_NO_CACHE_SYSTEM, $this->cache_type));
@@ -79,9 +79,9 @@ class Apc extends ACache
     public function set($key, $value, $expiration = 0)
     {
         $key = $this->get_key($key);
-        $value = array(
+        $value = [
             'timestamp' => time(),
-            'value' => $value);
+            'value' => $value];
 
         return apc_store($key, $value, $expiration);
     }

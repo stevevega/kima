@@ -34,7 +34,7 @@ class Memcached extends ACache
      * Construct
      * @param array $options the config options
      */
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         if (!extension_loaded($this->cache_type))
         {
@@ -50,14 +50,14 @@ class Memcached extends ACache
 
         if (!$this->memcached->getServerList() && isset($options['memcached']['server']))
         {
-            $servers = array();
+            $servers = [];
 
             foreach ($options['memcached']['server'] as $server)
             {
                 $host = isset($server['host']) ? $server['host'] : '127.0.0.1';
                 $port = isset($server['port']) ? $server['port'] : '11211';
                 $weight = isset($server['weight']) ? $server['weight'] : 0;
-                $servers[] = array($host, $port, $weight);
+                $servers[] = [$host, $port, $weight];
             }
 
             $this->memcached->addServers($servers);
@@ -108,9 +108,9 @@ class Memcached extends ACache
     public function set($key, $value, $expiration = 0)
     {
         $key = $this->get_key($key);
-        $value = array(
+        $value = [
             'timestamp' => time(),
-            'value' => $value);
+            'value' => $value];
 
         return $this->memcached->set($key, $value, $expiration);
     }

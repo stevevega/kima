@@ -70,7 +70,7 @@ class Mysql implements IModel
         }
 
         # prepare every field
-        $fields_query = array();
+        $fields_query = [];
         foreach ($fields as $field => $value)
         {
             $field_name = is_string($field) ? $field . ' AS ' . $value : $value;
@@ -101,7 +101,7 @@ class Mysql implements IModel
         }
 
         # prepare every field
-        $fields_query = array();
+        $fields_query = [];
         foreach ($fields as $field => $value)
         {
             $fields_query[] = is_string($field)

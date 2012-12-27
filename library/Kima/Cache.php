@@ -34,7 +34,7 @@ class Cache
      * @param array $options the config options set for the cache system
      * @return Apc|Memcached|File
      */
-    public static function get_instance($type, array $options = array())
+    public static function get_instance($type, array $options = [])
     {
         switch ($type)
         {

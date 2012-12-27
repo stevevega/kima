@@ -35,7 +35,7 @@ class File extends ACache
      * Construct
      * @param array $options the config options
      */
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         if (isset($options['prefix']))
         {
@@ -102,9 +102,9 @@ class File extends ACache
     {
         $expiration = intval($expiration);
         $key = $this->get_key($key);
-        $value = array(
+        $value = [
             'expiration' => $expiration > 0 ? time() + $expiration : 0,
-            'value' => $value);
+            'value' => $value];
 
         $handler = fopen($this->folder_path . PATH_SEPARATOR . $key . '.cache', 'w');
         fwrite($handler, serialize($value));

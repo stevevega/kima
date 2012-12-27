@@ -24,7 +24,7 @@ class Config
      * Config associative array
      * @var array
      */
-    private $config = array();
+    private $config = [];
 
     /**
      * Constructor
@@ -88,12 +88,12 @@ class Config
         {
             // split the key in 2 parts and parse recursively the following key
             $keys = explode('.', $key, 2);
-            return array($keys[0] => $this->parse_keys($keys[1], $value));
+            return [$keys[0] => $this->parse_keys($keys[1], $value)];
         }
         else
         {
             // return the key value
-            return array($key => $value);
+            return [$key => $value];
         }
     }
 

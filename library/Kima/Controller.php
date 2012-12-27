@@ -25,7 +25,7 @@ class Controller
      * The controller template
      * @var array
      */
-    protected $template = array();
+    protected $template = [];
 
     /**
      * Use view layout?
