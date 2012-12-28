@@ -91,8 +91,18 @@ class Application
         // get the config
         $config = self::get_config();
 
-        // get the controller and action from the request
-        $module = getenv('MODULE') ? getenv('MODULE') : null;
+        // get the module and HTTP method
+        switch (true)
+        {
+            case getenv('MODULE'):
+                $module = getenv('MODULE');
+                break;
+            case !empty($_SERVER['MODULE']):
+                $module = $_SERVER['MODULE'];
+                break;
+            default:
+                $module = null;
+        }
         $method = strtolower(Request::get_method());
 
         // set module, controller and action

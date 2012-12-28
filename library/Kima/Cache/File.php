@@ -56,7 +56,7 @@ class File extends ACache
     public function get($key)
     {
         $key = $this->get_key($key);
-        $cache_path = $this->folder_path . PATH_SEPARATOR . $key . '.cache';
+        $cache_path = $this->folder_path . DIRECTORY_SEPARATOR . $key . '.cache';
         if (!is_readable($cache_path))
         {
             return null;
@@ -81,7 +81,7 @@ class File extends ACache
     {
         if (is_readable($file_path)) {
             $key = $this->get_key($key);
-            $cache_path = $this->folder_path . PATH_SEPARATOR . $key . '.cache';
+            $cache_path = $this->folder_path . DIRECTORY_SEPARATOR . $key . '.cache';
 
             if (is_readable($cache_path) && filemtime($file_path) <= filemtime($cache_path)) {
                 $item = unserialize(file_get_contents($cache_path));
@@ -106,7 +106,7 @@ class File extends ACache
             'expiration' => $expiration > 0 ? time() + $expiration : 0,
             'value' => $value];
 
-        $handler = fopen($this->folder_path . PATH_SEPARATOR . $key . '.cache', 'w');
+        $handler = fopen($this->folder_path . DIRECTORY_SEPARATOR . $key . '.cache', 'w');
         fwrite($handler, serialize($value));
         fclose($handler);
     }

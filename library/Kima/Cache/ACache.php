@@ -58,7 +58,7 @@ abstract class ACache
      * The cache key prefix
      * @var string
      */
-    private $prefix;
+    protected $prefix;
 
     /**
      * Gets the current cache type
@@ -87,7 +87,7 @@ abstract class ACache
      */
     protected function set_prefix($prefix)
     {
-        $this->_prefix = (string)$prefix;
+        $this->prefix = (string)$prefix;
         return $this;
     }
 
