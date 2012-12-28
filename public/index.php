@@ -24,7 +24,8 @@ $urls = [
       '/cache/' => 'Cache',
       '/mongo/' => 'MongoTest',
       '/paypal/' => 'Paypal',
-      '/solr/' => 'Solr'];
+      '/solr/' => 'Solr',
+      '/person/' => 'PersonTest'];
 
 require_once('Kima/Application.php');
 $application = Application::get_instance()

@@ -385,6 +385,7 @@ abstract class Model
             'table' => $this->table,
             'joins' => $this->joins,
             'filters' => $this->filters,
+            'binds' => $this->binds,
             'group' => $this->group,
             'order' => $this->order,
             'limit' => $this->limit,
@@ -437,7 +438,6 @@ abstract class Model
         $options = [
             'query' => $params,
             'query_string' => $this->query_string,
-            'binds' => $this->binds,
             'model' => $this->model,
             'fetch_all' => $fetch_all
         ];
@@ -464,8 +464,7 @@ abstract class Model
         // set execution options
         $options = [
             'query' => $params,
-            'query_string' => $this->query_string,
-            'binds' => $this->binds
+            'query_string' => $this->query_string
         ];
 
         # run the query
@@ -499,8 +498,7 @@ abstract class Model
         // set execution options
         $options = [
             'query' => $params,
-            'query_string' => $this->query_string,
-            'binds' => $this->binds
+            'query_string' => $this->query_string
         ];
 
         return Database::get_instance($this->db_engine)->put($options);
@@ -522,8 +520,7 @@ abstract class Model
         // set execution options
         $options = [
             'query' => $params,
-            'query_string' => $this->query_string,
-            'binds' => $this->binds
+            'query_string' => $this->query_string
         ];
 
         return Database::get_instance($this->db_engine)->delete($options);

@@ -21,7 +21,6 @@ class Person extends Model
     public static function get($id_person)
     {
         $user = new self();
-        $binds = [':id_person' => $id_person];
 
         $joins = [
             ['table' => 'location',
@@ -33,8 +32,7 @@ class Person extends Model
             'fields' => ['name' => 'city']]
         ];
 
-        return $user->filter(['id_person = :id_person'])
-            ->bind($binds)
+        return $user->filter(['id_person' => $id_person])
             ->join($joins)
             ->fetch(['name']);
     }
@@ -45,10 +43,26 @@ class Person extends Model
     public static function get_people($limit = 10)
     {
         $user = new self();
-        $binds = array(':name' => 'Steve');
 
-        return $user->filter(['name = :name'])
-            ->bind($binds)
+        $filters = [
+            '$or' => [
+                [
+                'name' => 'Steve',
+                'last_name' => ['$ne' => 'Cascante'],
+                'id_person' =>
+                    ['$lte' => 108650325,
+                    '$gte' => 106560217,
+                    '$in' => [107440358, 108200569, 108440350, 108520971],
+                    '$exists' => true]],
+                ['name' => 'Jose'],
+                ['last_name' => 'Castro']]];
+
+        /*$filters = ['name' => 'Steve',
+            '$or' => [
+                ['last_name' => ['$in' => ['Castro', 'Cascante']]],
+                ['surname' => 'Rodriguez']]];*/
+
+        return $user->filter($filters)
             ->order(['id_person' => 'ASC'])
             ->limit($limit)
             ->fetch_all();
@@ -56,12 +70,10 @@ class Person extends Model
 
     /**
      * update people
+     * @param array $fields
      */
-    public function put_person()
+    public function put_person(array $fields)
     {
-        # set fields
-        $fields = array('id_person', 'name');
-
         return $this->put($fields);
     }
 

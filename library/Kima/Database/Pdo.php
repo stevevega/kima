@@ -115,7 +115,8 @@ class Pdo extends ADatabase
         $dsn = 'mysql:dbname=' . $this->database .';host=' . $this->host;
         try
         {
-            $this->connection = new PdoDriver($dsn, $user, $password);
+            $this->connection = new PdoDriver($dsn, $user, $password,
+                [PdoDriver::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'"]);
             return $this->connection;
         }
         catch (PDOException $e)
@@ -137,6 +138,7 @@ class Pdo extends ADatabase
         }
 
         $statement = $this->execute($options);
+        $result = [];
         while ($row = $statement->fetchObject($options['model']))
         {
             $result[] = $row;
@@ -185,9 +187,9 @@ class Pdo extends ADatabase
             $statement = $this->get_connection()->prepare($options['query_string']);
 
             // bind prepare statement values if necessary
-            if (!empty($options['binds']))
+            if (!empty($options['query']['binds']))
             {
-               $this->bind_values($statement, $options['binds']);
+               $this->bind_values($statement, $options['query']['binds']);
             }
             $success = $statement->execute();
 

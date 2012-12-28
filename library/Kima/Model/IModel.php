@@ -23,9 +23,10 @@ interface IModel
     /**
      * Prepares the fields for a save query
      * @param array $fields
+     * @param array $binds
      * @return string
      */
-    function prepare_save_fields(array $fields);
+    function prepare_save_fields(array $fields, array &$binds);
 
     /**
      * Prepares query joins
@@ -37,9 +38,10 @@ interface IModel
     /**
      * Prepares query filters
      * @param array $filters
+     * @param array $binds
      * @return string
      */
-    function prepare_filters(array $filters);
+    function prepare_filters(array $filters, array &$binds);
 
     /**
      * Prepares query grouping
@@ -68,7 +70,7 @@ interface IModel
      * @param array $params
      * @return string
      */
-    function get_fetch_query(array $params);
+    function get_fetch_query(array &$params);
 
     /**
      * Gets update query
@@ -82,7 +84,7 @@ interface IModel
      * @param array $params
      * @return string
      */
-    function get_put_query(array $params);
+    function get_put_query(array &$params);
 
     /**
      * Gets delete query

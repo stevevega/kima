@@ -7,7 +7,8 @@ namespace Kima\Model;
 
 use \Kima\Database,
     \Kima\Error,
-    \Kima\Model\IModel;
+    \Kima\Model\IModel,
+    \Kima\Model\TFilter;
 
 /**
  * Mysql
@@ -17,10 +18,16 @@ class Mysql implements IModel
 {
 
     /**
+     * Traits
+     */
+    use TFilter;
+
+    /**
      * Error messages
      */
      const ERROR_EMPTY_FIELDS = 'Fields for save data query not provided';
      const ERROR_JOIN_NOT_ARRAY = 'Join array should contain an array with joins';
+     const ERROR_QUERY = 'Error parsing MySQL query: %s';
 
     /**
      * Gets the table name format for the database
@@ -90,9 +97,10 @@ class Mysql implements IModel
      * Prepares the fields for a save query
      * @todo fix $this->{value}
      * @param array $fields
+     * @param array $binds
      * @return string
      */
-    public function prepare_save_fields(array $fields)
+    public function prepare_save_fields(array $fields, array &$binds)
     {
         # save queries should always provide at least one field
         if (empty($fields))
@@ -104,12 +112,22 @@ class Mysql implements IModel
         $fields_query = [];
         foreach ($fields as $field => $value)
         {
-            $fields_query[] = is_string($field)
-                ? $field . '=' . Database::get_instance()->escape($value)
-                : $value . '=' . Database::get_instance()->escape($this->{$value});
+            if (is_string($field))
+            {
+                $key = $field;
+                $value = $value;
+            }
+            else
+            {
+                $key = $value;
+                $value = $this->{$value};
+            }
+
+            $fields_query[] = $key . ' = :' . $key;
+            $binds[':' . $key] = $value;
         }
 
-        return implode(',', $fields_query);
+        return implode(', ', $fields_query);
     }
 
     /**
@@ -134,11 +152,14 @@ class Mysql implements IModel
     /**
      * Prepares query filters
      * @param array $filters
+     * @param array $binds
      * @return string
      */
-    public function prepare_filters(array $filters)
+    public function prepare_filters(array $filters, array &$binds)
     {
-        return empty($filters) ? '' : ' WHERE ' . implode(' AND ', $filters);
+        $filters = $this->parse_operators($filters, $binds);
+
+        return empty($filters) ? '' : ' WHERE ' . $filters;
     }
 
     /**
@@ -185,7 +206,7 @@ class Mysql implements IModel
      * @param array $params
      * @return string
      */
-    public function get_fetch_query(array $params)
+    public function get_fetch_query(array &$params)
     {
         $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
 
@@ -194,7 +215,7 @@ class Mysql implements IModel
                 $this->prepare_fetch_fields($params['fields'], $table) .
                 ' FROM ' . $table .
                 $this->prepare_joins($params['joins']) .
-                $this->prepare_filters($params['filters']) .
+                $this->prepare_filters($params['filters'], $params['binds']) .
                 $this->prepare_group($params['group']) .
                 $this->prepare_order($params['order']) .
                 $this->prepare_limit($params['limit'], $params['start']);
@@ -227,10 +248,10 @@ class Mysql implements IModel
      * @param array $params
      * @return string
      */
-    public function get_put_query(array $params)
+    public function get_put_query(array &$params)
     {
        $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
-       $fields = $this->prepare_save_fields($params['fields']);
+       $fields = $this->prepare_save_fields($params['fields'], $params['binds']);
 
        $query_string =
             'INSERT INTO ' . $table .
