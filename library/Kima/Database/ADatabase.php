@@ -5,6 +5,8 @@
  */
 namespace Kima\Database;
 
+use \Kima\Error;
+
 /**
  * Abstract Database
  * Abstract class for database handlers
@@ -17,7 +19,10 @@ abstract class ADatabase
      * @param string $db_engine The database engine
      * @return mixed
      */
-    abstract static function get_instance($db_engine);
+    static function get_instance($db_engine)
+    {
+        Error::set('Not implemented');
+    }
 
     /**
      * Checks database connection status

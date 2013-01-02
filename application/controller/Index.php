@@ -28,8 +28,6 @@ class Index extends Controller
         $id_person = Request::get_all('id_person', 106300624);
         $person = Person::get($id_person);
 
-        Logger::log($person, 'person', Logger::INFO);
-
         $this->view->set('id_person', $person->id_person, 'content');
         $this->view->set('name', $person->name, 'content');
 
