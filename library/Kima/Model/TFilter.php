@@ -18,7 +18,7 @@ trait TFilter
      * Query operators
      * @var array
      */
-    private $operators = [
+    private $query_operators = [
         '$ne' => '!=',
         '$lt' => '<',
         '$lte' => '<=',
@@ -131,18 +131,18 @@ trait TFilter
             case '$gt': // greater than
             case '$gte': // greater than or equals
                 $filter = $this->parse_simple_operator(
-                    $this->operators[$operator], $key, $value, $bind_key, $binds);
+                    $this->query_operators[$operator], $key, $value, $bind_key, $binds);
                 break;
 
             case '$in': // in (1,2,3)
             case '$nin': // not in (1,2,3)
                 $filter = $this->parse_in_operator(
-                    $this->operators[$operator], $key, $value, $bind_key, $binds);
+                    $this->query_operators[$operator], $key, $value, $bind_key, $binds);
                 break;
 
             case '$exists':
                 $exists = false === $value ? '' : 'NOT';
-                $filter = $key . ' ' . sprintf($this->operators[$operator], $exists);
+                $filter = $key . ' ' . sprintf($this->query_operators[$operator], $exists);
                 break;
 
             default:

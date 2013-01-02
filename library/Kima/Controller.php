@@ -7,7 +7,7 @@ namespace Kima;
 
 use \Kima\Application,
     \Kima\Error,
-    \Kima\Template;
+    \Kima\View;
 
 /**
  * Controller
@@ -25,7 +25,7 @@ class Controller
      * The controller template
      * @var array
      */
-    protected $template = [];
+    private $view = [];
 
     /**
      * Use view layout?
@@ -41,14 +41,14 @@ class Controller
     {
         if ('view' === $param)
         {
-            if (isset($this->template[$param]))
+            if (isset($this->view[$param]))
             {
-                return $this->template[$param];
+                return $this->view[$param];
             }
             else
             {
                 // get the config and application module-controller-action
-                $config = Application::get_instance()->get_config()->template;
+                $config = Application::get_instance()->get_config()->view;
                 $module = Application::get_instance()->get_module();
                 $controller = Application::get_instance()->get_controller();
                 $method = Application::get_instance()->get_method();
@@ -57,12 +57,12 @@ class Controller
                 $config = $this->get_view_config($config, $module);
 
                 // set the view
-                $this->template['view'] = new Template($config);
+                $this->view['view'] = new View($config);
 
                 // load the action view
                 $view_path = strtolower($controller) . '/' . $method . '.html';
-                $this->template['view']->load($view_path);
-                return $this->template['view'];
+                $this->view['view']->load($view_path);
+                return $this->view['view'];
             }
         }
 
@@ -79,7 +79,7 @@ class Controller
         // disable layout if not wanted
         if (!$this->use_layout)
         {
-            unset($config['main']);
+            unset($config['layout']);
         }
 
         // set cache config
@@ -103,12 +103,12 @@ class Controller
      */
     public function disable_layout()
     {
-        if (isset($this->template['view']))
+        if (isset($this->view['view']))
         {
             Error::set(self::ERROR_DISABLE_LAYOUT);
         }
 
-        $this->layout = false;
+        $this->use_layout = false;
         return $this;
     }
 

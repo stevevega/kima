@@ -1,13 +1,13 @@
 <?php
 /**
- * Namespace Kima
+ * Kima Http Request
+ * @author Steve Vega
  */
 namespace Kima\Http;
 
 /**
  * Request
- *
- * Request class
+ * HTTP Request handler class
  * @package Kima
  */
 class Request
