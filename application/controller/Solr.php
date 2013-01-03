@@ -36,7 +36,7 @@ class Solr extends Controller
         $doc2->popularity = 9;
 
         // get solr instance and put the doc
-        $solr = KimaSolr::get_instance();
+        $solr = KimaSolr::get_instance('kima');
         $solr->put([$doc, $doc2]);
 
         var_dump($solr->limit(2, 1)->fetch(['id', 'name'], '*', 'name:Kima*'));

@@ -30,7 +30,8 @@ class Solr
 
     /**
      * Instance
-     * @var \Kima\Search\Solr
+     * Array of the instances with different cores of Solr
+     * @var array
      */
     private static $instance;
 
@@ -53,25 +54,38 @@ class Solr
     private $rows;
 
     /**
-     * Construct
+     * The core of the current Solr instance
+     * @var string
      */
-    private function __construct()
+    private $core;
+
+    /**
+     * Construct
+     * @param string $core
+     */
+    private function __construct($core)
     {
         // make sure solr is available
         if (!extension_loaded('solr'))
         {
             Error::set(self::ERROR_NO_SOLR);
         }
+
+        // set the core
+        $this->core = $core;
     }
 
     /**
      * Get the Solr instance
+     * @param string $core
      * @return \Kima\Search\Solr
      */
-    public static function get_instance()
+    public static function get_instance($core)
     {
-        isset(self::$instance) || self::$instance = new self;
-        return self::$instance;
+        $core = (string)$core;
+
+        isset(self::$instance[$core]) || self::$instance[$core] = new self($core);
+        return self::$instance[$core];
     }
 
     /**
@@ -95,12 +109,12 @@ class Solr
             // get the config values to connect
             $config = Application::get_instance()->get_config();
 
-            if (empty($config->search['solr']))
+            if (empty($config->search['solr'][$this->core]))
             {
                 Error:set(self::ERROR_NO_CONFIG);
             }
 
-            $options = $config->search['solr'];
+            $options = $config->search['solr'][$this->core];
 
             # make the connection
             $this->connect($options);
