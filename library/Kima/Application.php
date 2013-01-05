@@ -7,7 +7,9 @@ namespace Kima;
 
 use \Kima\Action,
     \Kima\Config,
-    \Kima\Http\Request;
+    \Kima\Error,
+    \Kima\Http\Request,
+    \Bootstrap;
 
 /**
  * Application
@@ -15,6 +17,16 @@ use \Kima\Action,
  */
 class Application
 {
+
+    /**
+     * Error messages
+     */
+    const ERROR_NO_BOOTSTRAP = 'Class Boostrap not defined in Bootstrap.php';
+
+    /**
+     * Bootstrap path
+     */
+    const BOOTSTRAP_PATH = 'Bootstrap.php';
 
     /**
      * instance
@@ -109,8 +121,42 @@ class Application
         self::set_module($module);
         self::set_method($method);
 
+        // load the bootstrap
+        self::load_bootstrap();
+
         // run the action
         $action = new Action($urls);
+    }
+
+    /**
+     * Loads the application bootstrap
+     * Calls all public methods on it
+     */
+    private static function load_bootstrap()
+    {
+        $config = self::get_config();
+
+        $bootstrap_path = $config->application['folder'] .
+            DIRECTORY_SEPARATOR . self::BOOTSTRAP_PATH;
+
+        // load the bootstrap if available
+        if (is_readable($bootstrap_path))
+        {
+            // get the bootstrap and make sure the class exists
+            require_once $bootstrap_path;
+            if (!class_exists('Bootstrap', false))
+            {
+                Error::set(self::ERROR_NO_BOOTSTRAP);
+            }
+
+            // get the bootstrap methods and call them
+            $methods = get_class_methods('Bootstrap');
+            $bootstrap = new Bootstrap();
+            foreach($methods as $method)
+            {
+                $bootstrap->{$method}();
+            }
+        }
     }
 
     /**
