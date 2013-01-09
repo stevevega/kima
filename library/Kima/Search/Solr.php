@@ -28,6 +28,9 @@ class Solr
     const ERROR_NO_CONFIG = 'Empty Solr config in application ini';
     const ERROR_SOLR_CLIENT = 'Solr client exception: "%s"';
 
+    const ORDER_ASC = 'ASC';
+    const ORDER_DESC = 'DESC';
+
     /**
      * Instance
      * Array of the instances with different cores of Solr
@@ -58,6 +61,17 @@ class Solr
      * @var string
      */
     private $core;
+
+    /**
+     * An array of arrays with the fields to be used for sorting
+     * e.g.
+     * [
+     *     'name' => SolrQuery:ORDER_ASC,
+     *     'type' => SolrQuery:ORDER_DESC,
+     * ]
+     * @var [type]
+     */
+    private $sort_fields;
 
     /**
      * Construct
@@ -131,8 +145,7 @@ class Solr
      * @param array $sort_fields an array of arrays that has the fields and orders
      * @return SolrQueryResponse
      */
-    public function fetch(array $fields = [], $query_string = '*:*', $filter_query = '',
-        array $sort_fields = [])
+    public function fetch(array $fields = [], $query_string = '*:*', $filter_query = '')
     {
         $query = new SolrQuery();
         $query->setQuery((string)$query_string);
@@ -158,13 +171,12 @@ class Solr
         }
 
         // add the sort fields to the query
-        foreach ($sort_fields as $sort_field)
+        if (!empty($this->sort_fields))
         {
-            // when no sort order has been defined default to ASC
-            $sort_order = isset($sort_field[1]) && $sort_field[1] === SolrQuery::ORDER_DESC
-                ? SolrQuery::ORDER_DESC
-                : SolrQuery::ORDER_ASC;
-            $query->addSortField($sort_field[0], $sort_order);
+            foreach ($this->sort_fields as $sort_field => $sort_order)
+            {
+                $query->addSortField($sort_field, $sort_order);
+            }
         }
 
         $connection = $this->get_connection();
@@ -315,6 +327,32 @@ class Solr
             $this->start = $page > 0 ? $limit * ($page - 1) : 0;
         }
 
+        return $this;
+    }
+
+    /**
+     * Sets what fields to use for ordering the query results
+     * @param  array $sort_fields contains the fields and (optionally) the order
+     *                            ['name', 'type' => Solr::DESC]
+     * @return Solr reference to this
+     */
+    public function order(array $sort_fields = [])
+    {
+        $this->sort_fields = [];
+
+        foreach ($sort_fields as $key => $value)
+        {
+            $has_order = !is_numeric($key);
+
+            $field = $has_order ? $key : $value;
+
+            // default to ASC if the value is not found
+            $order = $has_order && self::ORDER_DESC === $value
+                ? SolrQuery::ORDER_DESC
+                : SolrQuery::ORDER_ASC;
+
+            $this->sort_fields[$field] = $order;
+        }
         return $this;
     }
 }
