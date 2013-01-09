@@ -28,6 +28,9 @@ class Solr
     const ERROR_NO_CONFIG = 'Empty Solr config in application ini';
     const ERROR_SOLR_CLIENT = 'Solr client exception: "%s"';
 
+    /**
+     * Query order values
+     */
     const ORDER_ASC = 'ASC';
     const ORDER_DESC = 'DESC';
 
@@ -141,18 +144,20 @@ class Solr
      * Fetch values from the Solr index
      * @param array $fields
      * @param string $query_string
-     * @param string $filter_query
-     * @param array $sort_fields an array of arrays that has the fields and orders
+     * @param array $params any additional params required
      * @return SolrQueryResponse
      */
-    public function fetch(array $fields = [], $query_string = '*:*', $filter_query = '')
+    public function fetch(array $fields = [], $query_string = '*:*', array $params = [])
     {
         $query = new SolrQuery();
         $query->setQuery((string)$query_string);
 
-        if (!empty($filter_query))
+        if (!empty($params))
         {
-            $query->addFilterQuery((string)$filter_query);
+            foreach ($params as $param => $value)
+            {
+                $query->addParam((string)$param, (string)$value);
+            }
         }
 
         if (!empty($this->start))
