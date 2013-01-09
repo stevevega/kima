@@ -124,10 +124,13 @@ class Action
 
         $controller_path = $controller_folder . '/' . $controller . '.php';
 
-        $controller_obj = $this->get_controller_instance($controller, $controller_path);
+        // get the controller class
+        $controller_class = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', $controller);
+
+        $controller_obj = $this->get_controller_instance($controller_class, $controller_path);
 
         // validate-call action
-        $methods = $this->get_controller_methods($controller);
+        $methods = $this->get_controller_methods($controller_class);
         if (!in_array($method, $methods))
         {
             $this->set_error_action(405);

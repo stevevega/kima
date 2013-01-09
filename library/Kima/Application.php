@@ -9,7 +9,8 @@ use \Kima\Action,
     \Kima\Config,
     \Kima\Error,
     \Kima\Http\Request,
-    \Bootstrap;
+    \Bootstrap,
+    Exception;
 
 /**
  * Application

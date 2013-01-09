@@ -1,4 +1,6 @@
 <?php
+namespace Test;
+
 /**
  * Namespaces to use
  */
@@ -7,7 +9,8 @@ use \Kima\Application,
     \Kima\Http\Request,
     \Kima\Google\UrlShortener,
     \MongoClient,
-    \Kima\Database\Mongo as MongoDb;
+    \Kima\Database\Mongo as MongoDb,
+    \Test\Things;
 
 /**e
  * Mongo

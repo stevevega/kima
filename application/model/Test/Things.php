@@ -1,4 +1,6 @@
 <?php
+namespace Test;
+
 /**
  * Namespaces to use
  */
