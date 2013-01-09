@@ -128,9 +128,11 @@ class Solr
      * @param array $fields
      * @param string $query_string
      * @param string $filter_query
+     * @param array $sort_fields an array of arrays that has the fields and orders
      * @return SolrQueryResponse
      */
-    public function fetch(array $fields = [], $query_string = '*:*', $filter_query = '')
+    public function fetch(array $fields = [], $query_string = '*:*', $filter_query = '',
+        array $sort_fields = [])
     {
         $query = new SolrQuery();
         $query->setQuery((string)$query_string);
@@ -153,6 +155,16 @@ class Solr
         foreach ($fields as $field)
         {
             $query->addField($field);
+        }
+
+        // add the sort fields to the query
+        foreach ($sort_fields as $sort_field)
+        {
+            // when no sort order has been defined default to ASC
+            $sort_order = isset($sort_field[1]) && $sort_field[1] === SolrQuery::ORDER_DESC
+                ? SolrQuery::ORDER_DESC
+                : SolrQuery::ORDER_ASC;
+            $query->addSortField($sort_field[0], $sort_order);
         }
 
         $connection = $this->get_connection();
@@ -305,5 +317,4 @@ class Solr
 
         return $this;
     }
-
 }
