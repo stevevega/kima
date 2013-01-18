@@ -22,6 +22,12 @@ class Database
     const ERROR_INVALID_DATABASE_ENGINE = '"%s" is not a valid database engine';
 
     /**
+     * Class constants
+     */
+    const MYSQL = 'mysql';
+    const MONGO = 'mongo';
+
+    /**
      * constructor
      */
     private function __construct(){}
@@ -35,9 +41,9 @@ class Database
     {
         switch ($db_engine)
         {
-            case 'mysql':
+            case self::MYSQL:
                 return Pdo::get_instance($db_engine);
-            case 'mongo' :
+            case self::MONGO:
                 return Mongo::get_instance($db_engine);
             default:
                 Error::set(sprintf(self::ERROR_INVALID_DATABASE_ENGINE, $db_engine));
