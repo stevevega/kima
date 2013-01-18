@@ -39,6 +39,8 @@ echo ""
 echo "-----------------------------------------------"
 echo "Creating new Kima Project"
 echo "Project name/directory: $name"
+echo "Create Apache .htaccess?: $create_htaccess"
+echo "Create .gitignore File?: $create_git_ignore"
 echo "Create README.md File?: $create_readme"
 echo "-----------------------------------------------"
 
