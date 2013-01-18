@@ -77,6 +77,12 @@ class Solr
     private $sort_fields;
 
     /**
+     * An array of field names that are used to facet a search
+     * @var array
+     */
+    private $facet_fields;
+
+    /**
      * Construct
      * @param string $core
      */
@@ -184,6 +190,16 @@ class Solr
             }
         }
 
+        // turn on faceting and add any field for it
+        if (!empty($this->facet_fields))
+        {
+            $query->setFacet(true);
+            foreach ($this->facet_fields as $facet)
+            {
+                $query->addFacetField($facet);
+            }
+        }
+
         $connection = $this->get_connection();
 
         try
@@ -195,7 +211,7 @@ class Solr
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
         }
 
-        return $response->getResponse()->response;
+        return $response->getResponse();
     }
 
     /**
@@ -359,5 +375,14 @@ class Solr
             $this->sort_fields[$field] = $order;
         }
         return $this;
+    }
+
+    /**
+     * Sets the fields that will be used to generate the facets
+     * @param  array $facet_fields array of field names
+     */
+    public function facet(array $facet_fields = [])
+    {
+        $this->facet_fields = $facet_fields;
     }
 }
