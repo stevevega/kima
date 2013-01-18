@@ -216,10 +216,14 @@ class Action
         // get the possible language
         $url_parameters = $this->get_url_parameters();
         $language = array_shift($url_parameters);
+        $languages = [];
 
         // get the list of available languages
-        $languages = Application::get_instance()->get_config()->language['available'];
-        $languages = explode(',', $languages);
+        if (!empty(Application::get_instance()->get_config()->language['available']))
+        {
+            $languages = Application::get_instance()->get_config()->language['available'];
+            $languages = explode(',', $languages);
+        }
 
         // return the desired languages
         if (in_array($language, $languages))

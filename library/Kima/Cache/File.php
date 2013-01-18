@@ -130,9 +130,11 @@ class File extends ACache
 
         if (!is_dir($folder_path))
         {
-            $oldumask = umask(0);
-            mkdir($folder_path, 0777);
-            umask($folder_path);
+            if (@!mkdir($folder_path, 0777))
+            {
+                Error::set(sprintf(self::ERROR_FOLDER_INACCESSIBLE, $folder_path));
+            }
+
         }
 
         // path should be writable

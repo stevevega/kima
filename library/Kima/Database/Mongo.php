@@ -65,8 +65,15 @@ class Mongo extends ADatabase
 
         // set the default host and database name
         $config = Application::get_instance()->get_config();
-        $this->set_database($config->database['mongo']['name'])
-            ->set_host($config->database['mongo']['host']);
+
+        if (!empty($config->database['mongo']['name']))
+        {
+            $this->set_database($config->database['mongo']['name']);
+        }
+        if (!empty($config->database['mongo']['host']))
+        {
+            $this->set_host($config->database['mongo']['host']);
+        }
     }
 
     /**
@@ -92,8 +99,12 @@ class Mongo extends ADatabase
         {
             // set the username and password
             $config = Application::get_instance()->get_config();
-            $user = $config->database['mongo']['user'];
-            $password = $config->database['mongo']['password'];
+            $user = !empty($config->database['mongo']['user'])
+                ? $config->database['mongo']['user']
+                : '';
+            $password = !empty($config->database['mongo']['password'])
+                ? $config->database['mongo']['password']
+                : '';
 
             // make the connection
             $this->connect($user, $password);

@@ -6,6 +6,7 @@
 namespace Kima;
 
 use \Exception,
+    \Kima\Application,
     \Kima\Logger;
 
 /**
@@ -69,8 +70,11 @@ class Error
             $error_caller['file'],
             print_r($error_caller['args'], true));
 
-        // log the error
-        Logger::log($error_message, 'error', $error_level_name);
+        $config = Application::get_config();
+        if (isset($config->database) && !empty($config->database['mongo']['host']))
+        {
+            Logger::log($error_message, 'error', $error_level_name);
+        }
 
         // send the error
         trigger_error($error_message, $error_level);
