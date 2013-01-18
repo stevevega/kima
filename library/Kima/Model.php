@@ -190,7 +190,7 @@ abstract class Model
                 $this->adapter = new Mysql();
                 $this->primary_key = defined($this->model . '::PRMARY_KEY')
                     ? constant($this->model . '::PRMARY_KEY')
-                    : 'id_' . strtolower($this->model);
+                    : 'id_' . strtolower($this->table);
                 break;
             case 'mongo':
                 $this->adapter = null;
@@ -394,6 +394,24 @@ abstract class Model
     }
 
     /**
+     * Clears the query params
+     */
+    private function clear_query_params()
+    {
+        $this->fields = [];
+        $this->database = '';
+        $this->prefix = '';
+        $this->table = constant($this->model . '::TABLE');
+        $this->joins = [];
+        $this->filters = [];
+        $this->binds = [];
+        $this->group = [];
+        $this->order = [];
+        $this->limit = 0;
+        $this->start = 0;
+    }
+
+    /**
      * Fetch one result of data from the database
      * Example $fields values:
      * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
@@ -425,7 +443,6 @@ abstract class Model
     private function fetch_results(array $fields, $fetch_all = false)
     {
         // make sure we have the primary key
-        $fields = $this->ensure_primary_key($fields);
         $this->fields = $this->set_fields($fields);
         $params = $this->get_query_params();
 
@@ -444,6 +461,7 @@ abstract class Model
 
         // get result from the query
         $result = Database::get_instance($this->db_engine)->fetch($options);
+        $this->clear_query_params();
         return $result;
     }
 
@@ -468,6 +486,7 @@ abstract class Model
         ];
 
         # run the query
+        $this->clear_query_params();
         return Database::get_instance($this->db_engine)->put($options);
     }
 
@@ -484,9 +503,9 @@ abstract class Model
         }
 
         // set the primary key if is an existing model
-        if (!empty($this->{$this->primary_key}))
+        if (!empty($this->{$this->primary_key}) && !isset($this->fields[$this->primary_key]))
         {
-            $this->filters = [$this->primary_key => $this->{$this->primary_key}];
+            $this->fields[$this->primary_key] = $this->{$this->primary_key};
         }
         $params = $this->get_query_params();
 
@@ -501,6 +520,7 @@ abstract class Model
             'query_string' => $this->query_string
         ];
 
+        $this->clear_query_params();
         return Database::get_instance($this->db_engine)->put($options);
     }
 
@@ -523,6 +543,7 @@ abstract class Model
             'query_string' => $this->query_string
         ];
 
+        $this->clear_query_params();
         return Database::get_instance($this->db_engine)->delete($options);
     }
 

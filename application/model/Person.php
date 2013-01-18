@@ -34,7 +34,7 @@ class Person extends Model
 
         return $user->filter(['id_person' => $id_person])
             ->join($joins)
-            ->fetch(['name']);
+            ->fetch(['id_person', 'name']);
     }
 
     /**

@@ -3,6 +3,7 @@
  * Solr example
  */
 use \Kima\Controller,
+    \Kima\Application,
     \Kima\Search\Solr as KimaSolr;
 
 /**
