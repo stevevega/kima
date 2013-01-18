@@ -11,10 +11,7 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule . index.php
-
-    ErrorDocument 404 /index.php?{%QUERY_STRING}&controller=error&action=index&status_code=404
 </IfModule>
 
 <IfModule !mod_rewrite.c>
-    ErrorDocument 404 /index.php?{%QUERY_STRING}&controller=error&action=index&status_code=404
 </IfModule>

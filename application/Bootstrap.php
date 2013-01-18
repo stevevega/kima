@@ -1,7 +1,6 @@
 <?php
 /**
  * Kima Application Bootstrap
- * @author Steve Vega
  */
 
 /**

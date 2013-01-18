@@ -360,4 +360,5 @@ class Solr
         }
         return $this;
     }
+
 }
