@@ -17,6 +17,7 @@ class Config
     /**
      * Error messages
      */
+     const ERROR_NO_ENVIRONMENT = 'Environment "%s" not found in application ini';
      const ERROR_NO_KEY = 'Config key "%s" doesn\'t exists';
      const ERROR_CONFIG_PATH = 'Cannot access config file on "%s"';
 
@@ -73,16 +74,41 @@ class Config
             ? $config = parse_ini_file($path, true)
             : Error::set(sprintf(ERROR_CONFIG_PATH, $path));
 
-        // merge the environment values with the default
-        $config = 'default' !== $environment
-            ? array_merge($config['default'], $config[$environment])
-            : $config['default'];
+        // get the merged configuration
+        $config = $this->get_environment_config($config, $environment);
 
         // create an associative array using the keys
         foreach ($config as $key => $value)
         {
             $this->config = array_merge_recursive($this->config, $this->parse_keys($key, $value));
         }
+    }
+
+    /**
+     * Make sure the require environments are setup
+     * @param array $config
+     * @param string $environment
+     */
+    private function get_environment_config(array $config, $environment)
+    {
+        // check if default environment exists
+        if (!isset($config['default']))
+        {
+            Error::set(sprintf(self::ERROR_NO_ENVIRONMENT, 'default'));
+        }
+
+        // check if custom environment exists
+        if (!isset($config[$environment]))
+        {
+            Error::set(sprintf(self::ERROR_NO_ENVIRONMENT, $environment));
+        }
+
+        // merge the environment values with the default
+        $config = 'default' !== $environment
+            ? array_merge($config['default'], $config[$environment])
+            : $config['default'];
+
+        return $config;
     }
 
     /**
