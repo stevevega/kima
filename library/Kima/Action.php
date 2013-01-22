@@ -23,6 +23,7 @@ class Action
     const ERROR_NO_CONTROLLER_FILE = 'Class file for "%s" is not accesible on "%s"';
     const ERROR_NO_CONTROLLER_CLASS = ' Class "%s" not declared on "%s"';
     const ERROR_NO_CONTROLLER_INSTANCE = 'Object for "%s" is not an instance of \Kima\Controller';
+    const ERROR_NO_MODULE_ROUTES = 'Routes for module "%s" are not set';
 
     /**
      * Url parameters
@@ -43,6 +44,16 @@ class Action
         $language = $this->get_language();
         Application::get_instance()->set_language($language);
 
+        // set the module routes if exists
+        $module = Application::get_instance()->get_module();
+        if (!empty($module))
+        {
+            array_key_exists($module, $urls)
+                ? $urls = $urls[$module]
+                : Error::set(sprintf(self::ERROR_NO_MODULE_ROUTES, $module));
+        }
+
+        // get the controller matching the routes
         $controller = $this->get_controller($urls);
 
         // validate controller and action
@@ -71,34 +82,36 @@ class Action
         $url_parameters = $this->get_url_parameters();
         $url_parameters_count = count($url_parameters);
 
-
         // loop the defined urls looking for a match
         foreach ($urls as $url => $controller)
         {
-            // split the url elements
-            $url_elements = array_values(array_filter(explode('/', $url)));
-
-            // compare the elements size
-            if ($url_parameters_count === count($url_elements))
+            if (is_string($controller))
             {
-                $is_match = true;
+                // split the url elements
+                $url_elements = array_values(array_filter(explode('/', $url)));
 
-                // loop each url elements
-                foreach ($url_elements as $key => $url_element)
+                // compare the elements size
+                if ($url_parameters_count === count($url_elements))
                 {
-                    // match the url element with the path element
-                    preg_match('/^' . $url_element . '$/', $url_parameters[$key], $matches);
-                    if (!$matches)
+                    $is_match = true;
+
+                    // loop each url elements
+                    foreach ($url_elements as $key => $url_element)
                     {
-                        $is_match = false;
-                        break;
+                        // match the url element with the path element
+                        preg_match('/^' . $url_element . '$/', $url_parameters[$key], $matches);
+                        if (!$matches)
+                        {
+                            $is_match = false;
+                            break;
+                        }
                     }
-                }
 
-                // if all the elements matched, return its controller
-                if ($is_match)
-                {
-                    return $controller;
+                    // if all the elements matched, return its controller
+                    if ($is_match)
+                    {
+                        return $controller;
+                    }
                 }
             }
         }
@@ -243,7 +256,7 @@ class Action
      */
     public function set_url_parameters()
     {
-        $path_parts = explode('?', $_SERVER['REQUEST_URI']);
+        $path_parts = explode('?', Request::server('REQUEST_URI'));
         $path = array_shift($path_parts);
         $path_elements = array_values(array_filter(explode('/', $path)));
 
