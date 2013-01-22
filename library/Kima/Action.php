@@ -245,7 +245,7 @@ class Action
         }
         else
         {
-            $language = Application::get_instance()->get_config()->language['default'];
+            $language = Application::get_instance()->get_default_language();
         }
 
         return $language;
