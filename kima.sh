@@ -222,6 +222,34 @@ echo "<!-- begin:main -->
 <!-- end:main -->" > ${name}/application/view/layout.html
 
 #------------------------------
+# create error handler controller
+#------------------------------
+echo "<?php
+/**
+ * Namespaces to use
+ */
+use \Kima\Controller,
+    \Kima\Http\StatusCode;
+
+/**
+ * Error
+ */
+class Error extends Controller
+{
+
+    /**
+     * get
+     */
+    public function get()
+    {
+        \$status_code = http_response_code();
+        \$status_message = StatusCode::get_message(\$status_code);
+        echo 'Error ' . \$status_code . ': ' . \$status_message;
+    }
+
+}" > ${name}/application/controller/Error.php
+
+#------------------------------
 # create locale strings default
 #------------------------------
 echo "[global]
