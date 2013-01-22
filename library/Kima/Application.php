@@ -101,9 +101,6 @@ class Application
      */
     public static function run(array $urls)
     {
-        // get the config
-        $config = self::get_config();
-
         // get the module and HTTP method
         switch (true)
         {
@@ -121,6 +118,9 @@ class Application
         // set module, controller and action
         self::set_module($module);
         self::set_method($method);
+
+        // set the config
+        self::set_config();
 
         // load the bootstrap
         self::load_bootstrap();
@@ -173,7 +173,7 @@ class Application
      * Set the config
      * @param string $path
      */
-    public static function set_config($path)
+    public static function set_config($path = '')
     {
         // set the application config
         $config = new Config($path);

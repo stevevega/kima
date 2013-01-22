@@ -5,7 +5,8 @@
  */
 namespace Kima;
 
-use \Kima\Error;
+use \Kima\Application,
+    \Kima\Error;
 
 /**
  * Config
@@ -17,9 +18,13 @@ class Config
     /**
      * Error messages
      */
-     const ERROR_NO_ENVIRONMENT = 'Environment "%s" not found in application ini';
-     const ERROR_NO_KEY = 'Config key "%s" doesn\'t exists';
-     const ERROR_CONFIG_PATH = 'Cannot access config file on "%s"';
+    const ERROR_NO_ENVIRONMENT = 'Environment "%s" not found in application ini';
+    const ERROR_NO_KEY = 'Config key "%s" doesn\'t exists';
+    const ERROR_CONFIG_PATH = 'Cannot access config file on "%s"';
+
+    const DEFAULT_CONFIG_FOLDER = '/application/config/';
+    const DEFAULT_CONFIG_MODULE_FOLDER = '/application/module/%s/config/';
+    const DEFAULT_CONFIG_FILE = 'application.ini';
 
     /**
      * Config associative array
@@ -31,8 +36,11 @@ class Config
      * Constructor
      * @param string $path
      */
-    public function __construct($path)
+    public function __construct($path = '')
     {
+        $path = !empty($path)
+            ? $path
+            : ROOT_FOLDER . self::DEFAULT_CONFIG_FOLDER . self::DEFAULT_CONFIG_FILE;
         $this->parse_config($path);
     }
 
@@ -72,10 +80,17 @@ class Config
         // parse using ini file if file exists
         is_readable($path)
             ? $config = parse_ini_file($path, true)
-            : Error::set(sprintf(ERROR_CONFIG_PATH, $path));
+            : Error::set(sprintf(self::ERROR_CONFIG_PATH, $path));
 
         // get the merged configuration
         $config = $this->get_environment_config($config, $environment);
+        $module_config = $this->get_module_config($environment);
+
+        // merge the module config (if exists) with the main config
+        if (!empty($module_config))
+        {
+            $config = array_merge($config, $module_config);
+        }
 
         // create an associative array using the keys
         foreach ($config as $key => $value)
@@ -88,6 +103,7 @@ class Config
      * Make sure the require environments are setup
      * @param array $config
      * @param string $environment
+     * @return array
      */
     private function get_environment_config(array $config, $environment)
     {
@@ -109,6 +125,32 @@ class Config
             : $config['default'];
 
         return $config;
+    }
+
+    /**
+     * Gets the module config
+     * @param string $environment
+     * @return array
+     */
+    private function get_module_config($environment)
+    {
+        // if there is a module, lets get the custom config also
+        $module = Application::get_module();
+        if (!empty($module))
+        {
+            $path = ROOT_FOLDER
+                . sprintf(self::DEFAULT_CONFIG_MODULE_FOLDER, $module)
+                . self::DEFAULT_CONFIG_FILE;
+
+            // parse using ini file if file exists
+            if (is_readable($path))
+            {
+                $config = parse_ini_file($path, true);
+                return $this->get_environment_config($config, $environment);
+            }
+        }
+
+        return [];
     }
 
     /**
