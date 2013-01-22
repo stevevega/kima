@@ -381,8 +381,9 @@ class Solr
      * Sets the fields that will be used to generate the facets
      * @param  array $facet_fields array of field names
      */
-    public function facet(array $facet_fields = [])
+    public function facet($facet_fields = [])
     {
         $this->facet_fields = $facet_fields;
+        return $this;
     }
 }
