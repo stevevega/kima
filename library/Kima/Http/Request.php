@@ -34,11 +34,11 @@ class Request
     }
 
     /**
-     * Request COOCKIE variabless
+     * Request COOKIE variabless
      * @param string $param
      * @param mixed $default
      */
-    public static function coockie($param, $default = null)
+    public static function cookie($param, $default = null)
     {
         return !empty($_COOKIE[$param]) ? $_COOKIE[$param] : $default;
     }

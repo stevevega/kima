@@ -43,7 +43,7 @@ class BCrypt
         $salt = sprintf(self::SALT_FORMAT, $iteration_number, $salt);
 
         // return the bcrypt hash
-        return crypt($password, $salt);
+        return crypt((string)$password, $salt);
     }
 
     /**
@@ -54,7 +54,9 @@ class BCrypt
      */
     public static function verify($password, $hashed_password)
     {
-        return $hashed_password === crypt($password, $hashed_password) ? true : false;
+        return $hashed_password === crypt((string)$password, (string)$hashed_password)
+            ? true
+            : false;
     }
 
     /**
