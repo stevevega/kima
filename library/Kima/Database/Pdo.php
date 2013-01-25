@@ -28,6 +28,7 @@ class Pdo extends ADatabase
      const ERROR_PDO_EMPTY_MODEL = 'PDO query error: Model is empty';
      const ERROR_PDO_QUERY_ERROR = 'PDO query error: "%s"';
      const ERROR_PDO_EXECUTE_ERROR = 'PDO execute error: "%s"';
+     const ERROR_INVALID_BIND_VALUE = 'PDO invalid bind value "%s"';
 
     /**
      * instance
@@ -227,6 +228,9 @@ class Pdo extends ADatabase
                 case is_null($bind) :
                     $type = PdoDriver::PARAM_NULL;
                     break;
+                case is_object($bind):
+                case is_array($bind):
+                    Error::set(sprintf(self::ERROR_INVALID_BIND_VALUE, print_r($bind, true)));
                 default :
                     $type = PdoDriver::PARAM_STR;
                     break;

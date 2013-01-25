@@ -34,11 +34,11 @@ class Request
     }
 
     /**
-     * Request COOCKIE variabless
+     * Request COOKIE variabless
      * @param string $param
      * @param mixed $default
      */
-    public static function coockie($param, $default = null)
+    public static function cookie($param, $default = null)
     {
         return !empty($_COOKIE[$param]) ? $_COOKIE[$param] : $default;
     }
@@ -64,11 +64,30 @@ class Request
     }
 
     /**
+     * Request ENV variabless
+     * @param string $param
+     * @param mixed $default
+     * @param string $namespace
+     */
+    public static function session($param, $default = null, $namespace = '')
+    {
+        if (empty($namespace))
+        {
+            return !empty($_SESSION[$param]) ? $_SESSION[$param] : $default;
+        }
+        else
+        {
+            return !empty($_SESSION[$namespace][$param]) ? $_SESSION[$namespace][$param] : $default;
+        }
+    }
+
+    /**
      * Gets a request parameter from different sources
      * @param string $param
      * @param mixed $default
+     * @param string $namespace Only affects session variables
      */
-    public static function get_all($param, $default = null)
+    public static function get_all($param, $default = null, $namespace = '')
     {
         // ask for the parameter
         switch (true)
@@ -88,6 +107,9 @@ class Request
             // ENV param
             case !empty($_ENV[$param]):
                 return $_ENV[$param];
+            // SESSION param
+            case !empty($_SESSION[$param]):
+                return empty($namespace) ? $_SESSION[$param] : $_SESSION[$namespace][$param];
             // send the default value if nothing found
             default:
                 return $default;

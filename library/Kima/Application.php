@@ -23,6 +23,7 @@ class Application
      * Error messages
      */
     const ERROR_NO_BOOTSTRAP = 'Class Boostrap not defined in Bootstrap.php';
+    const ERROR_NO_DEFAULT_LANGUAGE = 'Default language should be set in the application ini or as a server param "DEFAULT_LANGUAGE"';
 
     /**
      * Bootstrap path
@@ -279,6 +280,30 @@ class Application
         $default = self::$config->language['default'];
         self::$language_url_prefix = $default !== $language ? "/$language" : '';
         return self::$instance;
+    }
+
+    /**
+     * Gets the application default language
+     * @return string
+     */
+    public static function get_default_language()
+    {
+        switch (true)
+        {
+            case getenv('DEFAULT_LANGUAGE'):
+                $language = getenv('DEFAULT_LANGUAGE');
+                break;
+            case !empty($_SERVER['DEFAULT_LANGUAGE']):
+                $language = $_SERVER['DEFAULT_LANGUAGE'];
+                break;
+            case !empty(self::get_config()->language['default']):
+                $language = self::get_config()->language['default'];
+                break;
+            default:
+                Error::set(self::ERROR_NO_DEFAULT_LANGUAGE);
+        }
+
+        return $language;
     }
 
 }
