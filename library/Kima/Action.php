@@ -57,7 +57,8 @@ class Action
         $controller = $this->get_controller($urls);
 
         // validate controller and action
-        if (empty($controller)) {
+        if (empty($controller))
+        {
             $this->set_error_action(404);
             return;
         }

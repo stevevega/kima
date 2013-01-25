@@ -5,7 +5,8 @@
  */
 namespace Kima;
 
-use \Kima\Cache\Apc,
+use \Kima\Application,
+    \Kima\Cache\Apc,
     \Kima\Cache\File,
     \Kima\Cache\Memcached,
     \Kima\Error;
@@ -34,11 +35,17 @@ class Cache
      * @param array $options the config options set for the cache system
      * @return Apc|Memcached|File
      */
-    public static function get_instance($type, array $options = [])
+    public static function get_instance($type = '', array $options = [])
     {
+        if (empty($options))
+        {
+            $options = Application::get_config()->cache;
+        }
+
         switch ($type)
         {
             case 'default':
+            case '':
                 if (isset($options['default']) && !empty($options['default']))
                 {
                     return self::get_instance($options['default'], $options);
