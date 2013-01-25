@@ -277,8 +277,7 @@ class Application
     {
         self::$language = (string)$language;
         // set the url prefix depending on the language selected
-        $default = self::$config->language['default'];
-        self::$language_url_prefix = $default !== $language ? "/$language" : '';
+        self::$language_url_prefix = self::get_default_language() !== $language ? "/$language" : '';
         return self::$instance;
     }
 
