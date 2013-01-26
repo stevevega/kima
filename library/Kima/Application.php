@@ -67,6 +67,12 @@ class Application
     private static $language;
 
     /**
+     * The language prefix used in urls
+     * @var string
+     */
+    private static $language_url_prefix;
+
+    /**
      * Construct
      */
     private function __construct()
@@ -255,12 +261,23 @@ class Application
     }
 
     /**
+     * Returns the language prefix to be used in urls
+     * @return string
+     */
+    public static function get_language_url_prefix()
+    {
+        return self::$language_url_prefix;
+    }
+
+    /**
      * Sets the language
      * @param string $language
      */
     public static function set_language($language)
     {
         self::$language = (string)$language;
+        // set the url prefix depending on the language selected
+        self::$language_url_prefix = self::get_default_language() !== $language ? "/$language" : '';
         return self::$instance;
     }
 
