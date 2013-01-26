@@ -3,7 +3,7 @@
  * Kima Password
  * @author Steve Vega
  */
-namespace Kima\Password;
+namespace Kima\Crypt;
 
 use \Kima\Error;
 

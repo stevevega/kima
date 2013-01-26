@@ -410,7 +410,7 @@ class View
                 $blocks[$tmp] = isset($blocks[$tmp]) ? $blocks[$tmp] . $block : $block;
 
                 // now work the includes
-                while (preg_match('/<!--\s*include:\s*([A-Za-z0-9]+)\s*-->/', $blocks[$tmp], $res))
+                while (preg_match('/<!--\s*include:\s*([A-Za-z0-9_]+)\s*-->/', $blocks[$tmp], $res))
                 {
                     // replace the tag with the block definition
                     $blocks[$tmp] = preg_replace(
