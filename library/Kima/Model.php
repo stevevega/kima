@@ -241,7 +241,7 @@ abstract class Model
 
         $table = constant($model . '::TABLE');
 
-        $this->set_table($table);
+        $this->table($table);
         return $this;
     }
 
@@ -249,7 +249,7 @@ abstract class Model
      * Set the database to use
      * @param string $database
      */
-    protected function set_database($database)
+    public function database($database)
     {
         $this->database = (string)$database;
         return $this;
@@ -259,7 +259,7 @@ abstract class Model
      * Sets the database table which should be used for insertion
      * @param string $table
      */
-    protected function set_table($table)
+    public function table($table)
     {
         $this->table = (string)$table;
         return $this;
