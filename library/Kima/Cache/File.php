@@ -37,6 +37,8 @@ class File extends ACache
      */
     public function __construct(array $options = [])
     {
+        $this->cache_enabled = !empty($options['enabled']) ? true : false;
+
         if (isset($options['prefix']))
         {
             $this->set_prefix($options['prefix']);
@@ -55,19 +57,24 @@ class File extends ACache
      */
     public function get($key)
     {
-        $key = $this->get_key($key);
-        $cache_path = $this->folder_path . DIRECTORY_SEPARATOR . $key . '.cache';
-        if (!is_readable($cache_path))
+        if ($this->cache_enabled)
         {
-            return null;
+            $key = $this->get_key($key);
+            $cache_path = $this->folder_path . DIRECTORY_SEPARATOR . $key . '.cache';
+            if (!is_readable($cache_path))
+            {
+                return null;
+            }
+
+            $item = @unserialize(file_get_contents($cache_path));
+            $is_valid_cache = $item['expiration'] <= 0 || time() < $item['expiration'];
+
+            return $is_valid_cache
+                ? $item['value']
+                : null;
         }
 
-        $item = @unserialize(file_get_contents($cache_path));
-        $is_valid_cache = $item['expiration'] <= 0 || time() < $item['expiration'];
-
-        return $is_valid_cache
-            ? $item['value']
-            : null;
+        return null;
     }
 
     /**
@@ -79,13 +86,16 @@ class File extends ACache
      */
     public function get_by_file($key, $file_path)
     {
-        if (is_readable($file_path)) {
-            $key = $this->get_key($key);
-            $cache_path = $this->folder_path . DIRECTORY_SEPARATOR . $key . '.cache';
+        if ($this->cache_enabled)
+        {
+            if (is_readable($file_path)) {
+                $key = $this->get_key($key);
+                $cache_path = $this->folder_path . DIRECTORY_SEPARATOR . $key . '.cache';
 
-            if (is_readable($cache_path) && filemtime($file_path) <= filemtime($cache_path)) {
-                $item = unserialize(file_get_contents($cache_path));
-                return $item['value'];
+                if (is_readable($cache_path) && filemtime($file_path) <= filemtime($cache_path)) {
+                    $item = unserialize(file_get_contents($cache_path));
+                    return $item['value'];
+                }
             }
         }
 
@@ -100,15 +110,20 @@ class File extends ACache
      */
     public function set($key, $value, $expiration = 0)
     {
-        $expiration = intval($expiration);
-        $key = $this->get_key($key);
-        $value = [
-            'expiration' => $expiration > 0 ? time() + $expiration : 0,
-            'value' => $value];
+        if ($this->cache_enabled)
+        {
+            $expiration = intval($expiration);
+            $key = $this->get_key($key);
+            $value = [
+                'expiration' => $expiration > 0 ? time() + $expiration : 0,
+                'value' => $value];
 
-        $handler = fopen($this->folder_path . DIRECTORY_SEPARATOR . $key . '.cache', 'w');
-        fwrite($handler, serialize($value));
-        fclose($handler);
+            $handler = fopen($this->folder_path . DIRECTORY_SEPARATOR . $key . '.cache', 'w');
+            fwrite($handler, serialize($value));
+            fclose($handler);
+        }
+
+        return null;
     }
 
     /**

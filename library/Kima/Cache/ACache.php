@@ -61,6 +61,12 @@ abstract class ACache
     protected $prefix;
 
     /**
+     * Whether the cache is enabled or not
+     * @var boolean
+     */
+    protected $cache_enabled;
+
+    /**
      * Gets the current cache type
      * @return string
      */

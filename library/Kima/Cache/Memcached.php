@@ -41,7 +41,9 @@ class Memcached extends ACache
             Error::set(sprintf(self::ERROR_NO_CACHE_SYSTEM, $this->cache_type));
         }
 
-        $this->memcached = new PhpMemcached(MEMCACHED_POOL);
+        $this->cache_enabled = !empty($options['enabled']) ? true : false;
+
+        $this->memcached = new PhpMemcached(self::MEMCACHED_POOL);
 
         if (isset($options['prefix']))
         {
@@ -71,9 +73,14 @@ class Memcached extends ACache
      */
     public function get($key)
     {
-        $key = $this->get_key($key);
-        $item = $this->memcached->get($key);
-        return $item ? $item['value'] : null;
+        if ($this->cache_enabled)
+        {
+            $key = $this->get_key($key);
+            $item = $this->memcached->get($key);
+            return $item ? $item['value'] : null;
+        }
+
+        return null;
     }
 
     /**
@@ -85,17 +92,21 @@ class Memcached extends ACache
      */
     public function get_by_file($key, $file_path)
     {
-        // can we access the original file?
-        if (is_readable($file_path))
+        if ($this->cache_enabled)
         {
-            $key = $this->get_key($key);
-            $item = $this->memcached->get($key);
+            // can we access the original file?
+            if (is_readable($file_path))
+            {
+                $key = $this->get_key($key);
+                $item = $this->memcached->get($key);
 
-            // is it newer than the last file modification date?
-            return (filemtime($file_path) <= $item['timestamp'])
-                ? $item['value']
-                : null;
+                // is it newer than the last file modification date?
+                return (filemtime($file_path) <= $item['timestamp'])
+                    ? $item['value']
+                    : null;
+            }
         }
+
         return null;
     }
 
@@ -107,12 +118,17 @@ class Memcached extends ACache
      */
     public function set($key, $value, $expiration = 0)
     {
-        $key = $this->get_key($key);
-        $value = [
-            'timestamp' => time(),
-            'value' => $value];
+        if ($this->cache_enabled)
+        {
+            $key = $this->get_key($key);
+            $value = [
+                'timestamp' => time(),
+                'value' => $value];
 
-        return $this->memcached->set($key, $value, $expiration);
+            return $this->memcached->set($key, $value, $expiration);
+        }
+
+        return null;
     }
 
 }

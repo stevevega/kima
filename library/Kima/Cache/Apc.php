@@ -29,6 +29,8 @@ class Apc extends ACache
             Error::set(sprintf(self::ERROR_NO_CACHE_SYSTEM, $this->cache_type));
         }
 
+        $this->cache_enabled = !empty($options['enabled']) ? true : false;
+
         if (isset($options['prefix']))
         {
             $this->set_prefix($options['prefix']);
@@ -42,9 +44,14 @@ class Apc extends ACache
      */
     public function get($key)
     {
-        $key = $this->get_key($key);
-        $item = apc_fetch($key);
-        return $item ? $item['value'] : null;
+        if ($this->cache_enabled)
+        {
+            $key = $this->get_key($key);
+            $item = apc_fetch($key);
+            return $item ? $item['value'] : null;
+        }
+
+        return null;
     }
 
     /**
@@ -56,17 +63,21 @@ class Apc extends ACache
      */
     public function get_by_file($key, $file_path)
     {
-        // can we access the original file?
-        if (is_readable($file_path))
+        if ($this->cache_enabled)
         {
-            $key = $this->get_key($key);
-            $item = apc_fetch($key);
+            // can we access the original file?
+            if (is_readable($file_path))
+            {
+                $key = $this->get_key($key);
+                $item = apc_fetch($key);
 
-            // do we have a valid cache?, if so, is it newer than the last template modification date?
-            return (filemtime($file_path) <= $item['timestamp'])
-                ? $item['value']
-                : null;
+                // do we have a valid cache?, if so, is it newer than the last template modification date?
+                return (filemtime($file_path) <= $item['timestamp'])
+                    ? $item['value']
+                    : null;
+            }
         }
+
         return null;
     }
 
@@ -78,12 +89,17 @@ class Apc extends ACache
      */
     public function set($key, $value, $expiration = 0)
     {
-        $key = $this->get_key($key);
-        $value = [
-            'timestamp' => time(),
-            'value' => $value];
+        if ($this->cache_enabled)
+        {
+            $key = $this->get_key($key);
+            $value = [
+                'timestamp' => time(),
+                'value' => $value];
 
-        return apc_store($key, $value, $expiration);
+            return apc_store($key, $value, $expiration);
+        }
+
+        return null;
     }
 
 }
