@@ -232,8 +232,17 @@ class Action
         $language = array_shift($url_parameters);
         $languages = [];
 
-        // get the list of available languages
-        if (!empty(Application::get_instance()->get_config()->language['available']))
+        // get the list of available language from the server
+        if (Request::server('LANGUAGES_AVAILABLE'))
+        {
+            $languages = Request::server('LANGUAGES_AVAILABLE');
+            $languages = explode(',', $languages);
+        }
+
+        // get the list of available languages from the application config
+        if (empty($languages) &&
+            !empty(Application::get_instance()->get_config()->language) &&
+            !empty(Application::get_instance()->get_config()->language['available']))
         {
             $languages = Application::get_instance()->get_config()->language['available'];
             $languages = explode(',', $languages);

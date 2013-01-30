@@ -247,7 +247,7 @@ class View
     private function get_block_strings(array $blocks, $view_file)
     {
         $language = Application::get_language();
-        $language_default = Application::get_config()->language['default'];
+        $language_default = Application::get_default_language();
 
         $strings_path = Application::get_config()->strings['folder'];
         $strings_path .= $language_default === $language

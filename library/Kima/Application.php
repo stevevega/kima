@@ -67,6 +67,12 @@ class Application
     private static $language;
 
     /**
+     * The default language
+     * @var string
+     */
+    private static $default_language;
+
+    /**
      * The language prefix used in urls
      * @var string
      */
@@ -287,13 +293,18 @@ class Application
      */
     public static function get_default_language()
     {
+        if (!empty(self::$default_language))
+        {
+            return self::$default_language;
+        }
+
         switch (true)
         {
-            case getenv('DEFAULT_LANGUAGE'):
-                $language = getenv('DEFAULT_LANGUAGE');
+            case Request::env('LANGUAGE_DEFAULT'):
+                $language = Request::env('LANGUAGE_DEFAULT');
                 break;
-            case !empty($_SERVER['DEFAULT_LANGUAGE']):
-                $language = $_SERVER['DEFAULT_LANGUAGE'];
+            case Request::server('LANGUAGE_DEFAULT'):
+                $language = Request::server('LANGUAGE_DEFAULT');
                 break;
             case !empty(self::get_config()->language['default']):
                 $language = self::get_config()->language['default'];
@@ -302,6 +313,7 @@ class Application
                 Error::set(self::ERROR_NO_DEFAULT_LANGUAGE);
         }
 
+        self::$default_language = $language;
         return $language;
     }
 
