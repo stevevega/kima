@@ -7,7 +7,8 @@ namespace Kima;
 
 use \Kima\Application,
     \Kima\Cache,
-    \Kima\Error;
+    \Kima\Error,
+    \Kima\L10n;
 
 /**
  * View
@@ -22,7 +23,6 @@ class View
      */
     const ERROR_INVALID_CONTENT_TYPE = '"%s" is not a valid content type';
     const ERROR_INVALID_VIEW_PATH = 'Cannot access template directory path "%s"';
-    const ERROR_INVALID_STRINGS_PATH = 'Cannot access strings path "%s"';
     const ERROR_DUPLICATE_TEMPLATE = 'Template "%s" was already created';
     const ERROR_NO_TEMPLATE = 'Template "%s" not exists';
     const ERROR_HTML_ONLY = '%s can only be added to html views';
@@ -126,12 +126,6 @@ class View
     private $use_compression;
 
     /**
-     * Locale option for template translation
-     * @var boolean
-     */
-    private $locale;
-
-    /**
      * Constructor
      * @param array $options
      */
@@ -150,9 +144,6 @@ class View
 
         // set the compression option
         $this->set_compression(isset($options['compression']) ? $options['compression'] : false);
-
-        // set the locale option
-        $this->set_locale(isset($options['locale']) ? $options['locale'] : false);
 
         // set the main template file path
         if (isset($options['layout']))
@@ -229,54 +220,25 @@ class View
             $this->cache->set($cache_key, $blocks);
         }
 
-        if ($this->locale)
-        {
-            $blocks = $this->get_block_strings($blocks, $file);
-        }
+        $blocks = $this->get_block_l10n($blocks, $file);
 
         // set the blocks
         $this->blocks = array_merge($this->blocks, $blocks);
     }
 
     /**
-     * Get block strings based on locale settings
+     * Get block strings based on l10n strings
      * @param array $blocks
      * @param string $view_file
      * @return array
      */
-    private function get_block_strings(array $blocks, $view_file)
+    private function get_block_l10n(array $blocks, $view_file)
     {
-        $language = Application::get_language();
-        $language_default = Application::get_default_language();
-
-        $strings_path = Application::get_config()->strings['folder'];
-        $strings_path .= $language_default === $language
-            ? 'default.ini'
-            : $language . '.ini';
-
-        if (!is_readable($strings_path))
-        {
-            Error::set(sprintf(self::ERROR_INVALID_STRINGS_PATH, $strings_path));
-        }
-
-        // TODO: cache, template cache root folder
-        $strings = parse_ini_file($strings_path, true);
-
-        $module = Application::get_module();
-        $info = pathinfo($view_file);
-
-        $language_prefix = '.' !== $info['dirname'] ? str_replace('/', '-', $info['dirname']) : '';
-        $language_prefix = !empty($module)
-            ? $module . '-' . $language_prefix
-            : $language_prefix;
-        $language_key = !empty($language_prefix)
-            ? $language_prefix . '-' . $info['filename']
-            : $info['filename'];
-
         foreach ($blocks as &$block)
         {
+            // get the 10n vars from the block. Example: [var]
             $vars = [];
-            preg_match_all('|\[([A-Za-z0-9._]+?)\]|', $block, $vars);
+            preg_match_all('|\[([A-Za-z0-9._:,{}]+?)\]|', $block, $vars);
             $keys = !empty($vars[1]) ? $vars[1] : [];
             $vars = !empty($vars[0]) ? $vars[0] : [];
 
@@ -284,32 +246,18 @@ class View
             {
                 if (!empty($var))
                 {
-                    switch (true)
+                    $string_key = $keys[$key];
+                    $args = [];
+
+                    if (false !== strpos($string_key, ':'))
                     {
-                        // [module]-controller-action
-                        case (!empty($strings[$language_key])
-                            && array_key_exists($keys[$key], $strings[$language_key])
-                            && !empty($strings[$language_key][$keys[$key]])) :
-                            $value = $strings[$language_key][$keys[$key]];
-                            break;
-                        // [module]-controller
-                        case (!empty($strings[$language_prefix])
-                            && array_key_exists($keys[$key], $strings[$language_prefix])
-                            && !empty($strings[$language_prefix][$keys[$key]])) :
-                            $value = $strings[$language_prefix][$keys[$key]];
-                            break;
-                        // global
-                        case (!empty($strings['global'])
-                            && array_key_exists($keys[$key], $strings['global'])
-                            && !empty($strings['global'][$keys[$key]])) :
-                            $value = $strings['global'][$keys[$key]];
-                            break;
-                        default:
-                            $value = '';
-                            break;
+                        list($string_key, $args) = explode(':', $string_key);
+                        $args = explode(',', $args);
                     }
 
-                    $block = str_replace($var, $value, $block);
+                    // get the localization string and replace it in the block
+                    $string = L10n::get($string_key, $args);
+                    $block = str_replace($var, $string, $block);
                 }
             }
         }
@@ -895,15 +843,6 @@ class View
     }
 
     /**
-     * Sets the locale option from the template
-     * @param boolean $locale
-     */
-    public function set_locale($locale)
-    {
-        $this->locale = (boolean)$locale;
-    }
-
-    /**
      * Gets the main template for the current view
      */
     public function get_main_template()
@@ -915,6 +854,20 @@ class View
 
         preg_match('/{_BLOCK_.([A-Za-z0-9._]+?)}/', $this->blocks[0], $matches);
         return $matches[1];
+    }
+
+    /**
+     * Sets the view default params
+     */
+    private function set_default_params()
+    {
+        // set the view default params
+        $default_params = Application::get_view_params();
+
+        foreach ($default_params as $key => $param)
+        {
+            $this->set($key, $param);
+        }
     }
 
    /**
@@ -931,6 +884,8 @@ class View
     */
     public function __destruct()
     {
+        $this->set_default_params();
+
         // flush the content if auto display option is on
         if ($this->auto_display)
         {

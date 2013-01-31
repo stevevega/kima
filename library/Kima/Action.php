@@ -8,7 +8,8 @@ namespace Kima;
 use \Kima\Error,
     \Kima\Controller,
     \Kima\Http\Request,
-    \Kima\Http\StatusCode;
+    \Kima\Http\StatusCode,
+    \Bootstrap;
 
 /**
  * Action
@@ -24,6 +25,11 @@ class Action
     const ERROR_NO_CONTROLLER_CLASS = ' Class "%s" not declared on "%s"';
     const ERROR_NO_CONTROLLER_INSTANCE = 'Object for "%s" is not an instance of \Kima\Controller';
     const ERROR_NO_MODULE_ROUTES = 'Routes for module "%s" are not set';
+
+    /**
+     * Bootstrap path
+     */
+    const BOOTSTRAP_PATH = 'Bootstrap.php';
 
     /**
      * Url parameters
@@ -65,6 +71,9 @@ class Action
 
         // set the action controller
         Application::get_instance()->set_controller($controller);
+
+        // load the bootstrap
+        $this->load_bootstrap();
 
         // inits the controller action
         $this->run_action($controller);
@@ -281,6 +290,37 @@ class Action
     public function get_url_parameters()
     {
         return $this->url_parameters;
+    }
+
+    /**
+     * Loads the application bootstrap
+     * Calls all public methods on it
+     */
+    private function load_bootstrap()
+    {
+        $config = Application::get_config();
+
+        $bootstrap_path = $config->application['folder'] .
+            DIRECTORY_SEPARATOR . self::BOOTSTRAP_PATH;
+
+        // load the bootstrap if available
+        if (is_readable($bootstrap_path))
+        {
+            // get the bootstrap and make sure the class exists
+            require_once $bootstrap_path;
+            if (!class_exists('Bootstrap', false))
+            {
+                Error::set(self::ERROR_NO_BOOTSTRAP);
+            }
+
+            // get the bootstrap methods and call them
+            $methods = get_class_methods('Bootstrap');
+            $bootstrap = new Bootstrap();
+            foreach($methods as $method)
+            {
+                $bootstrap->{$method}();
+            }
+        }
     }
 
 }

@@ -9,7 +9,6 @@ use \Kima\Action,
     \Kima\Config,
     \Kima\Error,
     \Kima\Http\Request,
-    \Bootstrap,
     Exception;
 
 /**
@@ -24,11 +23,6 @@ class Application
      */
     const ERROR_NO_BOOTSTRAP = 'Class Boostrap not defined in Bootstrap.php';
     const ERROR_NO_DEFAULT_LANGUAGE = 'Default language should be set in the application ini or as a server param "DEFAULT_LANGUAGE"';
-
-    /**
-     * Bootstrap path
-     */
-    const BOOTSTRAP_PATH = 'Bootstrap.php';
 
     /**
      * instance
@@ -77,6 +71,12 @@ class Application
      * @var string
      */
     private static $language_url_prefix;
+
+    /**
+     * Global default view params
+     * @var array
+     */
+    private static $view_params = [];
 
     /**
      * Construct
@@ -135,42 +135,8 @@ class Application
         // set the config
         self::set_config();
 
-        // load the bootstrap
-        self::load_bootstrap();
-
         // run the action
         $action = new Action($urls);
-    }
-
-    /**
-     * Loads the application bootstrap
-     * Calls all public methods on it
-     */
-    private static function load_bootstrap()
-    {
-        $config = self::get_config();
-
-        $bootstrap_path = $config->application['folder'] .
-            DIRECTORY_SEPARATOR . self::BOOTSTRAP_PATH;
-
-        // load the bootstrap if available
-        if (is_readable($bootstrap_path))
-        {
-            // get the bootstrap and make sure the class exists
-            require_once $bootstrap_path;
-            if (!class_exists('Bootstrap', false))
-            {
-                Error::set(self::ERROR_NO_BOOTSTRAP);
-            }
-
-            // get the bootstrap methods and call them
-            $methods = get_class_methods('Bootstrap');
-            $bootstrap = new Bootstrap();
-            foreach($methods as $method)
-            {
-                $bootstrap->{$method}();
-            }
-        }
     }
 
     /**
@@ -315,6 +281,24 @@ class Application
 
         self::$default_language = $language;
         return $language;
+    }
+
+    /**
+     * Sets view global default params to set
+     * @param array $params
+     */
+    public static function set_view_params(array $params)
+    {
+        self::$view_params = $params;
+    }
+
+    /**
+     * Gets view global default params to set
+     * @param array $params
+     */
+    public static function get_view_params()
+    {
+        return self::$view_params;
     }
 
 }
