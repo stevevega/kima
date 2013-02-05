@@ -398,8 +398,9 @@ class View
      * Parse the template content and merge it with the final result
      * prepared to flush
      * @param string $template
+     * @param boolean $keep_values
      */
-    public function show($template)
+    public function show($template, $keep_values = false)
     {
         // make a copy of template if exists
         isset($this->blocks[$template])
@@ -446,6 +447,12 @@ class View
                 // set the var with is corresponding value
                 $copy = $this->set_value($var, $value, $copy, false);
             }
+        }
+
+        // clear template values unless we want to keep them
+        if (!$keep_values)
+        {
+            unset($this->vars[$template]);
         }
 
         // set this as a parsed block
