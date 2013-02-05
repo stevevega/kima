@@ -464,33 +464,76 @@ class View
     /**
      * Populates a template with an array data
      * @param string $template
-     * @param array $data
+     * @param mixed $data
      * @return void
      */
     public function populate($template, $data)
     {
-        if (isset($this->blocks[$template]))
+        // make sure the template exists and the data is a valid type
+        if (isset($this->blocks[$template]) && (is_array($data) || is_object($data)))
         {
-            foreach ($data as $object)
+            // single object
+            if (is_object($data))
             {
-                $object = is_object($object) ? get_object_vars($object) : (array)$object;
+                $element = get_object_vars($data);
+                $this->populate_element($element, $template);
+            }
+            else // array
+            {
+                $temp_element = [];
 
-                if ($object)
+                foreach ($data as $key => $element)
                 {
-                    foreach ($object as $item => $value)
+                    switch (true)
                     {
-                        if (is_array($value))
-                        {
-                            $this->populate($item, $value);
-                        }
-                        else
-                        {
-                            $this->set($item, $value, $template);
-                        }
+                        case is_object($element):
+                            $element = get_object_vars($element);
+                            $this->populate_element($element, $template);
+                            break;
+                        case is_array($element):
+                            $this->populate_element($element, $template);
+                            break;
+                        default:
+                            $temp_element[$key] = $element;
+                            break;
                     }
                 }
-                $this->show($template);
+
+                if (!empty($temp_element))
+                {
+                    $this->populate_element($temp_element, $template);
+                }
             }
+        }
+    }
+
+    private function populate_element(array $element, $template)
+    {
+        if ($element)
+        {
+            foreach ($element as $item => $value)
+            {
+                $this->populate_value($item, $value, $template);
+            }
+        }
+        $this->show($template);
+    }
+
+    /**
+     * Populates a view value based on the type
+     * @param string $item
+     * @param mixed $value
+     * @param string $template
+     */
+    private function populate_value($item, $value, $template)
+    {
+        if (is_array($value))
+        {
+            $this->populate($item, $value);
+        }
+        else
+        {
+            $this->set($item, $value, $template);
         }
     }
 
