@@ -491,7 +491,7 @@ class View
                             $this->populate_element($element, $template);
                             break;
                         case is_array($element):
-                            $this->populate_element($element, $template);
+                            $this->populate($key, $element);
                             break;
                         default:
                             $temp_element[$key] = $element;
