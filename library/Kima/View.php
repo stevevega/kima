@@ -467,20 +467,30 @@ class View
      * @param array $data
      * @return void
      */
-    public function populate($template, array $data)
+    public function populate($template, $data)
     {
-        foreach ($data as $object)
+        if (isset($this->blocks[$template]))
         {
-            $object = is_object($object) ? get_object_vars($object) : (array)$object;
-
-            if ($object)
+            foreach ($data as $object)
             {
-                foreach ($object as $item => $value)
+                $object = is_object($object) ? get_object_vars($object) : (array)$object;
+
+                if ($object)
                 {
-                    $this->set($item, $value, $template);
+                    foreach ($object as $item => $value)
+                    {
+                        if (is_array($value))
+                        {
+                            $this->populate($item, $value);
+                        }
+                        else
+                        {
+                            $this->set($item, $value, $template);
+                        }
+                    }
                 }
+                $this->show($template);
             }
-            $this->show($template);
         }
     }
 
