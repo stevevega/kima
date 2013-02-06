@@ -726,7 +726,7 @@ class View
      * @param boolean $set_headers
      * @return string
      */
-    public function get_template($template, $set_headers = true)
+    public function get_view($template, $set_headers = true)
     {
         // make sure template exists
         if (empty($this->parsed_blocks[$template]))
@@ -937,7 +937,7 @@ class View
     */
     public function flush($template)
     {
-        echo $this->get_template($template);
+        echo $this->get_view($template);
     }
 
     /**
