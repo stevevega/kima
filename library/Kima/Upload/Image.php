@@ -83,7 +83,7 @@ class Image extends File
             $path .= $this->get_extension($this->save_as);
 
             $image = new KimaImage();
-            return $image->convert($temp_file, $this->save_as, $path);
+            return $image->convert($temp_file, $path, $this->save_as);
         }
         else
         {

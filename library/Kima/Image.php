@@ -49,13 +49,89 @@ class Image
     }
 
     /**
-     * Transforms an image into another format
+     * Creates a thumbnail of an image file
      * @param string $file
-     * @param int $format one of the IMAGETYPE_XXX constants
-     * @param string $destination the path to write
+     * @param string $destination
+     * @param int $max_width
+     * @param int $max_height
+     * @param int $format IMAGETYPE_XXX constant
      * @return boolean
      */
-    public function convert($file, $format, $destination)
+    public function thumbnail($file, $destination, $width_new, $height_new, $format = 0)
+    {
+        if (!is_readable($file))
+        {
+            Error::set(sprintf(self::ERROR_INVALID_FILE, $file));
+        }
+
+        // get the image and new image resource
+        $image = $this->create_image_from_file($file);
+        $image_new = imagecreatetruecolor($width_new, $height_new);
+
+        // get the image size and witdh
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        // Get palette size for original image
+        $palette_size = ImageColorsTotal($image);
+
+        // Assign the color palette to new image
+        for ($i = 0; $i < $palette_size; $i++)
+        {
+            $colors = ImageColorsForIndex($image, $i);
+            ImageColorAllocate($image_new, $colors['red'], $colors['green'], $colors['blue']);
+        }
+
+        // set white background
+        $white_background = imagecolorallocate($image_new, 255, 255, 255);
+        imagefill($image_new, 0, 0, $white_background);
+
+        // get the thumbnail values
+        if ($width > $height)
+        {
+            $ratio = $width_new / $width;
+            $adjusted_width = $width_new;
+            $adjusted_height = $height * $ratio;
+            $x = 0;
+            $y = ($height_new - $adjusted_height) / 2;
+        }
+        else
+        {
+            $ratio = $height_new / $height;
+            $adjusted_height = $height_new;
+            $adjusted_width = $width * $ratio;
+            $x = ($width_new - $adjusted_width) / 2;
+            $y = 0;
+        }
+
+        // creates the thumbnail
+        imagecopyresampled($image_new, $image, $x, $y, 0, 0, $adjusted_width, $adjusted_height, $width, $height);
+
+        // set the image format
+        if (!empty($format))
+        {
+            if (!in_array($format, self::$available_types))
+            {
+                Error::set(self::ERROR_TYPE_NO_AVAILABLE, $format);
+            }
+        }
+        else
+        {
+            $format = $this->get_image_format($file);
+        }
+
+        // saves the image to disk
+        return $this->save($image_new, $destination, $format);
+    }
+
+    /**
+     * Transforms an image into another format
+     * @param string $file
+     * @param string $destination the path to write
+     * @param int $format one of the IMAGETYPE_XXX constants
+     * @return boolean
+     */
+    public function convert($file, $destination, $format)
     {
         if (!is_readable($file))
         {
@@ -63,7 +139,18 @@ class Image
         }
 
         $image = $this->create_image_from_file($file);
+        return $this->save($image, $destination, $format);
+    }
 
+    /**
+     * Saves an image resource to disk
+     * @param image $image
+     * @param string $destination
+     * @param int $format IMAGETYPE_XXX constant
+     * @return boolean
+     */
+    protected function save($image, $destination, $format)
+    {
         // Create image depending on IMAGETYPE_XXX constant
         switch ($format)
         {
@@ -94,10 +181,10 @@ class Image
      */
     protected function create_image_from_file($file)
     {
-        $size = getimagesize($file);
+        $format = $this->get_image_format($file);
 
         // Create image depending on IMAGETYPE_XXX constant
-        switch ($size[2])
+        switch ($format)
         {
             case IMAGETYPE_GIF:
                 $image = imagecreatefromgif($file);
@@ -115,11 +202,22 @@ class Image
                 $image = imagecreatefromxbm($file);
                 break;
             default:
-                Error::set(sprintf(self::ERROR_INVALID_IMAGE_SOURCE), image_type_to_mime_type($size[2]));
+                Error::set(sprintf(self::ERROR_INVALID_IMAGE_SOURCE), image_type_to_mime_type($format));
                 break;
         }
 
         return $image;
+    }
+
+    /**
+     * Gets the image format
+     * @param string $file
+     * @return int IMAGETYPE_XXX constant
+     */
+    protected function get_image_format($file)
+    {
+        $size = getimagesize($file);
+        return $size[2];
     }
 
 }
