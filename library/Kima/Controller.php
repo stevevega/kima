@@ -18,8 +18,10 @@ class Controller
     /**
      * Error messages
      */
-     const ERROR_DISABLE_LAYOUT = 'Method disable_layout() should be called before any view reference';
-     const ERROR_DISABLE_DEFAULT_VIEW = 'Method disable_default_view() should be called before any view reference';
+     const ERROR_DISABLE_LAYOUT = 'Method disable_layout should be called before any view reference';
+     const ERROR_DISABLE_DEFAULT_VIEW = 'Method disable_default_view should be called before any view reference';
+     const ERROR_DISABLE_AUTO_DISPLAY = 'Method disable_auto_display should be called before any view reference';
+     const ERROR_AUTO_DISPLAY_INCOMPATIBLE = 'json_output method is incompatible with the auto display default view behavior, try using disable_auto_display method first';
 
 
     /**
@@ -39,6 +41,12 @@ class Controller
      * @var boolean
      */
     private $use_default_view = true;
+
+    /**
+     * Auto display generated content?
+     * @var boolean
+     */
+    private $auto_display = true;
 
     /**
      * __get magic method
@@ -71,6 +79,12 @@ class Controller
                 {
                     $view_path = strtolower($controller) . '/' . $method . '.html';
                     $this->view['view']->load($view_path);
+                }
+
+                // auto display content
+                if (false === $this->auto_display)
+                {
+                    $this->view['view']->set_auto_display(false);
                 }
 
                 return $this->view['view'];
@@ -135,6 +149,35 @@ class Controller
 
         $this->use_default_view = false;
         return $this;
+    }
+
+    /**
+     * Disables the auto display of content
+     */
+    public function disable_auto_display()
+    {
+        if (isset($this->view['view']))
+        {
+            Error::set(self::ERROR_DISABLE_AUTO_DISPLAY);
+        }
+
+        $this->auto_display = false;
+        return $this;
+    }
+
+    /**
+     * Outputs json content
+     * @param mixed $content
+     */
+    public function json_output($content)
+    {
+        if (isset($this->view['view']) && $this->auto_display)
+        {
+            Error::set(self::ERROR_AUTO_DISPLAY_INCOMPATIBLE);
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($content);
     }
 
 }
