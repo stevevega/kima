@@ -951,13 +951,15 @@ class View
         if ($this->auto_display)
         {
             $main_template = $this->get_main_template();
-
-            if ($this->use_layout)
+            if ($main_template)
             {
-                $this->show($main_template);
-            }
+                if ($this->use_layout)
+                {
+                    $this->show($main_template);
+                }
 
-            $this->flush($main_template);
+                $this->flush($main_template);
+            }
         }
     }
 

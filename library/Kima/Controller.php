@@ -18,7 +18,8 @@ class Controller
     /**
      * Error messages
      */
-     const ERROR_DISABLE_LAYOUT = 'Method disable layout() should be called before any view reference';
+     const ERROR_DISABLE_LAYOUT = 'Method disable_layout() should be called before any view reference';
+     const ERROR_DISABLE_DEFAULT_VIEW = 'Method disable_default_view() should be called before any view reference';
 
 
     /**
@@ -32,6 +33,12 @@ class Controller
      * @var boolean
      */
     private $use_layout = true;
+
+    /**
+     * User default controller view?
+     * @var boolean
+     */
+    private $use_default_view = true;
 
     /**
      * __get magic method
@@ -60,8 +67,12 @@ class Controller
                 $this->view['view'] = new View($config);
 
                 // load the action view
-                $view_path = strtolower($controller) . '/' . $method . '.html';
-                $this->view['view']->load($view_path);
+                if ($this->use_default_view)
+                {
+                    $view_path = strtolower($controller) . '/' . $method . '.html';
+                    $this->view['view']->load($view_path);
+                }
+
                 return $this->view['view'];
             }
         }
@@ -109,6 +120,20 @@ class Controller
         }
 
         $this->use_layout = false;
+        return $this;
+    }
+
+    /**
+     * Disables the view loaded by default in the controller
+     */
+    public function disable_default_view()
+    {
+        if (isset($this->view['view']))
+        {
+            Error::set(self::ERROR_DISABLE_DEFAULT_VIEW);
+        }
+
+        $this->use_default_view = false;
         return $this;
     }
 
