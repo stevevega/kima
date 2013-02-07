@@ -171,7 +171,7 @@ class Solr
             $query->setStart($this->start);
         }
 
-        if (!empty($this->rows))
+        if (isset($this->rows))
         {
             $query->setRows($this->rows);
         }
@@ -342,9 +342,10 @@ class Solr
         $limit = (int)$limit;
         $page = (int)$page;
 
+        $this->rows = $limit;
+
         if ($limit > 0)
         {
-            $this->rows = $limit;
             $this->start = $page > 0 ? $limit * ($page - 1) : 0;
         }
 
