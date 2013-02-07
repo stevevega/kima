@@ -73,6 +73,12 @@ class Application
     private static $language_url_prefix;
 
     /**
+     * Whether the connection is secure or not
+     * @var boolean
+     */
+    private static $is_https;
+
+    /**
      * Global default view params
      * @var array
      */
@@ -131,6 +137,7 @@ class Application
         // set module, controller and action
         self::set_module($module);
         self::set_method($method);
+        self::set_is_https();
 
         // set the config
         self::set_config();
@@ -299,6 +306,28 @@ class Application
     public static function get_view_params()
     {
         return self::$view_params;
+    }
+
+    /**
+     * Returns whether is a secure connection or not
+     * @return boolean
+     */
+    public static function is_https()
+    {
+        return self::$is_https;
+    }
+
+    /**
+     * Set whether the connections is https or not
+     */
+    private static function set_is_https()
+    {
+        // get values from sever
+        $https = Request::server('HTTPS');
+        $port = Request::server('SERVER_PORT');
+
+        // check if https is on
+        self::$is_https = !empty($https) && 'off' !== $https || 443 == $port ? true : false;
     }
 
 }
