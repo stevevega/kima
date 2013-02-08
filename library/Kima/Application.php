@@ -21,7 +21,6 @@ class Application
     /**
      * Error messages
      */
-    const ERROR_NO_BOOTSTRAP = 'Class Boostrap not defined in Bootstrap.php';
     const ERROR_NO_DEFAULT_LANGUAGE = 'Default language should be set in the application ini or as a server param "DEFAULT_LANGUAGE"';
 
     /**

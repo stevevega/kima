@@ -21,6 +21,7 @@ class Action
     /**
      * Error messages
      */
+    const ERROR_NO_BOOTSTRAP = 'Class Boostrap not defined in Bootstrap.php';
     const ERROR_NO_CONTROLLER_FILE = 'Class file for "%s" is not accesible on "%s"';
     const ERROR_NO_CONTROLLER_CLASS = ' Class "%s" not declared on "%s"';
     const ERROR_NO_CONTROLLER_INSTANCE = 'Object for "%s" is not an instance of \Kima\Controller';
@@ -300,8 +301,15 @@ class Action
     {
         $config = Application::get_config();
 
-        $bootstrap_path = $config->application['folder'] .
-            DIRECTORY_SEPARATOR . self::BOOTSTRAP_PATH;
+        // set module path if exists
+        $module = Application::get_module();
+        $module_path = !empty($module)
+            ? 'module' . DIRECTORY_SEPARATOR . $module . DIRECTORY_SEPARATOR
+            : '';
+
+        // set the bootstrap path
+        $bootstrap_path = $config->application['folder'] . DIRECTORY_SEPARATOR
+            . $module_path . self::BOOTSTRAP_PATH;
 
         // load the bootstrap if available
         if (is_readable($bootstrap_path))
