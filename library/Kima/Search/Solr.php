@@ -160,9 +160,22 @@ class Solr
 
         if (!empty($params))
         {
+            // add each extra param to be added to the solr query
             foreach ($params as $param => $value)
             {
-                $query->addParam((string)$param, (string)$value);
+                if (is_array($value))
+                {
+                    // in the case of params to be included multiple times, such as fq,
+                    // an array can be sent for each of the values
+                    foreach ($value as $inner_value) {
+                        $query->addParam((string)$param, (string)$inner_value);
+                    }
+                }
+                else
+                {
+                    // simple append single values
+                    $query->addParam((string)$param, (string)$value);
+                }
             }
         }
 
