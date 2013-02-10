@@ -295,7 +295,7 @@ class Application
      */
     public static function set_view_params(array $params)
     {
-        self::$view_params = $params;
+        self::$view_params = array_merge(self::$view_params, $params);
     }
 
     /**
