@@ -5,7 +5,8 @@
  */
 namespace Kima;
 
-use \Kima\Error;
+use \Kima\Error,
+    \Imagick;
 
 /**
  * Kima Image library
@@ -16,35 +17,23 @@ class Image
     /**
      * Error messages
      */
-    const ERROR_NO_GD = 'GD extension is not present on this server';
-    const ERROR_TYPE_NO_AVAILABLE = 'Image type "%s" is not available';
+    const ERROR_NO_IMAGICK = 'Imagick extension is not present on this server';
+    const ERROR_FORMAT_NO_AVAILABLE = 'Image format "%s" is not available';
     const ERROR_INVALID_FILE = 'Cannot access file "%s"';
-    const ERROR_INVALID_IMAGE_SOURCE = 'Cannot create image from source type "%s"';
 
     /**
-     * Sets the available types for file uploads
-     * @var array
+     * Imagick Extension
      */
-    public static $available_types = [
-        IMAGETYPE_GIF,
-        IMAGETYPE_JPEG,
-        IMAGETYPE_PNG,
-        IMAGETYPE_WBMP,
-        IMAGETYPE_XBM];
-
-    /**
-     * GD Extension
-     */
-    const GD_EXTENSION = 'gd';
+    const IMAGICK_EXTENSION = 'imagick';
 
     /**
      * Constructor
      */
     public function __construct()
     {
-        if (!extension_loaded(self::GD_EXTENSION))
+        if (!extension_loaded(self::IMAGICK_EXTENSION))
         {
-            Error::set(self::ERROR_NO_GD);
+            Error::set(self::ERROR_NO_IMAGICK);
         }
     }
 
@@ -52,12 +41,12 @@ class Image
      * Creates a thumbnail of an image file
      * @param string $file
      * @param string $destination
-     * @param int $max_width
-     * @param int $max_height
-     * @param int $format IMAGETYPE_XXX constant
+     * @param int $width
+     * @param int $height
+     * @param string $format
      * @return boolean
      */
-    public function thumbnail($file, $destination, $width_new, $height_new, $format = 0)
+    public function thumbnail($file, $destination, $width, $height, $format = 'jpg')
     {
         if (!is_readable($file))
         {
@@ -65,159 +54,91 @@ class Image
         }
 
         // get the image and new image resource
-        $image = $this->create_image_from_file($file);
-        $image_new = imagecreatetruecolor($width_new, $height_new);
-
-        // get the image size and witdh
-        $width = imagesx($image);
-        $height = imagesy($image);
-
-        // Get palette size for original image
-        $palette_size = ImageColorsTotal($image);
-
-        // Assign the color palette to new image
-        for ($i = 0; $i < $palette_size; $i++)
-        {
-            $colors = ImageColorsForIndex($image, $i);
-            ImageColorAllocate($image_new, $colors['red'], $colors['green'], $colors['blue']);
-        }
-
-        // set white background
-        $white_background = imagecolorallocate($image_new, 255, 255, 255);
-        imagefill($image_new, 0, 0, $white_background);
-
-        // get the thumbnail values
-        if ($width > $height)
-        {
-            $ratio = $width_new / $width;
-            $adjusted_width = $width_new;
-            $adjusted_height = $height * $ratio;
-            $x = 0;
-            $y = ($height_new - $adjusted_height) / 2;
-        }
-        else
-        {
-            $ratio = $height_new / $height;
-            $adjusted_height = $height_new;
-            $adjusted_width = $width * $ratio;
-            $x = ($width_new - $adjusted_width) / 2;
-            $y = 0;
-        }
-
-        // creates the thumbnail
-        imagecopyresampled($image_new, $image, $x, $y, 0, 0, $adjusted_width, $adjusted_height, $width, $height);
+        $image = new Imagick($file);
 
         // set the image format
-        if (!empty($format))
+        $format = strtoupper($format);
+        if (!in_array($format, $image->queryFormats()))
         {
-            if (!in_array($format, self::$available_types))
-            {
-                Error::set(self::ERROR_TYPE_NO_AVAILABLE, $format);
-            }
+            Error::set(sprintf(self::ERROR_FORMAT_NO_AVAILABLE, $format));
         }
-        else
-        {
-            $format = $this->get_image_format($file);
-        }
+        $image->setImageFormat($format);
+
+        // create the thumbnail
+        $image->cropThumbnailImage((int)$width, (int)$height);
 
         // saves the image to disk
-        return $this->save($image_new, $destination, $format);
+        $result = $image->writeImage($destination);
+        $image->destroy();
+        return $result;
     }
 
     /**
      * Transforms an image into another format
      * @param string $file
      * @param string $destination the path to write
-     * @param int $format one of the IMAGETYPE_XXX constants
+     * @param string $format
      * @return boolean
      */
-    public function convert($file, $destination, $format)
+    protected function convert($file, $destination, $format)
     {
         if (!is_readable($file))
         {
             Error::set(sprintf(self::ERROR_INVALID_FILE, $file));
         }
 
-        $image = $this->create_image_from_file($file);
-        return $this->save($image, $destination, $format);
+        // set the image format
+        $image = new Imagick($file);
+        $this->set_format($image, $format);
+
+        // save image
+        $result = $image->writeImage($destination);
+        $image->destroy();
+        return $result;
     }
 
     /**
-     * Saves an image resource to disk
-     * @param image $image
+     * MOv a new image based on a source image
+     * @param string $source
      * @param string $destination
-     * @param int $format IMAGETYPE_XXX constant
-     * @return boolean
+     * @param string $format
      */
-    protected function save($image, $destination, $format)
+    public function move_uploaded_image($source, $destination, $format = '')
     {
-        // Create image depending on IMAGETYPE_XXX constant
-        switch ($format)
+        $image = new Imagick($source);
+
+        if (!empty($format))
         {
-            case IMAGETYPE_GIF:
-                return imagegif($image, $destination);
-                break;
-            case IMAGETYPE_JPEG:
-                return imagejpeg($image, $destination);
-                break;
-            case IMAGETYPE_PNG:
-                return imagepng($image, $destination);
-                break;
-            case IMAGETYPE_WBMP:
-                return imagewbmp($image, $destination);
-                break;
-            case IMAGETYPE_XBM:
-                return imagexbm($image, $destination);
-                break;
-            default:
-                Error::set(sprintf(self::ERROR_INVALID_IMAGE_SOURCE), image_type_to_mime_type($format));
-                break;
+            $this->set_format($image, $format);
         }
+
+        // remove potential insecure exif data
+        $image->stripImage();
+
+        // save the image into the new location
+        $result = $image->writeImage($destination);
+        $image->destroy();
+
+        // remove the source
+        @unlink($source);
+
+        return $result;
     }
 
     /**
-     * Creates an image depending on the format
-     * @param string $file
+     * Sets the image format if available
+     * @param Imagick $image
+     * @param string $format
      */
-    protected function create_image_from_file($file)
+    protected function set_format(Imagick &$image, $format)
     {
-        $format = $this->get_image_format($file);
-
-        // Create image depending on IMAGETYPE_XXX constant
-        switch ($format)
+        // set the image format
+        $format = strtoupper($format);
+        if (!in_array($format, $image->queryFormats()))
         {
-            case IMAGETYPE_GIF:
-                $image = imagecreatefromgif($file);
-                break;
-            case IMAGETYPE_JPEG:
-                $image = imagecreatefromjpeg($file);
-                break;
-            case IMAGETYPE_PNG:
-                $image = imagecreatefrompng($file);
-                break;
-            case IMAGETYPE_WBMP:
-                $image = imagecreatefromwbmp($file);
-                break;
-            case IMAGETYPE_XBM:
-                $image = imagecreatefromxbm($file);
-                break;
-            default:
-                Error::set(sprintf(self::ERROR_INVALID_IMAGE_SOURCE), image_type_to_mime_type($format));
-                break;
+            Error::set(sprintf(self::ERROR_FORMAT_NO_AVAILABLE, $format));
         }
-
-        return $image;
-    }
-
-    /**
-     * Gets the image format
-     * @param string $file
-     * @return int IMAGETYPE_XXX constant
-     */
-    protected function get_image_format($file)
-    {
-        $size = getimagesize($file);
-        return $size[2];
+        $image->setImageFormat($format);
     }
 
 }
