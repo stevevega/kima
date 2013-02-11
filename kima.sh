@@ -45,10 +45,11 @@ echo "Create README.md File?: $create_readme"
 echo "-----------------------------------------------"
 
 mkdir -p ${name}/application/{config,controller,model,module,view/index}
-mkdir -p ${name}/data/{cache/template,db/{model,sql},file,log,strings}
+mkdir -p ${name}/data/{cache/template,db/{model,sql},file,log}
 mkdir -p ${name}/docs
 mkdir -p ${name}/library
 mkdir -p ${name}/public/{css,img,js}
+mkdir -p ${name}/resource/l10n
 mkdir -p ${name}/scripts/jobs
 mkdir -p ${name}/temp
 
@@ -61,7 +62,7 @@ echo "; Application ini
 application.folder = ROOT_FOLDER'/application'
 controller.folder = ROOT_FOLDER'/application/controller'
 module.folder = ROOT_FOLDER'/application/module'
-strings.folder = ROOT_FOLDER'/data/strings/'
+l10n.folder = ROOT_FOLDER'/resource/l10n/'
 
 ; ISO 639-1
 language.default = en
@@ -103,7 +104,6 @@ view.layout = layout.html
 view.folder = ROOT_FOLDER'/application/view'
 view.autodisplay = true
 view.compression = true
-view.locale = true
 
 ; Put your environment config here
 [YOUR_ENVIRONMENT]
@@ -253,7 +253,7 @@ class Error extends Controller
 # create locale strings default
 #------------------------------
 echo "[global]
-title = \"Welcome to Kima!\"" > ${name}/data/strings/default.ini
+title = \"Welcome to Kima!\"" > ${name}/resource/l10n/en.ini
 
 #------------------------------
 # create .git ignore
