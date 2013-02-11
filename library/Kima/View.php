@@ -377,9 +377,13 @@ class View
      * @param string $name
      * @param string $value
      * @param string $template
+     * @param boolean $escaped Escaped by default
      */
-    public function set($name, $value, $template = '')
+    public function set($name, $value, $template = '', $escape = true)
     {
+        // escape the value if necessary
+        $value = $escape ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8', false) : $value;
+
         if (empty($template))
         {
             // set global variable
