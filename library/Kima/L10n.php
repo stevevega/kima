@@ -39,7 +39,7 @@ class L10n
      * @param string $language
      * @return string
      */
-    public static function get($key, array $args = [], $language = '')
+    public static function t($key, array $args = [], $language = '')
     {
         // set the language
         $language = !empty($language) ? $language : Application::get_language();

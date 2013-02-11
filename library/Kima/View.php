@@ -256,7 +256,7 @@ class View
                     }
 
                     // get the localization string and replace it in the block
-                    $string = L10n::get($string_key, $args);
+                    $string = L10n::t($string_key, $args);
                     $block = str_replace($var, $string, $block);
                 }
             }
