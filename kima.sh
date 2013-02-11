@@ -121,7 +121,8 @@ use \Kima\Config;
 use \Kima\Template;
 
 // Define path to application directory
-if (!defined('ROOT_FOLDER')) {
+if (!defined('ROOT_FOLDER')) 
+{
     define('ROOT_FOLDER', realpath(dirname(__FILE__) . '/..'));
 }
 
