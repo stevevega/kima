@@ -50,7 +50,7 @@ class Logger extends Model
 
         if (!empty($type))
         {
-            $logger->set_table($type);
+            $logger->table($type);
         }
 
         // set the fields to store

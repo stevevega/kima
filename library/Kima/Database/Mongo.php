@@ -196,7 +196,7 @@ class Mongo extends ADatabase
     {
         $collection = $this->execute($options);
         $fields = !empty($options['query']['fields'])
-            ? ['$set' => $options['query']['fields']]
+            ? $options['query']['fields']
             : [];
 
         // if filters is empty, we are trying to insert a new value
