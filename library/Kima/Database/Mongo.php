@@ -207,7 +207,7 @@ class Mongo extends ADatabase
         try
         {
             // set whether to execute sync/async
-            $async = !empty($options)['query']['async'])
+            $async = !empty($options['query']['async'])
                 ? 0
                 : 1;
 
