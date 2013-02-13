@@ -206,10 +206,15 @@ class Mongo extends ADatabase
 
         try
         {
+            // set whether to execute sync/async
+            $async = !empty($options)['query']['async'])
+                ? 0
+                : 1;
+
             return $collection->update(
                 $filters,
                 $fields,
-                ['upsert' => true]);
+                ['upsert' => true, 'w' => $async]);
         }
         catch (MongoException $e)
         {

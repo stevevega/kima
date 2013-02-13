@@ -105,6 +105,12 @@ abstract class Model
     private $order = [];
 
     /**
+     * Async/sync execution
+     * @var boolean
+     */
+    private $async;
+
+    /**
      * The query string created
      * @var string
      */
@@ -363,6 +369,15 @@ abstract class Model
     }
 
     /**
+     * Sets the whether the call is made sync/async
+     * @param boolean $async
+     */
+    public function async($async)
+    {
+        $this->async = (boolean)$async;
+    }
+
+    /**
      * Sets the query fields to fetch/insert
      * @param array $fields
      */
@@ -389,7 +404,8 @@ abstract class Model
             'group' => $this->group,
             'order' => $this->order,
             'limit' => $this->limit,
-            'start' => $this->start
+            'start' => $this->start,
+            'async' => $this->async
         ];
     }
 
@@ -409,6 +425,7 @@ abstract class Model
         $this->order = [];
         $this->limit = 0;
         $this->start = 0;
+        $this->async = null;
     }
 
     /**
