@@ -375,6 +375,7 @@ abstract class Model
     public function async($async)
     {
         $this->async = (boolean)$async;
+        return $this;
     }
 
     /**
