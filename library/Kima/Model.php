@@ -63,6 +63,12 @@ abstract class Model
     private $fields = [];
 
     /**
+     * Query unformatted fields
+     * @var array
+     */
+    private $raw_fields = [];
+
+    /**
      * Query joins
      * @var array
      */
@@ -307,6 +313,17 @@ abstract class Model
     }
 
     /**
+     * Sets the query unformatted fields
+     * @param  array $raw_fields
+     * @return Model
+     */
+    public function raw_fields(array $raw_fields)
+    {
+        $this->raw_fields = $raw_fields;
+        return $this;
+    }
+
+    /**
      * Sets the query filters
      * @param array $filter
      */
@@ -396,6 +413,7 @@ abstract class Model
     {
         return [
             'fields' => $this->fields,
+            'raw_fields' => $this->raw_fields,
             'database' => $this->database,
             'prefix' => $this->prefix,
             'table' => $this->table,
@@ -416,6 +434,7 @@ abstract class Model
     private function clear_query_params()
     {
         $this->fields = [];
+        $this->raw_fields = [];
         $this->database = '';
         $this->prefix = '';
         $this->table = constant($this->model . '::TABLE');

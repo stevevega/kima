@@ -65,13 +65,14 @@ class Mysql implements IModel
     /**
      * Prepares the fields for a fetch query
      * @param array $fields
+     * @param array $raw_fields
      * @param string $table
      * @return string
      */
-    public function prepare_fetch_fields(array $fields, $table)
+    public function prepare_fetch_fields(array $fields, array $raw_fields, $table)
     {
         # select * fields if none were added
-        if (empty($fields))
+        if (empty($fields) && empty($raw_fields))
         {
             return '*';
         }
@@ -87,6 +88,13 @@ class Mysql implements IModel
                 $field_name = $table . '.' . $field_name;
             }
 
+            $fields_query[] = $field_name;
+        }
+
+        // add raw fields
+        foreach ($raw_fields as $raw_field => $value)
+        {
+            $field_name = is_string($raw_field) ? $raw_field . ' AS ' . $value : $value;
             $fields_query[] = $field_name;
         }
 
@@ -212,7 +220,7 @@ class Mysql implements IModel
 
         $query_string =
             'SELECT ' .
-                $this->prepare_fetch_fields($params['fields'], $table) .
+                $this->prepare_fetch_fields($params['fields'], $params['raw_fields'], $table) .
                 ' FROM ' . $table .
                 $this->prepare_joins($params['joins']) .
                 $this->prepare_filters($params['filters'], $params['binds']) .

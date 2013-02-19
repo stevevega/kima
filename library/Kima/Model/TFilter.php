@@ -26,7 +26,8 @@ trait TFilter
         '$gte' => '>=',
         '$in' => 'IN (%s)',
         '$nin' => 'NOT IN (%s)',
-        '$exists' => 'IS %s NULL'];
+        '$exists' => 'IS %s NULL',
+        '$like' => 'LIKE (%s)'];
 
     /**
      * Query logical operators
@@ -89,7 +90,7 @@ trait TFilter
             $i++;
         }
 
-        return implode(" $logical_operator ", $filter);
+        return implode(' AND ', $filter);
     }
 
     /**
@@ -145,6 +146,11 @@ trait TFilter
                 $filter = $key . ' ' . sprintf($this->query_operators[$operator], $exists);
                 break;
 
+            case '$like':
+                $filter = $this->parse_like_operator(
+                    $this->query_operators[$operator], $key, $value, $bind_key, $binds);
+                break;
+
             default:
                 Error::set(sprintf(self::ERROR_QUERY, 'Invalid operator "' . $operator . '"'));
                 break;
@@ -196,6 +202,23 @@ trait TFilter
         }
 
         return $key . ' ' . sprintf($operator, implode(',', $values));
+    }
+
+    /**
+     * Parse like operators
+     * @param string $operator
+     * @param string $key
+     * @param mixed $value
+     * @param int $bind_key
+     * @param array $binds
+     */
+    private function parse_like_operator($operator, $key, $value, $bind_key, array &$binds)
+    {
+        $bind_key = ':' . $bind_key;
+        $filter = $key . ' ' . sprintf($operator, $bind_key);
+        $binds[$bind_key] = '%' . $value . '%';
+
+        return $filter;
     }
 
 }
