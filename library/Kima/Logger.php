@@ -61,7 +61,7 @@ class Logger extends Model
         $content = is_object($content) ? get_object_vars($content) : ['content' => $content];
         $fields = array_merge($fields, $content);
 
-        $logger->put($fields);
+        $logger->async(true)->put($fields);
     }
 
 }
