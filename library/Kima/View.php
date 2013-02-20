@@ -145,6 +145,9 @@ class View
         // set the compression option
         $this->set_compression(isset($options['compression']) ? $options['compression'] : false);
 
+        // set the default values set by the application
+        $this->set_default_params();
+
         // set the main template file path
         if (isset($options['layout']))
         {
@@ -949,8 +952,6 @@ class View
     */
     public function __destruct()
     {
-        $this->set_default_params();
-
         // flush the content if auto display option is on
         if ($this->auto_display)
         {
