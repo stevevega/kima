@@ -127,12 +127,6 @@ abstract class Model
      */
     private $db_engine;
 
-
-    /**
-     * The primary key
-     */
-    private $primary_key;
-
     /**
      * constructor
      */
@@ -200,13 +194,9 @@ abstract class Model
         {
             case 'mysql':
                 $this->adapter = new Mysql();
-                $this->primary_key = defined($this->model . '::PRMARY_KEY')
-                    ? constant($this->model . '::PRMARY_KEY')
-                    : 'id_' . strtolower($this->table);
                 break;
             case 'mongo':
                 $this->adapter = null;
-                $this->primary_key = '_id';
                 break;
             default:
                 Error::set(sprintf(self::ERROR_INVALID_DB_MODEL, $this->db_engine));
@@ -300,8 +290,8 @@ abstract class Model
                 foreach ($join['fields'] as $key => $field)
                 {
                     is_string($key)
-                        ? $this->fields[$join['table'] . '.' . $key] = $field
-                        : $this->fields[] = $join['table'] . '.' . $field;
+                        ? $this->fields[$key] = $field
+                        : $this->fields[] = $field;
                 }
 
                 unset($join['database'], $join['fields']);
@@ -539,11 +529,6 @@ abstract class Model
             return $this->update_model();
         }
 
-        // set the primary key if is an existing model
-        if (!empty($this->{$this->primary_key}) && !isset($this->fields[$this->primary_key]))
-        {
-            $this->fields[$this->primary_key] = $this->{$this->primary_key};
-        }
         $params = $this->get_query_params();
 
         // build the query using the adapter
@@ -582,20 +567,6 @@ abstract class Model
 
         $this->clear_query_params();
         return Database::get_instance($this->db_engine)->delete($options);
-    }
-
-    /**
-     * Ensures the primary key is added to the fetch query
-     * @param array $fields
-     */
-    private function ensure_primary_key(array $fields)
-    {
-        if (!empty($fields) && !array_key_exists($this->primary_key, $fields))
-        {
-            array_unshift($fields, $this->primary_key);
-        }
-
-        return $fields;
     }
 
 }

@@ -54,10 +54,13 @@ class Mysql implements IModel
         $join_type = !empty($options['type']) ? $options['type'] : 'LEFT';
         $join_query = ' ' . $join_type . ' JOIN ' . $join_table;
 
+        $key_parts = explode('.', $options['key']);
+        $key = array_pop($key_parts);
+
         // use join key if necessary
         $join_query .= empty($options['joiner'])
-            ? ' USING (' . $options['key'] . ')'
-            : ' ON ( ' . $join_table . '.' . $options['key'] . '=' . $options['joiner'] . ' )';
+            ? ' USING (' . $key . ')'
+            : ' ON ( ' . $options['key'] . '=' . $options['joiner'] . ' )';
 
         return $join_query;
     }
@@ -66,10 +69,9 @@ class Mysql implements IModel
      * Prepares the fields for a fetch query
      * @param array $fields
      * @param array $raw_fields
-     * @param string $table
      * @return string
      */
-    public function prepare_fetch_fields(array $fields, array $raw_fields, $table)
+    public function prepare_fetch_fields(array $fields, array $raw_fields)
     {
         # select * fields if none were added
         if (empty($fields) && empty($raw_fields))
@@ -82,12 +84,6 @@ class Mysql implements IModel
         foreach ($fields as $field => $value)
         {
             $field_name = is_string($field) ? $field . ' AS ' . $value : $value;
-
-            if (false === strpos($field_name, '.'))
-            {
-                $field_name = $table . '.' . $field_name;
-            }
-
             $fields_query[] = $field_name;
         }
 
@@ -131,8 +127,10 @@ class Mysql implements IModel
                 $value = $this->{$value};
             }
 
-            $fields_query[] = $key . ' = :' . $key;
-            $binds[':' . $key] = $value;
+            // format the bind key since it only allows alphanumeric and _
+            $bind_key = ':' . str_replace('.', '_', $key);
+            $fields_query[] = $key . ' = ' . $bind_key;
+            $binds[$bind_key] = $value;
         }
 
         return implode(', ', $fields_query);
@@ -220,7 +218,7 @@ class Mysql implements IModel
 
         $query_string =
             'SELECT ' .
-                $this->prepare_fetch_fields($params['fields'], $params['raw_fields'], $table) .
+                $this->prepare_fetch_fields($params['fields'], $params['raw_fields']) .
                 ' FROM ' . $table .
                 $this->prepare_joins($params['joins']) .
                 $this->prepare_filters($params['filters'], $params['binds']) .
