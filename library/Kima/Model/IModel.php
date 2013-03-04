@@ -15,11 +15,10 @@ interface IModel
     /**
      * Prepares the fields for a fetch query
      * @param array $fields
-     * @param array $raw_fields
      * @param string $table
      * @return string
      */
-    function prepare_fetch_fields(array $fields, array $raw_fields);
+    function prepare_fetch_fields(array $fields);
 
     /**
      * Prepares the fields for a save query

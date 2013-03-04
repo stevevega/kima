@@ -68,13 +68,12 @@ class Mysql implements IModel
     /**
      * Prepares the fields for a fetch query
      * @param array $fields
-     * @param array $raw_fields
      * @return string
      */
-    public function prepare_fetch_fields(array $fields, array $raw_fields)
+    public function prepare_fetch_fields(array $fields)
     {
         # select * fields if none were added
-        if (empty($fields) && empty($raw_fields))
+        if (empty($fields))
         {
             return '*';
         }
@@ -84,13 +83,6 @@ class Mysql implements IModel
         foreach ($fields as $field => $value)
         {
             $field_name = is_string($field) ? $field . ' AS ' . $value : $value;
-            $fields_query[] = $field_name;
-        }
-
-        // add raw fields
-        foreach ($raw_fields as $raw_field => $value)
-        {
-            $field_name = is_string($raw_field) ? $raw_field . ' AS ' . $value : $value;
             $fields_query[] = $field_name;
         }
 
@@ -113,27 +105,49 @@ class Mysql implements IModel
         }
 
         # prepare every field
-        $fields_query = [];
-        foreach ($fields as $field => $value)
-        {
-            if (is_string($field))
-            {
-                $key = $field;
-                $value = $value;
-            }
-            else
-            {
-                $key = $value;
-                $value = $this->{$value};
-            }
+        $fields_data = [];
 
-            // format the bind key since it only allows alphanumeric and _
-            $bind_key = ':' . str_replace('.', '_', $key);
-            $fields_query[] = $key . ' = ' . $bind_key;
-            $binds[$bind_key] = $value;
+        // check if the array is multidimensional
+        if (count($fields) !== count($fields, COUNT_RECURSIVE))
+        {
+            $fields_data['fields'] = array_keys($fields[0]);
+            foreach ($fields as $key => $field)
+            {
+                $fields_data['values'][] = $this->get_put_values($field, $key, $binds);
+            }
+        }
+        else
+        {
+            $fields_data['fields'] = array_keys($fields);
+            $fields_data['values'][] = $this->get_put_values($fields, 0, $binds);
         }
 
-        return implode(', ', $fields_query);
+        return $fields_data;
+    }
+
+    /**
+     * Gets the values used for a put query
+     * @param  array $fields
+     * @param  string $count
+     * @return array
+     */
+    private function get_put_values(array $fields, $count, &$binds)
+    {
+        $values = [];
+        foreach ($fields as $field => $value)
+        {
+            $key = $field;
+            $value = $value;
+
+            // format the bind key since it only allows alphanumeric and _
+            $bind_key = ':' . str_replace('.', '_', $key)  . '_' . $count;
+            $binds[$bind_key] = $value;
+
+            // add the value
+            $values[] = $bind_key;
+        }
+
+        return $values;
     }
 
     /**
@@ -218,7 +232,7 @@ class Mysql implements IModel
 
         $query_string =
             'SELECT ' .
-                $this->prepare_fetch_fields($params['fields'], $params['raw_fields']) .
+                $this->prepare_fetch_fields($params['fields']) .
                 ' FROM ' . $table .
                 $this->prepare_joins($params['joins']) .
                 $this->prepare_filters($params['filters'], $params['binds']) .
@@ -237,11 +251,19 @@ class Mysql implements IModel
     public function get_update_query(array $params)
     {
         $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
+        $fields = $this->prepare_save_fields($params['fields']);
+
+        $fields_query  = [];
+        foreach ($fields['fields'] as $key => $field)
+        {
+            $fields_query[] = $field . '=' . $fields['values'][$key];
+        }
+        $fields_query = implode(', ', $fields_query);
 
         $query_string =
             'UPDATE ' . $table .
                 ' SET ' .
-                $this->prepare_save_fields($params['fields']) .
+                $fields_query .
                 $this->prepare_filters($params['filters']) .
                 $this->prepare_order($params['order']) .
                 $this->prepare_limit($params['limit']);
@@ -256,15 +278,35 @@ class Mysql implements IModel
      */
     public function get_put_query(array &$params)
     {
-       $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
-       $fields = $this->prepare_save_fields($params['fields'], $params['binds']);
+        $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
+        $fields = $this->prepare_save_fields($params['fields'], $params['binds']);
 
-       $query_string =
-            'INSERT INTO ' . $table .
-                ' SET ' .
-                $fields .
+        // fields names
+        $fields_query = '(' . implode(', ', $fields['fields']) . ')';
+
+        // values
+        $values_query = [];
+        foreach ($fields['values'] as $values)
+        {
+            $values_query[] = '(' . implode(', ', $values) . ')';
+        }
+        $values_query = implode(', ', $values_query);
+
+        // on duplicate query
+        $on_duplicate_query = [];
+        foreach ($fields['fields'] as $key => $field)
+        {
+            $on_duplicate_query[] = $field . '= VALUES(' . $field . ')';
+        }
+        $on_duplicate_query = implode(', ', $on_duplicate_query);
+
+        // query string
+        $query_string =
+            'INSERT INTO ' . $table . $fields_query .
+                ' VALUES ' .
+                $values_query .
                 ' ON DUPLICATE KEY UPDATE ' .
-                $fields;
+                $on_duplicate_query;
 
         return $query_string;
     }

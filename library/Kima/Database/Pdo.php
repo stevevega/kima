@@ -261,7 +261,7 @@ class Pdo extends ADatabase
      * gets the last inserted id
      * @return mixed
      */
-    public function get_last_id()
+    public function last_insert_id()
     {
         # get the last insert id
         return $this->get_connection()->lastInsertId();

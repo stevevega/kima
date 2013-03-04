@@ -25,6 +25,7 @@ abstract class Model
      const ERROR_INVALID_DB_MODEL = 'Invalid database engine: "%s"';
      const ERROR_NO_TABLE = 'Required constant "TABLE" not present in model "%s"';
      const ERROR_NO_JOIN_TABLE = 'Required join table field is empty';
+     const ERROR_INVALID_FUNCTION = 'Function "%s" is not available for %s models';
 
     /**
      * The model name
@@ -61,12 +62,6 @@ abstract class Model
      * @var array
      */
     private $fields = [];
-
-    /**
-     * Query unformatted fields
-     * @var array
-     */
-    private $raw_fields = [];
 
     /**
      * Query joins
@@ -303,17 +298,6 @@ abstract class Model
     }
 
     /**
-     * Sets the query unformatted fields
-     * @param  array $raw_fields
-     * @return Model
-     */
-    public function raw_fields(array $raw_fields)
-    {
-        $this->raw_fields = $raw_fields;
-        return $this;
-    }
-
-    /**
      * Sets the query filters
      * @param array $filter
      */
@@ -403,7 +387,6 @@ abstract class Model
     {
         return [
             'fields' => $this->fields,
-            'raw_fields' => $this->raw_fields,
             'database' => $this->database,
             'prefix' => $this->prefix,
             'table' => $this->table,
@@ -424,7 +407,6 @@ abstract class Model
     private function clear_query_params()
     {
         $this->fields = [];
-        $this->raw_fields = [];
         $this->database = '';
         $this->prefix = '';
         $this->table = constant($this->model . '::TABLE');
@@ -436,6 +418,22 @@ abstract class Model
         $this->limit = 0;
         $this->start = 0;
         $this->async = null;
+    }
+
+    /**
+     * Validates whether or not a method is available in the current db engine
+     * @param  string $method
+     * @return boolean
+     */
+    private function validate_method($method)
+    {
+        $instance = Database::get_instance($this->db_engine);
+        if (!method_exists($instance, $method))
+        {
+            Error::set(sprintf(self::ERROR_INVALID_FUNCTION, $method, $this->db_engine));
+        }
+
+        return true;
     }
 
     /**
@@ -567,6 +565,16 @@ abstract class Model
 
         $this->clear_query_params();
         return Database::get_instance($this->db_engine)->delete($options);
+    }
+
+    /**
+     * Gets the last insert id
+     * @return $int
+     */
+    public function last_insert_id()
+    {
+        $this->validate_method('last_insert_id');
+        return Database::get_instance($this->db_engine)->last_insert_id();
     }
 
 }
