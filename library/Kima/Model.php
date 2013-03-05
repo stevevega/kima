@@ -421,22 +421,6 @@ abstract class Model
     }
 
     /**
-     * Validates whether or not a method is available in the current db engine
-     * @param  string $method
-     * @return boolean
-     */
-    private function validate_method($method)
-    {
-        $instance = Database::get_instance($this->db_engine);
-        if (!method_exists($instance, $method))
-        {
-            Error::set(sprintf(self::ERROR_INVALID_FUNCTION, $method, $this->db_engine));
-        }
-
-        return true;
-    }
-
-    /**
      * Fetch one result of data from the database
      * Example $fields values:
      * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
@@ -565,16 +549,6 @@ abstract class Model
 
         $this->clear_query_params();
         return Database::get_instance($this->db_engine)->delete($options);
-    }
-
-    /**
-     * Gets the last insert id
-     * @return $int
-     */
-    public function last_insert_id()
-    {
-        $this->validate_method('last_insert_id');
-        return Database::get_instance($this->db_engine)->last_insert_id();
     }
 
 }
