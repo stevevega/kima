@@ -26,7 +26,9 @@ class Mysql implements IModel
      * Error messages
      */
      const ERROR_EMPTY_FIELDS = 'Fields for save data query not provided';
+     const ERROR_INVALID_JOIN = 'Join expects at least "table" and "on" parameters';
      const ERROR_JOIN_NOT_ARRAY = 'Join array should contain an array with joins';
+     const ERROR_JOIN_ON_NOT_ARRAY = 'Join "on" clause should be an arrray';
      const ERROR_QUERY = 'Error parsing MySQL query: %s';
 
     /**
@@ -44,23 +46,32 @@ class Mysql implements IModel
 
     /**
      * Gets the join syntax for the query
-     * @param array $options
+     * @param array $options ['table', 'on', 'type']
      * @return string
      */
     public function get_join(array $options)
     {
+        // validate join
+        if (empty($options['table']) || empty($options['on']))
+        {
+            Error::set(self::ERROR_INVALID_JOIN);
+        }
+        if (!is_array($options['on']))
+        {
+            Error::set(self::ERROR_JOIN_ON_NOT_ARRAY);
+        }
+
+        // set the base join query
         $join_table = $options['table'];
-
         $join_type = !empty($options['type']) ? $options['type'] : 'LEFT';
-        $join_query = ' ' . $join_type . ' JOIN ' . $join_table;
+        $join_query = " $join_type JOIN $join_table ON ";
 
-        $key_parts = explode('.', $options['key']);
-        $key = array_pop($key_parts);
-
-        // use join key if necessary
-        $join_query .= empty($options['joiner'])
-            ? ' USING (' . $key . ')'
-            : ' ON ( ' . $options['key'] . '=' . $options['joiner'] . ' )';
+        $joins = [];
+        foreach ($options['on'] as $joiner => $on)
+        {
+            $joins[] = "$joiner = $on";
+        }
+        $join_query .= implode(' AND ', $joins);
 
         return $join_query;
     }

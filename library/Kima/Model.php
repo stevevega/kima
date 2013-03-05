@@ -268,31 +268,6 @@ abstract class Model
      */
     public function join(array $joins)
     {
-        // get the fields on each join
-        foreach ($joins as &$join)
-        {
-            if (!empty($join['fields']) && is_array($join['fields']))
-            {
-                if (empty($join['table']))
-                {
-                    Error::set(self::ERROR_NO_JOIN_TABLE);
-                }
-
-                $join['table'] = !empty($join['database'])
-                    ? $join_database . '.' . $join['table']
-                    : $join['table'];
-
-                foreach ($join['fields'] as $key => $field)
-                {
-                    is_string($key)
-                        ? $this->fields[$key] = $field
-                        : $this->fields[] = $field;
-                }
-
-                unset($join['database'], $join['fields']);
-            }
-        }
-
         $this->joins = $joins;
         return $this;
     }

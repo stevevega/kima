@@ -38,13 +38,19 @@ trait TFilter
         '$and' => 'AND'];
 
     /**
+     * Private counter for the binds
+     * @var integer
+     */
+    private $i = 1;
+
+    /**
      * Parse the operators of the query filters
      * @param array $filters
      * @param array $binds
      * @param string $logical_operator
      * @param int $i
      */
-    private function parse_operators(array $filters, array &$binds, $logical_operator = 'AND', &$i = 1)
+    private function parse_operators(array $filters, array &$binds, $logical_operator = 'AND')
     {
         $filter = [];
 
@@ -63,8 +69,8 @@ trait TFilter
                     foreach ($value as $v)
                     {
                         $logical_filter[] = '(' . $this->parse_operators(
-                        $v, $binds, 'AND', $i) . ')';
-                        $i++;
+                        $v, $binds, 'AND') . ')';
+                        $this->i++;
                     }
 
                     $logical_operator = $this->logical_operators[$key];
@@ -78,16 +84,16 @@ trait TFilter
                     // parse operator foreach value inside the array
                     foreach ($value as $k => $v)
                     {
-                        $filter[] = $this->parse_custom_operator($k, $key, $v, $i, $binds);
-                        $i++;
+                        $filter[] = $this->parse_custom_operator($k, $key, $v, $binds);
+                        $this->i++;
                     }
                     break;
 
                 default:
-                    $filter[] = $this->parse_key_value($key, $value, $i, $binds);
+                    $filter[] = $this->parse_key_value($key, $value, $binds);
                     break;
             }
-            $i++;
+            $this->i++;
         }
 
         return implode(' AND ', $filter);
@@ -97,13 +103,12 @@ trait TFilter
      * Parse a normal key value filter
      * @param string $key
      * @param mixed $value
-     * @param int $bind_key
      * @param array $binds
      */
-    private function parse_key_value($key, $value, $bind_key, array &$binds)
+    private function parse_key_value($key, $value, array &$binds)
     {
         // set the bind key
-        $bind_key = ':' . $bind_key;
+        $bind_key = ':' . $this->i;
 
         // set the filter with prepare statements
         $filter = $key . ' = ' . $bind_key;
@@ -119,10 +124,9 @@ trait TFilter
      * @param string $operator
      * @param string $key
      * @param mixed $value
-     * @param int $bind_key
      * @param array $binds
      */
-    private function parse_custom_operator($operator, $key, $value, &$bind_key, array &$binds)
+    private function parse_custom_operator($operator, $key, $value, array &$binds)
     {
         switch ($operator)
         {
@@ -132,13 +136,13 @@ trait TFilter
             case '$gt': // greater than
             case '$gte': // greater than or equals
                 $filter = $this->parse_simple_operator(
-                    $this->query_operators[$operator], $key, $value, $bind_key, $binds);
+                    $this->query_operators[$operator], $key, $value, $binds);
                 break;
 
             case '$in': // in (1,2,3)
             case '$nin': // not in (1,2,3)
                 $filter = $this->parse_in_operator(
-                    $this->query_operators[$operator], $key, $value, $bind_key, $binds);
+                    $this->query_operators[$operator], $key, $value, $binds);
                 break;
 
             case '$exists':
@@ -148,7 +152,7 @@ trait TFilter
 
             case '$like':
                 $filter = $this->parse_like_operator(
-                    $this->query_operators[$operator], $key, $value, $bind_key, $binds);
+                    $this->query_operators[$operator], $key, $value, $binds);
                 break;
 
             default:
@@ -164,12 +168,11 @@ trait TFilter
      * @param string $operator
      * @param string $key
      * @param mixed $value
-     * @param int $bind_key
      * @param array $binds
      */
-    private function parse_simple_operator($operator, $key, $value, $bind_key, array &$binds)
+    private function parse_simple_operator($operator, $key, $value, array &$binds)
     {
-        $bind_key = ':' . $bind_key;
+        $bind_key = ':' . $this->i;
         $filter = "$key $operator $bind_key";
         $binds[$bind_key] = $value;
 
@@ -181,10 +184,9 @@ trait TFilter
      * @param string $operator
      * @param string $key
      * @param mixed $value
-     * @param int $bind_key
      * @param array $binds
      */
-    private function parse_in_operator($operator, $key, $value, &$bind_key, array &$binds)
+    private function parse_in_operator($operator, $key, $value, array &$binds)
     {
         $values = [];
 
@@ -196,9 +198,9 @@ trait TFilter
         // parse and bind every value of the "in" filter
         foreach ($value as $v)
         {
-            $values[] = ':' . $bind_key;
-            $binds[':' . $bind_key] = $v;
-            $bind_key++;
+            $values[] = ':' . $this->i;
+            $binds[':' . $this->i] = $v;
+            $this->i++;
         }
 
         return $key . ' ' . sprintf($operator, implode(',', $values));
@@ -209,12 +211,11 @@ trait TFilter
      * @param string $operator
      * @param string $key
      * @param mixed $value
-     * @param int $bind_key
      * @param array $binds
      */
-    private function parse_like_operator($operator, $key, $value, $bind_key, array &$binds)
+    private function parse_like_operator($operator, $key, $value, array &$binds)
     {
-        $bind_key = ':' . $bind_key;
+        $bind_key = ':' . $this->i;
         $filter = $key . ' ' . sprintf($operator, $bind_key);
         $binds[$bind_key] = '%' . $value . '%';
 
