@@ -54,13 +54,13 @@ class Application
     private static $method;
 
     /**
-     * language
+     * Current request language
      * @var string
      */
     private static $language;
 
     /**
-     * The default language
+     * The default application language
      * @var string
      */
     private static $default_language;
@@ -72,10 +72,28 @@ class Application
     private static $language_url_prefix;
 
     /**
+     * All the available languages in the application
+     * @var array
+     */
+    private static $available_languages = [];
+
+    /**
      * Whether the connection is secure or not
      * @var boolean
      */
     private static $is_https;
+
+    /**
+     * Enforces the controller to be https
+     * @var boolean
+     */
+    private static $enforce_https;
+
+    /**
+     * Individual controllers that should be always https
+     * @var array
+     */
+    private static $https_controllers = [];
 
     /**
      * Global default view params
@@ -254,9 +272,19 @@ class Application
     public static function set_language($language)
     {
         self::$language = (string)$language;
+
         // set the url prefix depending on the language selected
         self::$language_url_prefix = self::get_default_language() !== $language ? "/$language" : '';
         return self::$instance;
+    }
+
+    /**
+     * Sets the default language
+     * @param string $language
+     */
+    public static function set_default_language($language)
+    {
+        self::$default_language = $language;
     }
 
     /**
@@ -278,7 +306,8 @@ class Application
             case Request::server('LANGUAGE_DEFAULT'):
                 $language = Request::server('LANGUAGE_DEFAULT');
                 break;
-            case !empty(self::get_config()->language['default']):
+            case property_exists(self::get_config(), 'language')
+                && !empty(self::get_config()->language['default']):
                 $language = self::get_config()->language['default'];
                 break;
             default:
@@ -286,7 +315,47 @@ class Application
         }
 
         self::$default_language = $language;
-        return $language;
+        return self::$default_language;
+    }
+
+    /**
+     * Sets all the available languages in the application
+     * @param array $languages
+     */
+    public static function set_available_languages(array $languages)
+    {
+        self::$available_languages = $languages;
+    }
+
+    /**
+     * Gets all the available languages in the application
+     * @return array
+     */
+    public static function get_available_languages()
+    {
+        if (!empty(self::$available_languages))
+        {
+            return self::$available_languages;
+        }
+
+        switch (true)
+        {
+            case Request::env('LANGUAGES_AVAILABLE'):
+                $languages = Request::env('LANGUAGES_AVAILABLE');
+                break;
+            case Request::server('LANGUAGES_AVAILABLE'):
+                $languages = Request::server('LANGUAGES_AVAILABLE');
+                break;
+            case property_exists(self::get_config(), 'language')
+                && !empty(self::get_config()->language['available']):
+                $languages = self::get_config()->language['available'];
+                break;
+            default:
+                $languages = '';
+        }
+
+        self::$available_languages = explode(',', $languages);
+        return self::$available_languages;
     }
 
     /**
@@ -327,6 +396,41 @@ class Application
 
         // check if https is on
         self::$is_https = !empty($https) && 'off' !== $https || 443 == $port ? true : false;
+    }
+
+    /**
+     * Makes all request https by default
+     */
+    public static function enforce_https()
+    {
+        self::$enforce_https = true;
+    }
+
+    /**
+     * Returns whether the request should be https or not
+     * @return boolean
+     */
+    public static function is_https_enforced()
+    {
+        return empty(self::$enforce_https) ? false : true;
+    }
+
+    /**
+     * Sets the controllers that should be always https
+     * @param array $controllers
+     */
+    public static function set_https_controllers(array $controllers)
+    {
+        self::$https_controllers = $controllers;
+    }
+
+    /**
+     * Gets the controllers that should be always https
+     * @return array
+     */
+    public static function get_https_controllers()
+    {
+        return self::$https_controllers;
     }
 
 }

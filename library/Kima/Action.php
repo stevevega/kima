@@ -7,6 +7,7 @@ namespace Kima;
 
 use \Kima\Error,
     \Kima\Controller,
+    \Kima\Http\Redirector,
     \Kima\Http\Request,
     \Kima\Http\StatusCode,
     \Bootstrap;
@@ -47,6 +48,9 @@ class Action
         // set the url parameters
         $this->set_url_parameters();
 
+        // load the bootstrap
+        $this->load_bootstrap();
+
         // set the application language
         $language = $this->get_language();
         Application::get_instance()->set_language($language);
@@ -70,11 +74,11 @@ class Action
             return;
         }
 
+        // check for https/http redirections
+        $this->check_https($controller);
+
         // set the action controller
         Application::get_instance()->set_controller($controller);
-
-        // load the bootstrap
-        $this->load_bootstrap();
 
         // inits the controller action
         $this->run_action($controller);
@@ -128,6 +132,36 @@ class Action
         }
 
         return null;
+    }
+
+    /**
+     * Checks for possible http/https redirections
+     * @param  string $controller
+     */
+    private function check_https($controller)
+    {
+        // get whether we are currently on https or not
+        $is_https = Application::get_instance()->is_https();
+
+        // check if https is enforced
+        $is_https_enforced = Application::get_instance()->is_https_enforced();
+        if ($is_https_enforced)
+        {
+            return $is_https ? true : Redirector::https();
+        }
+
+        // check if the controller is in the individual list of https request
+        $https_controllers = Application::get_instance()->get_https_controllers();
+        if (in_array($controller, $https_controllers))
+        {
+            return $is_https ? true : Redirector::https();
+        }
+
+        // if we are on https but shouldn't redirect to http
+        if ($is_https && !in_array($controller, $https_controllers))
+        {
+            Redirector::http();
+        }
     }
 
     /**
@@ -240,23 +274,7 @@ class Action
         // get the possible language
         $url_parameters = $this->get_url_parameters();
         $language = array_shift($url_parameters);
-        $languages = [];
-
-        // get the list of available language from the server
-        if (Request::server('LANGUAGES_AVAILABLE'))
-        {
-            $languages = Request::server('LANGUAGES_AVAILABLE');
-            $languages = explode(',', $languages);
-        }
-
-        // get the list of available languages from the application config
-        if (empty($languages) &&
-            !empty(Application::get_instance()->get_config()->language) &&
-            !empty(Application::get_instance()->get_config()->language['available']))
-        {
-            $languages = Application::get_instance()->get_config()->language['available'];
-            $languages = explode(',', $languages);
-        }
+        $languages = Application::get_instance()->get_available_languages();
 
         // return the desired languages
         if (in_array($language, $languages))
