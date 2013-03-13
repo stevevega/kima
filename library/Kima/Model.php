@@ -9,6 +9,7 @@ use \Kima\Config,
     \Kima\Database,
     \Kima\Model\Mysql,
     \Kima\Model\Mongo,
+    \Kima\Model\ResultSet,
     \Kima\Util\String;
 
 /**
@@ -119,8 +120,15 @@ abstract class Model
 
     /**
      * The db engine
+     * @var string
      */
     private $db_engine;
+
+    /**
+     * Fetch query total count
+     * @var int
+     */
+    private $total_count;
 
     /**
      * constructor
@@ -144,6 +152,15 @@ abstract class Model
         {
             $this->set_prefix($config->database[$this->db_engine]['prefix']);
         }
+    }
+
+    /**
+     * Gets the total count for a query
+     * @return int
+     */
+    public function get_total_count()
+    {
+        return $this->total_count;
     }
 
     /**
@@ -405,7 +422,7 @@ abstract class Model
     {
         // make sure we limit one result
         $this->limit(1);
-        $result = $this->fetch_results($fields, false);
+        $result = $this->fetch_results($fields, false, false);
         return !empty($result[0]) ? $result[0] : null;
     }
 
@@ -414,17 +431,19 @@ abstract class Model
      * Example $fields values:
      * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
      * @param array $fields
+     * @param boolean $get_as_result_set gets a result set with additional info as total count
      */
-    public function fetch_all(array $fields = [])
+    public function fetch_all(array $fields = [], $get_as_result_set = false)
     {
-        return $this->fetch_results($fields, true);
+        return $this->fetch_results($fields, true, $get_as_result_set);
     }
 
     /**
      * Fetch query results
      * @param boolean $fetch_all
+     * @param boolean $get_as_result_set gets a result set with additional info as total count
      */
-    private function fetch_results(array $fields, $fetch_all = false)
+    private function fetch_results(array $fields, $fetch_all, $get_as_result_set = false)
     {
         // make sure we have the primary key
         $this->fields = $this->set_fields($fields);
@@ -435,16 +454,44 @@ abstract class Model
             ? $this->adapter->get_fetch_query($params)
             : null;
 
+        $count_query_string = '';
+        if ($get_as_result_set && $this->adapter)
+        {
+            $params['fields'] = ['COUNT(*)' => 'count'];
+            $params['group'] = [];
+            $params['order'] = [];
+            $params['start'] = 0;
+            $params['limit'] = 0;
+            $params['i'] = 1;
+            $params['binds'] = [];
+            $count_query_string = $this->adapter->get_fetch_query($params);
+        }
+
         // set execution options
         $options = [
             'query' => $params,
             'query_string' => $this->query_string,
+            'get_count' => $get_as_result_set ? true : false,
+            'count_query_string' => $count_query_string,
             'model' => $this->model,
             'fetch_all' => $fetch_all
         ];
 
         // get result from the query
         $result = Database::get_instance($this->db_engine)->fetch($options);
+
+        if ($get_as_result_set)
+        {
+            $result_set = new ResultSet();
+            $result_set->count = $result['count'];
+            $result_set->values = $result['objects'];
+            $result = $result_set;
+        }
+        else
+        {
+            $result = $result['objects'];
+        }
+
         $this->clear_query_params();
         return $result;
     }

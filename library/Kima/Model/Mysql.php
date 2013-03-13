@@ -241,6 +241,12 @@ class Mysql implements IModel
     {
         $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
 
+        // reset filter binds if necessary
+        if (array_key_exists('i', $params))
+        {
+            $this->i = 1;
+        }
+
         $query_string =
             'SELECT ' .
                 $this->prepare_fetch_fields($params['fields']) .

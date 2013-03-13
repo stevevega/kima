@@ -41,7 +41,7 @@ trait TFilter
      * Private counter for the binds
      * @var integer
      */
-    private $i = 1;
+    protected $i = 1;
 
     /**
      * Parse the operators of the query filters

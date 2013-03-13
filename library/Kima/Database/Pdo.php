@@ -139,12 +139,24 @@ class Pdo extends ADatabase
         }
 
         $statement = $this->execute($options);
-        $result = [];
+        $objects = [];
         while ($row = $statement->fetchObject($options['model']))
         {
-            $result[] = $row;
+            $objects[] = $row;
+        }
+        $result['objects'] = $objects;
+
+        // get the count if necessary
+        $count = 0;
+        if ($options['get_count'])
+        {
+            $options['query_string'] = $options['count_query_string'];
+            $statement = $this->execute($options);
+            $count_result = $statement->fetchObject();
+            $count = $count_result->count;
         }
 
+        $result['count'] = $count;
         return $result;
     }
 
@@ -199,7 +211,6 @@ class Pdo extends ADatabase
                 $error = $statement->errorInfo();
                 Error::set(sprintf(self::ERROR_PDO_QUERY_ERROR, $error[2]));
             }
-
             return $statement;
         }
         catch (PDOException $e)

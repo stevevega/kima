@@ -169,17 +169,19 @@ class Mongo extends ADatabase
                 $cursor->limit($options['query']['limit']);
             }
 
-            $models = [];
+            $objects = [];
             foreach($cursor as $row)
             {
-                $model = new $options['model'];
+                $object = new $options['model'];
                 foreach ($row as $key => $field) {
-                    $model->{$key} = $field;
+                    $object->{$key} = $field;
                 }
-                $models[] = $model;
+                $objects[] = $object;
             }
 
-           return $models;
+            $result['objects'] = $objects;
+            $result['count'] = !empty($options['get_count']) ? $cursor->count() : 0;
+            return $result;
         }
         catch (MongoCursorException $e)
         {
