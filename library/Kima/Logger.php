@@ -35,7 +35,7 @@ class Logger extends Model
     /**
      * Log levels list
      */
-    private static $log_levels = [
+    protected static $log_levels = [
         self::INFO,
         self::ERROR,
         self::WARNING,
