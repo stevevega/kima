@@ -385,7 +385,7 @@ class View
     public function set($name, $value, $template = '', $escape = true)
     {
         // escape the value if necessary
-        $value = $escape ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8', false) : $value;
+        $value = $escape ? htmlentities($value, ENT_QUOTES, 'UTF-8', false) : $value;
 
         if (empty($template))
         {
@@ -887,7 +887,8 @@ class View
         $output = str_replace("\t", '', $output);
         $output = str_replace(chr(13), '', $output);
         $output = preg_replace('/[\s]{2,}/', ' ', $output);
-        $output = preg_replace('<!\-\- [\/\ a-zA-Z]* \-\->', '', $output);
+        $output = preg_replace('~>\s+<~', '><', $output);
+        $output = preg_replace('/<!--(?!\s*(?:\[if [^\]]+]|<!|>))(?:(?!-->).)*-->/', '', $output);
 
         return $output;
     }
