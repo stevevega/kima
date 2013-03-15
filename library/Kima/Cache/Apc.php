@@ -89,7 +89,7 @@ class Apc extends ACache
      */
     public function set($key, $value, $expiration = 0)
     {
-        if ($this->cache_enabled)
+        if ($this->cache_enabled && !empty($key))
         {
             $key = $this->get_key($key);
             $value = [
