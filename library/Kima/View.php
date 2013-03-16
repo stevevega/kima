@@ -749,6 +749,7 @@ class View
                 // set the default html headers
                 case 'html':
                     @header('Content-Type: text/html; charset=utf-8');
+                    @header('X-UA-Compatible: IE=edge,chrome=1');
 
                     // add the headers and scripts
                     $this->add_headers($template);
