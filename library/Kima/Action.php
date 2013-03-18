@@ -52,11 +52,12 @@ class Action
         $this->load_bootstrap();
 
         // set the application language
+        $application = Application::get_instance();
         $language = $this->get_language();
-        Application::get_instance()->set_language($language);
+        $application->set_language($language);
 
         // set the module routes if exists
-        $module = Application::get_instance()->get_module();
+        $module = $application->get_module();
         if (!empty($module))
         {
             array_key_exists($module, $urls)
@@ -70,7 +71,7 @@ class Action
         // validate controller and action
         if (empty($controller))
         {
-            $this->set_error_action(404);
+            $application->set_http_error(404);
             return;
         }
 
@@ -78,7 +79,7 @@ class Action
         $this->check_https($controller);
 
         // set the action controller
-        Application::get_instance()->set_controller($controller);
+        $application->set_controller($controller);
 
         // inits the controller action
         $this->run_action($controller);
@@ -141,17 +142,18 @@ class Action
     private function check_https($controller)
     {
         // get whether we are currently on https or not
-        $is_https = Application::get_instance()->is_https();
+        $application = Application::get_instance();
+        $is_https = $application->is_https();
 
         // check if https is enforced
-        $is_https_enforced = Application::get_instance()->is_https_enforced();
+        $is_https_enforced = $application->is_https_enforced();
         if ($is_https_enforced)
         {
             return $is_https ? true : Redirector::https();
         }
 
         // check if the controller is in the individual list of https request
-        $https_controllers = Application::get_instance()->get_https_controllers();
+        $https_controllers = $application->get_https_controllers();
         if (in_array($controller, $https_controllers))
         {
             return $is_https ? true : Redirector::https();
@@ -171,9 +173,10 @@ class Action
     private function run_action($controller)
     {
         // get the application values
-        $config = Application::get_instance()->get_config();
-        $module = Application::get_instance()->get_module();
-        $method = Application::get_instance()->get_method();
+        $application = Application::get_instance();
+        $config = $application->get_config();
+        $module = $application->get_module();
+        $method = $application->get_method();
 
         // get the controller path
         $controller_folder = $module
@@ -191,7 +194,7 @@ class Action
         $methods = $this->get_controller_methods($controller_class);
         if (!in_array($method, $methods))
         {
-            $this->set_error_action(405);
+            $application->set_http_error(405);
             return;
         }
 
@@ -244,25 +247,6 @@ class Action
         $controller_methods = get_class_methods($controller);
 
         return array_diff($controller_methods, $parent_methods);
-    }
-
-    /**
-     * set an http error for the page
-     * @param int $status_code
-     */
-    private function set_error_action($status_code)
-    {
-        // set the status code
-        http_response_code($status_code);
-
-        $config = Application::get_instance()->get_config();
-        $controller = 'Error';
-        $controller_path = $config->controller['folder'] . '/Error.php';
-        require_once $controller_path;
-
-        $method = 'get';
-        $controller_obj = new $controller;
-        $controller_obj->$method();
     }
 
     /**

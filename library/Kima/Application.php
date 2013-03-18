@@ -433,4 +433,31 @@ class Application
         return self::$https_controllers;
     }
 
+    /**
+     * Set an http error for the page
+     * @param int $status_code
+     */
+    public static function set_http_error($status_code)
+    {
+        // set the status code
+        http_response_code($status_code);
+
+        $application = Application::get_instance();
+        $config = $application->get_config();
+        $module = $application->get_module();
+
+        // get the controller path
+        $controller_folder = $module
+            ? $config->module['folder'] . '/' . $module . '/controller'
+            : $config->controller['folder'];
+
+        $controller_path = $controller_folder . '/Error.php';
+        require_once $controller_path;
+
+        $method = 'get';
+        $controller_obj = new \Error();
+        $controller_obj->$method();
+        exit;
+    }
+
 }
