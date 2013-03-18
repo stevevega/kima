@@ -446,11 +446,12 @@ class Application
         $config = $application->get_config();
         $module = $application->get_module();
 
-        // get the controller path
+        //  the controller path
         $controller_folder = $module
             ? $config->module['folder'] . '/' . $module . '/controller'
             : $config->controller['folder'];
 
+        self::$controller = 'Error';
         $controller_path = $controller_folder . '/Error.php';
         require_once $controller_path;
 
