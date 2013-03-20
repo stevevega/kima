@@ -659,7 +659,7 @@ class View
         }
 
         // set the script
-        $async = $async ? ' async' : '';
+        $async = $async ? ' async="async"' : '';
         $script = '<script src="' . $script . '" type="text/javascript" charset="utf-8"' . $async . '></script>';
 
         // avoid duplicates
