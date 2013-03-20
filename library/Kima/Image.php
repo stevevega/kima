@@ -56,9 +56,6 @@ class Image
         // get the image and new image resource
         $image = new Imagick($file);
 
-        // remove potential insecure exif data
-        $image->stripImage();
-
         // set the image format
         $format = strtoupper($format);
         if (!in_array($format, $image->queryFormats()))
@@ -69,6 +66,9 @@ class Image
 
         // create the thumbnail
         $image->cropThumbnailImage((int)$width, (int)$height);
+
+        // remove potential insecure exif data
+        $image->stripImage();
 
         // saves the image to disk
         $result = $image->writeImage($destination);
