@@ -649,9 +649,9 @@ class View
     /**
      * Sets a script value to html type templates
      * @param string $script
-     * @param boolean $defer
+     * @param boolean $async
      */
-    public function script($script, $defer = false)
+    public function script($script, $async = false)
     {
         if ('html' !== $this->content_type)
         {
@@ -659,8 +659,8 @@ class View
         }
 
         // set the script
-        $defer = $defer ? ' defer' : '';
-        $script = '<script src="' . $script . '" type="text/javascript" charset="utf-8"' . $defer . '></script>';
+        $async = $async ? ' async' : '';
+        $script = '<script src="' . $script . '" type="text/javascript" charset="utf-8"' . $async . '></script>';
 
         // avoid duplicates
         if (!in_array($script, $this->scripts))
