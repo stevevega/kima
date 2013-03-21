@@ -108,6 +108,11 @@ class Image
      */
     public function move_uploaded_image($source, $destination, $format = '')
     {
+        if (!is_readable($source))
+        {
+            Error::set(sprintf(self::ERROR_INVALID_FILE, $source));
+        }
+
         $image = new Imagick($source);
 
         if (!empty($format))

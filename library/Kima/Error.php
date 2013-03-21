@@ -19,10 +19,10 @@ class Error
      * Error message format
      */
      const ERROR_FORMAT =
-        '<h1>Kima %s: %s</h1>
-        <div>Trigger by <strong>%s</strong> function <strong>%s</strong></div>
-        <div>File: <strong>%s.</strong></div>
-        <div>Args: %s.</div>';
+        'Kima %s: %s
+        Trigger by %s function %s
+        File: %s.
+        Args: %s.';
 
     /**
      * Error levels
@@ -51,9 +51,6 @@ class Error
      */
     public static function set($message, $level = null)
     {
-        // sets the error handler
-        set_error_handler("self::error_handler");
-
         // make sure the error level is valid
         $error_level = array_key_exists($level, self::$error_levels) ? $level : self::ERROR;
         $error_level_name = self::$error_levels[$error_level];
@@ -78,9 +75,6 @@ class Error
 
         // send the error
         trigger_error($error_message, $error_level);
-
-        // restore the system error handler
-        restore_error_handler();
     }
 
     /**
@@ -92,25 +86,6 @@ class Error
         $e = new Exception();
         $trace = $e->getTrace();
         return $trace[2];
-    }
-
-    /**
-     * Handles user triggered errors
-     * @param int $level the error level
-     * @param string $message the error message
-     */
-    private static function error_handler($level, $message)
-    {
-        switch ($level) {
-            case E_USER_ERROR:
-                echo $message;
-                exit();
-
-            default:
-                echo $message;
-                break;
-        }
-        return;
     }
 
 }
