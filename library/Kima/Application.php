@@ -78,6 +78,12 @@ class Application
     private static $available_languages = [];
 
     /**
+     * Default time zone
+     * @var string
+     */
+    private static $time_zone;
+
+    /**
      * Whether the connection is secure or not
      * @var boolean
      */
@@ -356,6 +362,26 @@ class Application
 
         self::$available_languages = explode(',', $languages);
         return self::$available_languages;
+    }
+
+    /**
+     * Sets the default time zone
+     * @param string $time_zone
+     */
+    public static function set_time_zone($time_zone)
+    {
+        self::$time_zone = $time_zone;
+    }
+
+    /**
+     * Gets the application default time zone
+     * @return string
+     */
+    public static function get_time_zone()
+    {
+        return empty(self::$time_zone)
+            ? date_default_timezone_get()
+            : self::$time_zone;
     }
 
     /**
