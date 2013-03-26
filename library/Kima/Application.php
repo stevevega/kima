@@ -138,10 +138,9 @@ class Application
     }
 
     /**
-     * Run the application
-     * @param array $urls
+     * Setup the basic application config
      */
-    public static function run(array $urls)
+    public static function setup()
     {
         // get the module and HTTP method
         switch (true)
@@ -164,6 +163,16 @@ class Application
 
         // set the config
         self::set_config();
+    }
+
+    /**
+     * Run the application
+     * @param array $urls
+     */
+    public static function run(array $urls)
+    {
+        // setup the application
+        self::setup();
 
         // run the action
         $action = new Action($urls);
