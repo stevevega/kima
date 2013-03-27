@@ -20,6 +20,7 @@ class Image
     const ERROR_NO_IMAGICK = 'Imagick extension is not present on this server';
     const ERROR_FORMAT_NO_AVAILABLE = 'Image format "%s" is not available';
     const ERROR_INVALID_FILE = 'Cannot access file "%s"';
+    const ERROR_CANNOT_WRITE_FILE = 'Cannot write on path "%s"';
 
     /**
      * Imagick Extension
@@ -48,10 +49,8 @@ class Image
      */
     public function thumbnail($file, $destination, $width, $height, $format = 'jpg')
     {
-        if (!is_readable($file))
-        {
-            Error::set(sprintf(self::ERROR_INVALID_FILE, $file));
-        }
+        // make sure the file exists
+        $this->validate_file($file);
 
         // get the image and new image resource
         $image = new Imagick($file);
@@ -70,8 +69,8 @@ class Image
         // remove potential insecure exif data
         $image->stripImage();
 
-        // saves the image to disk
-        $result = $image->writeImage($destination);
+        // save the image
+        $result = $this->save_image($image, $destination);
         $image->destroy();
         return $result;
     }
@@ -85,17 +84,15 @@ class Image
      */
     protected function convert($file, $destination, $format)
     {
-        if (!is_readable($file))
-        {
-            Error::set(sprintf(self::ERROR_INVALID_FILE, $file));
-        }
+        // make sure the file exists
+        $this->validate_file($file);
 
         // set the image format
         $image = new Imagick($file);
         $this->set_format($image, $format);
 
         // save image
-        $result = $image->writeImage($destination);
+        $result = $this->save_image($image, $destination);
         $image->destroy();
         return $result;
     }
@@ -108,10 +105,8 @@ class Image
      */
     public function move_uploaded_image($source, $destination, $format = '')
     {
-        if (!is_readable($source))
-        {
-            Error::set(sprintf(self::ERROR_INVALID_FILE, $source));
-        }
+        // make sure the file exists
+        $this->validate_file($source);
 
         $image = new Imagick($source);
 
@@ -124,7 +119,7 @@ class Image
         $image->stripImage();
 
         // save the image into the new location
-        $result = $image->writeImage($destination);
+        $result = $this->save_image($image, $destination);
         $image->destroy();
 
         // remove the source
@@ -147,6 +142,37 @@ class Image
             Error::set(sprintf(self::ERROR_FORMAT_NO_AVAILABLE, $format));
         }
         $image->setImageFormat($format);
+    }
+
+    /**
+     * Makes sure the image file exists and is readable
+     * Throw error on failure
+     * @param  string $file
+     */
+    private function validate_file($file)
+    {
+        if (!is_readable($file))
+        {
+            Error::set(sprintf(self::ERROR_INVALID_FILE, $file));
+        }
+    }
+
+    /**
+     * Writes and image in a desired destination
+     * @param  Imagick $image The Imagick resource
+     * @param  string $destination The destination
+     * @return boolean
+     */
+    private function save_image(Imagick $image, $destination)
+    {
+        // saves the image to disk
+        $image_path = dirname($destination);
+        if (!is_writable($image_path))
+        {
+            Error::set(sprintf(self::ERROR_CANNOT_WRITE_FILE, $image_path));
+        }
+
+        return $image->writeImage($destination);
     }
 
 }
