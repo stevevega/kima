@@ -83,6 +83,12 @@ class Solr
     private $facet_fields;
 
     /**
+     * Defines the default min value that a faceted field should return
+     * @var integer
+     */
+    private $facet_min_count = 1;
+
+    /**
      * Construct
      * @param string $core
      */
@@ -207,6 +213,8 @@ class Solr
         if (!empty($this->facet_fields))
         {
             $query->setFacet(true);
+            // ignore results with 0 as those are not useful
+            $query->setFacetMinCount($this->facet_min_count);
             foreach ($this->facet_fields as $facet)
             {
                 $query->addFacetField($facet);
@@ -398,6 +406,18 @@ class Solr
     public function facet($facet_fields = [])
     {
         $this->facet_fields = $facet_fields;
+        return $this;
+    }
+
+    /**
+     * Sets the default min value to be returned in a faceted field, set the default
+     * in one as 0 is generally not useful for display purposes
+     * @param  integer $count
+     * @return $this
+     */
+    public function facet_min_count($count = 1)
+    {
+        $this->facet_min_count = (int)$count;
         return $this;
     }
 }
