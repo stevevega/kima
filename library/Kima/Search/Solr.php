@@ -77,10 +77,16 @@ class Solr
     private $sort_fields;
 
     /**
-     * An array of field names that are used to facet a search
+     * An array of field names that are used to facet a search by fields
      * @var array
      */
     private $facet_fields;
+
+    /**
+     * An array of field names that are used to facet a search by query
+     * @var array
+     */
+    private $facet_queries;
 
     /**
      * Defines the default min value that a faceted field should return
@@ -218,6 +224,16 @@ class Solr
             foreach ($this->facet_fields as $facet)
             {
                 $query->addFacetField($facet);
+            }
+        }
+
+        // turn on faceting and add any query for it
+        if (!empty($this->facet_queries))
+        {
+            $query->setFacet(true);
+            foreach ($this->facet_queries as $facet)
+            {
+                $query->addFacetQuery($facet);
             }
         }
 
@@ -400,12 +416,22 @@ class Solr
     }
 
     /**
-     * Sets the fields that will be used to generate the facets
+     * Sets the fields that will be used to generate the facet fields
      * @param  array $facet_fields array of field names
      */
-    public function facet($facet_fields = [])
+    public function facet_fields($facet_fields = [])
     {
         $this->facet_fields = $facet_fields;
+        return $this;
+    }
+
+    /**
+     * Sets the fields that will be used to generate the facet queries
+     * @param  array $facet_fields array of query to be used to generate the facets
+     */
+    public function facet_queries($facet_queries = [])
+    {
+        $this->facet_queries = $facet_queries;
         return $this;
     }
 
