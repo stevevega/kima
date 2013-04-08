@@ -141,8 +141,13 @@ trait TFilter
 
             case '$in': // in (1,2,3)
             case '$nin': // not in (1,2,3)
+                // format $in-$nin operators to avoid query errors
+                if (empty($value))
+                {
+                    $value = [null];
+                }
                 $filter = $this->parse_in_operator(
-                    $this->query_operators[$operator], $key, $value, $binds);
+                $this->query_operators[$operator], $key, $value, $binds);
                 break;
 
             case '$exists':
