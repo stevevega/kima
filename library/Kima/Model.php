@@ -10,7 +10,9 @@ use \Kima\Config,
     \Kima\Model\Mysql,
     \Kima\Model\Mongo,
     \Kima\Model\ResultSet,
-    \Kima\Util\String;
+    \Kima\Util\String,
+    \ReflectionObject,
+    \ReflectionProperty;
 
 /**
  * Model
@@ -131,12 +133,6 @@ abstract class Model
     private $total_count;
 
     /**
-     * Whether to return the result as an array or not
-     * @var boolean
-     */
-    private $return_as_array;
-
-    /**
      * constructor
      */
     public function __construct()
@@ -170,31 +166,6 @@ abstract class Model
     }
 
     /**
-     * Prepares an model to be returned as an array
-     * @return array
-     */
-    public static function as_array()
-    {
-        $model = get_called_class();
-        $object = new $model();
-        $object->return_as_array = true;
-        return $object;
-    }
-
-    /**
-     * Prepares an model to be returned as an object
-     * This is the default behavior
-     * @return array
-     */
-    public static function as_object()
-    {
-        $model = get_called_class();
-        $object = new $model();
-        $object->return_as_array = false;
-        return $object;
-    }
-
-    /**
      * Returns the current object converted to array
      * @param  array $objects
      * @return array
@@ -206,10 +177,11 @@ abstract class Model
 
         foreach ($objects as $key => $object)
         {
-            $properties = get_object_vars($object);
-            foreach ($properties as $property => $value)
+            $ref = new ReflectionObject($object);
+            $properties = $ref->getProperties(ReflectionProperty::IS_PUBLIC);
+            foreach ($properties as $property)
             {
-                $result[$key][$property] = $value;
+                $result[$key][$property->getName()] = $property->getValue($object);
             }
         }
 
@@ -470,12 +442,13 @@ abstract class Model
      * Example $fields values:
      * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
      * @param array $fields
+     * @param boolean $return_as_array
      */
-    public function fetch(array $fields = [])
+    public function fetch(array $fields = [], $return_as_array = false)
     {
         // make sure we limit one result
         $this->limit(1);
-        $result = $this->fetch_results($fields, false, false);
+        $result = $this->fetch_results($fields, false, false, $return_as_array);
         return !empty($result[0]) ? $result[0] : null;
     }
 
@@ -485,18 +458,23 @@ abstract class Model
      * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
      * @param array $fields
      * @param boolean $get_as_result_set gets a result set with additional info as total count
+     * @param boolean $return_as_array
      */
-    public function fetch_all(array $fields = [], $get_as_result_set = false)
+    public function fetch_all(
+        array $fields = [], $get_as_result_set = false, $return_as_array = false)
     {
-        return $this->fetch_results($fields, true, $get_as_result_set);
+        return $this->fetch_results(
+            $fields, true, $get_as_result_set, $return_as_array);
     }
 
     /**
      * Fetch query results
      * @param boolean $fetch_all
      * @param boolean $get_as_result_set gets a result set with additional info as total count
+     * @param boolean $return_as_array
      */
-    private function fetch_results(array $fields, $fetch_all, $get_as_result_set = false)
+    private function fetch_results(
+        array $fields, $fetch_all, $get_as_result_set, $return_as_array)
     {
         // make sure we have the primary key
         $this->fields = $this->set_fields($fields);
@@ -533,8 +511,7 @@ abstract class Model
         // get result from the query
         $result = Database::get_instance($this->db_engine)->fetch($options);
 
-        // set result as array if required
-        if ($this->return_as_array)
+        if ($return_as_array)
         {
             $result['objects'] = $this->to_array($result['objects']);
         }
