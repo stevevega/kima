@@ -131,6 +131,12 @@ abstract class Model
     private $total_count;
 
     /**
+     * Whether to return the result as an array or not
+     * @var boolean
+     */
+    private $return_as_array;
+
+    /**
      * constructor
      */
     public function __construct()
@@ -161,6 +167,53 @@ abstract class Model
     public function get_total_count()
     {
         return $this->total_count;
+    }
+
+    /**
+     * Prepares an model to be returned as an array
+     * @return array
+     */
+    public static function as_array()
+    {
+        $model = get_called_class();
+        $object = new $model();
+        $object->return_as_array = true;
+        return $object;
+    }
+
+    /**
+     * Prepares an model to be returned as an object
+     * This is the default behavior
+     * @return array
+     */
+    public static function as_object()
+    {
+        $model = get_called_class();
+        $object = new $model();
+        $object->return_as_array = false;
+        return $object;
+    }
+
+    /**
+     * Returns the current object converted to array
+     * @param  array $objects
+     * @return array
+     */
+    public function to_array(array $objects = [])
+    {
+        $objects = empty($objects) ? [$this] : $objects;
+        $result = [];
+
+        foreach ($objects as $key => $object)
+        {
+            $properties = get_object_vars($object);
+            foreach ($properties as $property => $value)
+            {
+                $result[$key][$property] = $value;
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -479,6 +532,12 @@ abstract class Model
 
         // get result from the query
         $result = Database::get_instance($this->db_engine)->fetch($options);
+
+        // set result as array if required
+        if ($this->return_as_array)
+        {
+            $result['objects'] = $this->to_array($result['objects']);
+        }
 
         if ($get_as_result_set)
         {

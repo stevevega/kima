@@ -20,7 +20,7 @@ class Request
      */
     public static function get($param, $default = null)
     {
-        return !empty($_GET[$param]) ? $_GET[$param] : $default;
+        return isset($_GET[$param]) ? $_GET[$param] : $default;
     }
 
     /**
@@ -30,7 +30,7 @@ class Request
      */
     public static function post($param, $default = null)
     {
-        return !empty($_POST[$param]) ? $_POST[$param] : $default;
+        return isset($_POST[$param]) ? $_POST[$param] : $default;
     }
 
     /**
@@ -40,7 +40,7 @@ class Request
      */
     public static function cookie($param, $default = null)
     {
-        return !empty($_COOKIE[$param]) ? $_COOKIE[$param] : $default;
+        return isset($_COOKIE[$param]) ? $_COOKIE[$param] : $default;
     }
 
     /**
@@ -50,7 +50,7 @@ class Request
      */
     public static function server($param, $default = null)
     {
-        return !empty($_SERVER[$param]) ? $_SERVER[$param] : $default;
+        return isset($_SERVER[$param]) ? $_SERVER[$param] : $default;
     }
 
     /**
@@ -60,7 +60,7 @@ class Request
      */
     public static function env($param, $default = null)
     {
-        return !empty($_ENV[$param]) ? $_ENV[$param] : $default;
+        return isset($_ENV[$param]) ? $_ENV[$param] : $default;
     }
 
     /**
@@ -73,11 +73,11 @@ class Request
     {
         if (empty($namespace))
         {
-            return !empty($_SESSION[$param]) ? $_SESSION[$param] : $default;
+            return isset($_SESSION[$param]) ? $_SESSION[$param] : $default;
         }
         else
         {
-            return !empty($_SESSION[$namespace][$param]) ? $_SESSION[$namespace][$param] : $default;
+            return isset($_SESSION[$namespace][$param]) ? $_SESSION[$namespace][$param] : $default;
         }
     }
 
@@ -93,22 +93,22 @@ class Request
         switch (true)
         {
             // GET param
-            case !empty($_GET[$param]):
+            case isset($_GET[$param]):
                 return $_GET[$param];
             // POST param
-            case !empty($_POST[$param]):
+            case isset($_POST[$param]):
                 return $_POST[$param];
             // COOKIE param
-            case !empty($_COOKIE[$param]):
+            case isset($_COOKIE[$param]):
                 return $_COOKIE[$param];
             // SERVER param
-            case !empty($_SERVER[$param]):
+            case isset($_SERVER[$param]):
                 return $_SERVER[$param];
             // ENV param
-            case !empty($_ENV[$param]):
+            case isset($_ENV[$param]):
                 return $_ENV[$param];
             // SESSION param
-            case !empty($_SESSION[$param]):
+            case isset($_SESSION[$param]):
                 return empty($namespace) ? $_SESSION[$param] : $_SESSION[$namespace][$param];
             // send the default value if nothing found
             default:
