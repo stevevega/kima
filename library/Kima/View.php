@@ -402,12 +402,12 @@ class View
     }
 
     /**
-     * Parse the template content and merge it with the final result
+     * Parse and renders the template content and merge it with the final result
      * prepared to flush
      * @param string $template
      * @param boolean $keep_values
      */
-    public function show($template, $keep_values = false)
+    public function render($template, $keep_values = false)
     {
         // make a copy of template if exists
         isset($this->blocks[$template])
@@ -438,10 +438,7 @@ class View
 
                 // set the var with is corresponding value
                 $copy = $this->set_value($var, $value, $copy);
-                if (!$keep_values)
-                {
-                    unset($this->parsed_blocks[$current_var]);
-                }
+                unset($this->parsed_blocks[$current_var]);
             }
             else
             {
@@ -470,6 +467,17 @@ class View
         $this->parsed_blocks[$template] =  isset($this->parsed_blocks[$template])
             ? $this->parsed_blocks[$template] .= $copy
             : $this->parsed_blocks[$template] = $copy;
+    }
+
+    /**
+     * Alias of render
+     * @see self::render()
+     * @param string $template
+     * @param boolean $keep_values
+     */
+    public function show($template, $keep_values = false)
+    {
+        $this->render($template, $keep_values);
     }
 
     /**
