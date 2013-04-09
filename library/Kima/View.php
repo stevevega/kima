@@ -438,7 +438,10 @@ class View
 
                 // set the var with is corresponding value
                 $copy = $this->set_value($var, $value, $copy);
-                unset($this->parsed_blocks[$current_var]);
+                if (!$keep_values)
+                {
+                    unset($this->parsed_blocks[$current_var]);
+                }
             }
             else
             {
