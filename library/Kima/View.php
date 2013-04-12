@@ -30,6 +30,34 @@ class View
     const ERROR_INVALID_HTML_BODY = 'Invalid html format, <head> needed for %s';
 
     /**
+     * Scripts lazy load
+     */
+    const LAZY_LOAD_SCRIPT =
+        '<script type="text/javascript">
+            (function(w) {
+                function ll() {
+                    var e;
+                    %s
+                }
+
+                if (w.addEventListener)
+                    w.addEventListener("load", ll, false);
+                else if (w.attachEvent)
+                    w.attachEvent("onload", ll);
+                else w.onload = ll;
+            })(window);
+        </script>';
+
+    /**
+     * Lazy load include
+     */
+    const LAZY_LOAD_INCLUDE =
+        'e = document.createElement("script");
+        e.src = "%s";
+        e.type = "text/javascript";
+        document.body.appendChild(e);';
+
+    /**
      * Available content types
      * @var array
      */
@@ -78,22 +106,16 @@ class View
     private $scripts = [];
 
     /**
+     * Lazy loaded js scripts
+     * @var array
+     */
+    private $lazy_scripts = [];
+
+    /**
      * Template css styles
      * @var array
      */
     private $styles = [];
-
-    /**
-     * Defined actions to do on page load
-     * @var array
-     */
-    private $on_load = [];
-
-    /**
-     * Defined actions to do on page unload
-     * @var array
-     */
-    private $on_unload = [];
 
     /**
      * Template meta tags
@@ -660,9 +682,9 @@ class View
     /**
      * Sets a script value to html type templates
      * @param string $script
-     * @param boolean $async
+     * @param boolean $lazyLoad
      */
-    public function script($script, $async = false)
+    public function script($script, $lazy_load = false)
     {
         if ('html' !== $this->content_type)
         {
@@ -670,13 +692,21 @@ class View
         }
 
         // set the script
-        $async = $async ? ' async="async"' : '';
-        $script = '<script src="' . $script . '" type="text/javascript" charset="utf-8"' . $async . '></script>';
+        if ($lazy_load)
+        {
+            $script = sprintf(self::LAZY_LOAD_INCLUDE, $script);
+            $target = 'lazy_scripts';
+        }
+        else
+        {
+            $script = '<script src="' . $script . '" type="text/javascript"></script>';
+            $target = 'scripts';
+        }
 
         // avoid duplicates
-        if (!in_array($script, $this->scripts))
+        if (!in_array($script, $this->{$target}))
         {
-            $this->scripts[] = $script;
+            $this->{$target}[] = $script;
         }
     }
 
@@ -699,44 +729,6 @@ class View
         if (!in_array($style, $this->styles))
         {
             $this->styles[] = $style;
-        }
-    }
-
-    /**
-     * Sets an on load action to html type templates
-     * @access public
-     * @param string $code
-     */
-    public function on_load($code)
-    {
-        // make sure we are on a html template
-        if ('html' !== $this->content_type)
-        {
-            Error::set(sprintf(self::ERROR_HTML_ONLY, 'On load actions'), Error::WARNING);
-        }
-
-        // avoid duplicates
-        if (!in_array($code, $this->on_load))
-        {
-            $this->on_load[] = $code;
-        }
-    }
-
-    /**
-     * Sets an on unload action to html type templates
-     * @param string $code
-     */
-    public function on_unload($code)
-    {
-        // make sure we are on a html template
-        if ('html' !== $this->content_type)
-        {
-            Error::set(sprintf(self::ERROR_HTML_ONLY, 'On unload actions'), Error::WARNING);
-        }
-
-        // avoid duplicates
-        if (!in_array($code, $this->on_unload)) {
-            $this->on_unload[] = $code;
         }
     }
 
@@ -767,8 +759,6 @@ class View
                     // add the headers and scripts
                     $this->add_headers($template);
                     $this->add_scripts($template);
-                    $this->add_on_load($template);
-                    $this->add_on_unload($template);
                     break;
                 // set the default xml headers
                 case 'xml':
@@ -820,6 +810,14 @@ class View
      */
     private function add_scripts($template)
     {
+        // add lazy scripts
+        if (!empty($this->lazy_scripts))
+        {
+            $lazy_scripts = implode(' ', $this->lazy_scripts);
+            $this->scripts[] = sprintf(self::LAZY_LOAD_SCRIPT, $lazy_scripts);
+        }
+
+        // include scripts
         if (!empty($this->scripts))
         {
             // set the scripts as text
@@ -834,56 +832,6 @@ class View
             else
             {
                 Error::set(sprintf(self::ERROR_INVALID_HTML_BODY, 'scripts'), Error::WARNING);
-            }
-        }
-    }
-
-    /**
-     * Add on load actions to the html type templates
-     * @access private
-     * @param string @template
-     */
-    private function add_on_load($template)
-    {
-        if (!empty($this->on_load))
-        {
-            // get the code
-            $code = implode(' ', $this->on_load);
-
-            // and now add the on load action to the body
-            if (strpos($this->parsed_blocks[$template], '</body>') > 0)
-            {
-                $this->parsed_blocks[$template] =
-                    str_replace('<body', '<body onload="' . $code . '"', $this->parsed_blocks[$template]);
-            }
-            else
-            {
-                Error::set(sprintf(self::ERROR_INVALID_HTML_BODY, 'on load actions'), Error::WARNING);
-            }
-        }
-    }
-
-    /**
-     * Add on unload actions to the html type templates
-     * @access private
-     * @param string @template
-     */
-    private function add_on_unload($template)
-    {
-        if (!empty($this->on_unload))
-        {
-            // get the code
-            $code = implode(' ', $this->on_unload);
-
-            // and now add the on unload action to the body
-            if (strpos($this->parsed_blocks[$template], '</body>') > 0)
-            {
-                $this->parsed_blocks[$template] =
-                    str_replace('<body', '<body onunload="' . $code . '"', $this->parsed_blocks[$template]);
-            }
-            else
-            {
-                Error::set(sprintf(self::ERROR_INVALID_HTML_BODY, 'un load actions'), Error::WARNING);
             }
         }
     }
