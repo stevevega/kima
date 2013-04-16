@@ -260,14 +260,17 @@ class Action
         $language = array_shift($url_parameters);
         $languages = Application::get_instance()->get_available_languages();
 
+        // get the default language
+        $default_language = Application::get_instance()->get_default_language();
+
         // return the desired languages
-        if (in_array($language, $languages))
+        if (in_array($language, $languages) && $default_language !== $language)
         {
             array_shift($this->url_parameters);
         }
         else
         {
-            $language = Application::get_instance()->get_default_language();
+            $language = $default_language;
         }
 
         return $language;
