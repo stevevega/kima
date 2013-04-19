@@ -77,7 +77,7 @@ interface IModel
      * @param array $params
      * @return string
      */
-    function get_update_query(array $params);
+    function get_update_query(array &$params);
 
     /**
      * Gets insert/update query
@@ -91,6 +91,6 @@ interface IModel
      * @param array $params
      * @return string
      */
-    function get_delete_query(array $params);
+    function get_delete_query(array &$params);
 
 }

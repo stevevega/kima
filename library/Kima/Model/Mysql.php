@@ -265,23 +265,24 @@ class Mysql implements IModel
      * @param array $params
      * @return string
      */
-    public function get_update_query(array $params)
+    public function get_update_query(array &$params)
     {
         $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
-        $fields = $this->prepare_save_fields($params['fields']);
+        $fields = $this->prepare_save_fields($params['fields'], $params['binds']);
 
         $fields_query  = [];
         foreach ($fields['fields'] as $key => $field)
         {
-            $fields_query[] = $field . '=' . $fields['values'][$key];
+            $fields_query[] = $field . '=' . $fields['values'][0][$key];
         }
         $fields_query = implode(', ', $fields_query);
 
         $query_string =
             'UPDATE ' . $table .
+                $this->prepare_joins($params['joins']) .
                 ' SET ' .
                 $fields_query .
-                $this->prepare_filters($params['filters']) .
+                $this->prepare_filters($params['filters'], $params['binds']) .
                 $this->prepare_order($params['order']) .
                 $this->prepare_limit($params['limit']);
 
@@ -333,14 +334,14 @@ class Mysql implements IModel
      * @param array $params
      * @return string
      */
-    public function get_delete_query(array $params)
+    public function get_delete_query(array &$params)
     {
         $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
 
         $query_string = 'DELETE' .
                     ' FROM ' . $table .
                     $this->prepare_joins($params['joins']) .
-                    $this->prepare_filters($params['filters']) .
+                    $this->prepare_filters($params['filters'], $params['binds']) .
                     $this->prepare_limit($params['limit']);
 
         return $query_string;
