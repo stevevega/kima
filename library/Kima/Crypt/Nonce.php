@@ -16,17 +16,14 @@ class Nonce
 
     /**
      * Gets a nonce string
-     * @param int $size
+     * @param int $size size in bytes
      */
     public static function get($size = 32)
     {
-        $nonce = '';
-        for ($x = 0; $x < $size; $x++)
-        {
-            $nonce .= chr(mt_rand(0, 255));
-        }
+        $random = openssl_random_pseudo_bytes($size);
 
-        return base64_encode($nonce);
+        // convert the random value to hexadecimal
+        return bin2hex($random);
     }
 
 }
