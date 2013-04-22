@@ -8,7 +8,8 @@ namespace Kima;
 use \Kima\Application,
     \Kima\Cache,
     \Kima\Error,
-    \Kima\L10n;
+    \Kima\L10n,
+    \Html\CssToInline;
 
 /**
  * View
@@ -82,6 +83,12 @@ class View
     private $use_layout = false;
 
     /**
+     * Should apply css styles inline?
+     * @var boolean
+     */
+    private $apply_styles_inline = false;
+
+    /**
      * Cache instance
      * @var \Kima\Cache
      */
@@ -116,6 +123,12 @@ class View
      * @var array
      */
     private $styles = [];
+
+    /**
+     * Stored in case we want to apply styles inline
+     * @var array
+     */
+    private $style_files = [];
 
     /**
      * Template meta tags
@@ -155,7 +168,7 @@ class View
     {
         // set the cache handler
         $cache_options = isset($options['cache']) ? $options['cache'] : [];
-        $this->setCache($cache_options);
+        $this->set_cache($cache_options);
 
         // set the view directory
         $view_path = isset($options['folder']) ? $options['folder'] : '.';
@@ -176,43 +189,6 @@ class View
             $this->load($options['layout']);
             $this->use_layout = true;
         }
-    }
-
-    /**
-     * Set the proper content type of the main template to use
-     * @param string $view_file
-     */
-    private function set_content_type($view_file)
-    {
-        // set the content type
-        $file_parts = explode('.', $view_file);
-        $content_type = end($file_parts);
-
-        in_array($content_type, $this->content_types)
-            ? $this->content_type = $content_type
-            : Error::set(sprintf(self::ERROR_INVALID_CONTENT_TYPE, $content_type));
-    }
-
-    /**
-     * Set the folder path where the views are located
-     * @param string $view_path
-     */
-    private function set_view_path($view_path)
-    {
-        // get the view directory path
-        is_dir($view_path) && is_readable($view_path)
-            ? $this->view_path = $view_path
-            : Error::set(sprintf(self::ERROR_INVALID_VIEW_PATH, $view_path));
-    }
-
-    /**
-     * Set the cache handler
-     * @param array $options
-     */
-    private function setCache(array $options)
-    {
-        // set the cache instance
-        $this->cache = Cache::get_instance('default', $options);
     }
 
     /**
@@ -249,151 +225,6 @@ class View
 
         // set the blocks
         $this->blocks = array_merge($this->blocks, $blocks);
-    }
-
-    /**
-     * Get block strings based on l10n strings
-     * @param array $blocks
-     * @param string $view_file
-     * @return array
-     */
-    private function get_block_l10n(array $blocks, $view_file)
-    {
-        foreach ($blocks as &$block)
-        {
-            // get the 10n vars from the block. Example: [var]
-            $vars = [];
-            preg_match_all('|\[([A-Za-z0-9._:,{}]+?)\]|', $block, $vars);
-            $keys = !empty($vars[1]) ? $vars[1] : [];
-            $vars = !empty($vars[0]) ? $vars[0] : [];
-
-            foreach ($vars as $key => $var)
-            {
-                if (!empty($var))
-                {
-                    $string_key = $keys[$key];
-                    $args = [];
-
-                    if (false !== strpos($string_key, ':'))
-                    {
-                        list($string_key, $args) = explode(':', $string_key);
-                        $args = explode(',', $args);
-                    }
-
-                    // get the localization string and replace it in the block
-                    $string = L10n::t($string_key, $args);
-                    $block = str_replace($var, $string, $block);
-                }
-            }
-        }
-
-        return $blocks;
-    }
-
-    /**
-     * Gets the main template file and set its contents into a string
-     * @param string $file
-     * @return string
-     */
-    private function get_view_file($file)
-    {
-        // set the view file path
-        $view_path = $this->view_path . '/' . $file;
-
-        // get the template content
-        is_readable($view_path)
-            ? $content = file_get_contents($view_path)
-            : Error::set(sprintf(self::ERROR_INVALID_VIEW_PATH, $view_path));
-
-        // return the content
-        return $content;
-    }
-
-    /**
-     * Breaks the template content into blocks
-     * @param string $template
-     * @return array
-     */
-    private function get_blocks($template)
-    {
-        // initialize some needed vars
-        $blocks = [];
-        $block_names = [];
-        $level = 0;
-        $regex = '(begin|end):\s*(\w+)\s*-->(.*)';
-
-        // set the template block parts
-        $block_parts = explode('<!--', $template);
-
-        // lets work with every block part
-        foreach($block_parts as $key => $block)
-        {
-            // set the result array
-            $res = [];
-
-            // set block structure
-            if (preg_match_all('/' . $regex . "/ims", $block, $res, PREG_SET_ORDER))
-            {
-                // set the block parts
-                $block_tag = $res[0][1];
-                $block_name = $res[0][2];
-                $block_content = $res[0][3];
-
-                // is a begin block?
-                if (strcmp($block_tag, 'begin') === 0)
-                {
-                    // set the current parent
-                    $parent_name = end($block_names);
-
-                    // add one level
-                    $block_names[++$level] = $block_name;
-
-                    // set the current block name
-                    $current_block_name = end($block_names);
-
-                    // add contents
-                    empty($blocks[$current_block_name])
-                        ? $blocks[$current_block_name] = $block_content
-                        : Error::set(sprintf(self::ERROR_DUPLICATE_TEMPLATE, $current_block_name));
-
-                    // add {block.blockName} to the parent blog
-                    $blocks[$parent_name] .= '{_BLOCK_.' . $current_block_name . '}';
-                }
-                else // is an end block
-                {
-                    // remove last level
-                    unset($block_names[$level--]);
-
-                    // set the parent name
-                    $parent_name = end($block_names);
-
-                    // add the rest of the block to the parent
-                    $blocks[$parent_name] .= $block_content;
-                }
-            }
-            else // set block content
-            {
-                // set the temp name
-                $tmp = end($block_names);
-
-                // this is for normal comments
-                empty($key) || $blocks[$tmp] .= '<!--';
-
-                // add the value to the current block
-                $blocks[$tmp] = isset($blocks[$tmp]) ? $blocks[$tmp] . $block : $block;
-
-                // now work the includes
-                while (preg_match('/<!--\s*include:\s*([A-Za-z0-9_]+)\s*-->/', $blocks[$tmp], $res))
-                {
-                    // replace the tag with the block definition
-                    $blocks[$tmp] = preg_replace(
-                        '\''.preg_quote($res[0]).'\'', '{_BLOCK_.'.$res[1].'}', $blocks[$tmp]);
-                }
-            }
-        }
-
-        // send the blocks result
-        return $blocks;
     }
 
     /**
@@ -548,81 +379,6 @@ class View
         }
     }
 
-    private function populate_element(array $element, $template)
-    {
-        if ($element)
-        {
-            foreach ($element as $item => $value)
-            {
-                $this->populate_value($item, $value, $template);
-            }
-        }
-        $this->show($template);
-    }
-
-    /**
-     * Populates a view value based on the type
-     * @param string $item
-     * @param mixed $value
-     * @param string $template
-     */
-    private function populate_value($item, $value, $template)
-    {
-        if (is_array($value))
-        {
-            $this->populate($item, $value);
-        }
-        else
-        {
-            $this->set($item, $value, $template);
-        }
-    }
-
-    /**
-     * Replace the tag var with the value on a template
-     * also doing some data cleaning
-     * @param string $var
-     * @param string $value
-     * @param string template
-     * @param boolean $is_block
-     * @return string
-     */
-    private function set_value($var, $value, $template, $is_block = true)
-    {
-        // extra cleaning for block
-        if ($is_block)
-        {
-            switch (true)
-            {
-                case preg_match("/^\n/", $value) && preg_match("/\n$/", $value):
-                    $value = substr($value, 1, -1);
-                    break;
-                case preg_match("/^\n/", $value):
-                    $value = substr($value, 1);
-                    break;
-                case preg_match("/\n$/", $value):
-                    $value = substr($value, 0, -1);
-                    break;
-            }
-        }
-
-        // some data cleaning
-        $value = trim($value);
-        $value = str_replace('\\', '\\\\', $value);
-        $value = str_replace('$', '\\$', $value);
-        $value = str_replace('\\|', '|', $value);
-
-        // replace the var with the value
-        $template = preg_replace('|{' . $var . '}|m', $value, $template);
-
-        // final cleaning
-        if (preg_match("/^\n/", $template) && preg_match("/\n$/", $template)) {
-            $template = substr($template, 1, -1);
-        }
-
-        return $template;
-    }
-
     /**
      * Clear a template
      * @param string $template
@@ -714,7 +470,7 @@ class View
      * Sets a style value to html type templates
      * @param string $style
      */
-    public function style($style)
+    public function style($style_file)
     {
         // make sure we are on a html template
         if ('html' !== $this->content_type)
@@ -723,12 +479,13 @@ class View
         }
 
         // set the style
-        $style = '<link rel="stylesheet" href="' . $style . '" type="text/css" />';
+        $style = '<link rel="stylesheet" href="' . $style_file . '" type="text/css" />';
 
         // avoid duplicates
-        if (!in_array($style, $this->styles))
+        if (!in_array($style_file, $this->style_files))
         {
             $this->styles[] = $style;
+            $this->style_files[] = $style_file;
         }
     }
 
@@ -774,6 +531,324 @@ class View
         return $this->use_compression
             ? $this->compress($this->parsed_blocks[$template])
             : $this->parsed_blocks[$template];
+    }
+
+    /**
+     * Gets the main template for the current view
+     */
+    public function get_main_template()
+    {
+        if (empty($this->blocks))
+        {
+            return null;
+        }
+
+        preg_match('/{_BLOCK_.([A-Za-z0-9._]+?)}/', $this->blocks[0], $matches);
+        return $matches[1];
+    }
+
+    /**
+     * Sets the auto display option for the main template
+     * @param boolean $auto_display
+     */
+    public function set_auto_display($auto_display)
+    {
+        $this->auto_display = (boolean)$auto_display;
+    }
+
+    /**
+     * Sets the compress option from the template
+     * @access public
+     */
+    public function set_compression($compression)
+    {
+        $this->use_compression = (boolean)$compression;
+    }
+
+    /**
+     * Enable convertion of CSS styles to html inline styles
+     */
+    public function apply_styles_inline()
+    {
+        $this->apply_styles_inline = true;
+    }
+
+    /**
+    * Destructor
+    */
+    public function __destruct()
+    {
+        // flush the content if auto display option is on
+        if ($this->auto_display)
+        {
+            $main_template = $this->get_main_template();
+            if ($main_template)
+            {
+                if ($this->use_layout)
+                {
+                    $this->show($main_template);
+                }
+
+                $this->flush($main_template);
+            }
+        }
+    }
+
+    /**
+     * Set the proper content type of the main template to use
+     * @param string $view_file
+     */
+    private function set_content_type($view_file)
+    {
+        // set the content type
+        $file_parts = explode('.', $view_file);
+        $content_type = end($file_parts);
+
+        in_array($content_type, $this->content_types)
+            ? $this->content_type = $content_type
+            : Error::set(sprintf(self::ERROR_INVALID_CONTENT_TYPE, $content_type));
+    }
+
+    /**
+     * Set the folder path where the views are located
+     * @param string $view_path
+     */
+    private function set_view_path($view_path)
+    {
+        // get the view directory path
+        is_dir($view_path) && is_readable($view_path)
+            ? $this->view_path = $view_path
+            : Error::set(sprintf(self::ERROR_INVALID_VIEW_PATH, $view_path));
+    }
+
+    /**
+     * Set the cache handler
+     * @param array $options
+     */
+    private function set_cache(array $options)
+    {
+        // set the cache instance
+        $this->cache = Cache::get_instance('default', $options);
+    }
+
+    /**
+     * Get block strings based on l10n strings
+     * @param array $blocks
+     * @param string $view_file
+     * @return array
+     */
+    private function get_block_l10n(array $blocks, $view_file)
+    {
+        foreach ($blocks as &$block)
+        {
+            // get the 10n vars from the block. Example: [var]
+            $vars = [];
+            preg_match_all('|\[([A-Za-z0-9._:,{}]+?)\]|', $block, $vars);
+            $keys = !empty($vars[1]) ? $vars[1] : [];
+            $vars = !empty($vars[0]) ? $vars[0] : [];
+
+            foreach ($vars as $key => $var)
+            {
+                if (!empty($var))
+                {
+                    $string_key = $keys[$key];
+                    $args = [];
+
+                    if (false !== strpos($string_key, ':'))
+                    {
+                        list($string_key, $args) = explode(':', $string_key);
+                        $args = explode(',', $args);
+                    }
+
+                    // get the localization string and replace it in the block
+                    $string = L10n::t($string_key, $args);
+                    $block = str_replace($var, $string, $block);
+                }
+            }
+        }
+
+        return $blocks;
+    }
+
+    /**
+     * Gets the main template file and set its contents into a string
+     * @param string $file
+     * @return string
+     */
+    private function get_view_file($file)
+    {
+        // set the view file path
+        $view_path = $this->view_path . '/' . $file;
+
+        // get the template content
+        is_readable($view_path)
+            ? $content = file_get_contents($view_path)
+            : Error::set(sprintf(self::ERROR_INVALID_VIEW_PATH, $view_path));
+
+        // return the content
+        return $content;
+    }
+
+    /**
+     * Breaks the template content into blocks
+     * @param string $template
+     * @return array
+     */
+    private function get_blocks($template)
+    {
+        // initialize some needed vars
+        $blocks = [];
+        $block_names = [];
+        $level = 0;
+        $regex = '(begin|end):\s*(\w+)\s*-->(.*)';
+
+        // set the template block parts
+        $block_parts = explode('<!--', $template);
+
+        // lets work with every block part
+        foreach($block_parts as $key => $block)
+        {
+            // set the result array
+            $res = [];
+
+            // set block structure
+            if (preg_match_all('/' . $regex . "/ims", $block, $res, PREG_SET_ORDER))
+            {
+                // set the block parts
+                $block_tag = $res[0][1];
+                $block_name = $res[0][2];
+                $block_content = $res[0][3];
+
+                // is a begin block?
+                if (strcmp($block_tag, 'begin') === 0)
+                {
+                    // set the current parent
+                    $parent_name = end($block_names);
+
+                    // add one level
+                    $block_names[++$level] = $block_name;
+
+                    // set the current block name
+                    $current_block_name = end($block_names);
+
+                    // add contents
+                    empty($blocks[$current_block_name])
+                        ? $blocks[$current_block_name] = $block_content
+                        : Error::set(sprintf(self::ERROR_DUPLICATE_TEMPLATE, $current_block_name));
+
+                    // add {block.blockName} to the parent blog
+                    $blocks[$parent_name] .= '{_BLOCK_.' . $current_block_name . '}';
+                }
+                else // is an end block
+                {
+                    // remove last level
+                    unset($block_names[$level--]);
+
+                    // set the parent name
+                    $parent_name = end($block_names);
+
+                    // add the rest of the block to the parent
+                    $blocks[$parent_name] .= $block_content;
+                }
+            }
+            else // set block content
+            {
+                // set the temp name
+                $tmp = end($block_names);
+
+                // this is for normal comments
+                empty($key) || $blocks[$tmp] .= '<!--';
+
+                // add the value to the current block
+                $blocks[$tmp] = isset($blocks[$tmp]) ? $blocks[$tmp] . $block : $block;
+
+                // now work the includes
+                while (preg_match('/<!--\s*include:\s*([A-Za-z0-9_]+)\s*-->/', $blocks[$tmp], $res))
+                {
+                    // replace the tag with the block definition
+                    $blocks[$tmp] = preg_replace(
+                        '\''.preg_quote($res[0]).'\'', '{_BLOCK_.'.$res[1].'}', $blocks[$tmp]);
+                }
+            }
+        }
+
+        // send the blocks result
+        return $blocks;
+    }
+
+    private function populate_element(array $element, $template)
+    {
+        if ($element)
+        {
+            foreach ($element as $item => $value)
+            {
+                $this->populate_value($item, $value, $template);
+            }
+        }
+        $this->show($template);
+    }
+
+    /**
+     * Populates a view value based on the type
+     * @param string $item
+     * @param mixed $value
+     * @param string $template
+     */
+    private function populate_value($item, $value, $template)
+    {
+        if (is_array($value))
+        {
+            $this->populate($item, $value);
+        }
+        else
+        {
+            $this->set($item, $value, $template);
+        }
+    }
+
+    /**
+     * Replace the tag var with the value on a template
+     * also doing some data cleaning
+     * @param string $var
+     * @param string $value
+     * @param string template
+     * @param boolean $is_block
+     * @return string
+     */
+    private function set_value($var, $value, $template, $is_block = true)
+    {
+        // extra cleaning for block
+        if ($is_block)
+        {
+            switch (true)
+            {
+                case preg_match("/^\n/", $value) && preg_match("/\n$/", $value):
+                    $value = substr($value, 1, -1);
+                    break;
+                case preg_match("/^\n/", $value):
+                    $value = substr($value, 1);
+                    break;
+                case preg_match("/\n$/", $value):
+                    $value = substr($value, 0, -1);
+                    break;
+            }
+        }
+
+        // some data cleaning
+        $value = trim($value);
+        $value = str_replace('\\', '\\\\', $value);
+        $value = str_replace('$', '\\$', $value);
+        $value = str_replace('\\|', '|', $value);
+
+        // replace the var with the value
+        $template = preg_replace('|{' . $var . '}|m', $value, $template);
+
+        // final cleaning
+        if (preg_match("/^\n/", $template) && preg_match("/\n$/", $template)) {
+            $template = substr($template, 1, -1);
+        }
+
+        return $template;
     }
 
     /**
@@ -856,38 +931,6 @@ class View
     }
 
     /**
-     * Sets the auto display option for the main template
-     * @param boolean $auto_display
-     */
-    public function set_auto_display($auto_display)
-    {
-        $this->auto_display = (boolean)$auto_display;
-    }
-
-    /**
-     * Sets the compress option from the template
-     * @access public
-     */
-    public function set_compression($compression)
-    {
-        $this->use_compression = (boolean)$compression;
-    }
-
-    /**
-     * Gets the main template for the current view
-     */
-    public function get_main_template()
-    {
-        if (empty($this->blocks))
-        {
-            return null;
-        }
-
-        preg_match('/{_BLOCK_.([A-Za-z0-9._]+?)}/', $this->blocks[0], $matches);
-        return $matches[1];
-    }
-
-    /**
      * Sets the view default params
      */
     private function set_default_params()
@@ -905,30 +948,25 @@ class View
     * Outputs a template content
     * @param string $template
     */
-    public function flush($template)
+    private function flush($template)
     {
-        echo $this->get_view($template);
-    }
-
-    /**
-    * Destructor
-    */
-    public function __destruct()
-    {
-        // flush the content if auto display option is on
-        if ($this->auto_display)
+        $html = $this->get_view($template);
+        if ($this->apply_styles_inline)
         {
-            $main_template = $this->get_main_template();
-            if ($main_template)
-            {
-                if ($this->use_layout)
-                {
-                    $this->show($main_template);
-                }
+            // get the static resources folder
+            $sr_folder = Application::get_instance()->get_config()->sr['folder'];
 
-                $this->flush($main_template);
+            $css = '';
+            foreach ($this->style_files as $file)
+            {
+                $css .= file_get_contents($sr_folder . $file);
             }
+
+            $inlineCss = new CssToInline($html, $css);
+            $html = $inlineCss->convert();
         }
+
+        echo $html;
     }
 
 }
