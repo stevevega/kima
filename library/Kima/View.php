@@ -516,6 +516,7 @@ class View
                     // add the headers and scripts
                     $this->add_headers($template);
                     $this->add_scripts($template);
+
                     break;
                 // set the default xml headers
                 case 'xml':
@@ -528,9 +529,27 @@ class View
             }
         }
 
-        return $this->use_compression
+        $result = $this->use_compression
             ? $this->compress($this->parsed_blocks[$template])
             : $this->parsed_blocks[$template];
+
+        // apply styles inline
+        if ($this->apply_styles_inline && 'html' === $this->content_type)
+        {
+            // get the static resources folder
+            $sr_folder = Application::get_instance()->get_config()->sr['folder'];
+
+            $css = '';
+            foreach ($this->style_files as $file)
+            {
+                $css .= file_get_contents($sr_folder . $file);
+            }
+
+            $inlineCss = new CssToInline($result, $css);
+            $result = $inlineCss->convert();
+        }
+
+        return $result;
     }
 
     /**
@@ -951,20 +970,6 @@ class View
     private function flush($template)
     {
         $html = $this->get_view($template);
-        if ($this->apply_styles_inline)
-        {
-            // get the static resources folder
-            $sr_folder = Application::get_instance()->get_config()->sr['folder'];
-
-            $css = '';
-            foreach ($this->style_files as $file)
-            {
-                $css .= file_get_contents($sr_folder . $file);
-            }
-
-            $inlineCss = new CssToInline($html, $css);
-            $html = $inlineCss->convert();
-        }
 
         echo $html;
     }
