@@ -94,6 +94,7 @@ class Solr
      */
     private $facet_min_count = 1;
 
+    private $highlight_fields = [];
     /**
      * Construct
      * @param string $core
@@ -234,6 +235,15 @@ class Solr
             foreach ($this->facet_queries as $facet)
             {
                 $query->addFacetQuery($facet);
+            }
+        }
+
+        if (!empty($this->highlight_fields))
+        {
+            $query->setHighlight(true);
+            foreach ($this->highlight_fields as $hl_field)
+            {
+                $query->addHighlightField($hl_field);
             }
         }
 
@@ -444,6 +454,17 @@ class Solr
     public function facet_min_count($count = 1)
     {
         $this->facet_min_count = (int)$count;
+        return $this;
+    }
+
+    /**
+     * Sets the fields that will be hightlighted in the Solr query
+     * @param  array $highlight_fields all the field names to be highlighted
+     * @return this
+     */
+    public function highlight_fields(array $highlight_fields = [])
+    {
+        $this->highlight_fields = $highlight_fields;
         return $this;
     }
 }
