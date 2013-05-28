@@ -151,7 +151,7 @@ class Image
      */
     private function validate_file($file)
     {
-        if (!is_readable($file))
+        if (!is_readable($file) || !is_file($file))
         {
             Error::set(sprintf(self::ERROR_INVALID_FILE, $file));
         }
