@@ -23,6 +23,7 @@ class Action
      * Error messages
      */
     const ERROR_NO_BOOTSTRAP = 'Class Boostrap not defined in Bootstrap.php';
+    const ERROR_NO_PREDISPATCHER = 'Registered Predispatcher class %s is not accesible';
     const ERROR_NO_CONTROLLER_FILE = 'Class file for "%s" is not accesible on "%s"';
     const ERROR_NO_CONTROLLER_CLASS = ' Class "%s" not declared on "%s"';
     const ERROR_NO_CONTROLLER_INSTANCE = 'Object for "%s" is not an instance of \Kima\Controller';
@@ -45,19 +46,19 @@ class Action
      */
     public function __construct(array $urls)
     {
-        // set the url parameters
-        $this->set_url_parameters();
-
         // load the bootstrap
         $this->load_bootstrap();
 
+        // set the url parameters
+        $this->set_url_parameters();
+
         // set the application language
-        $application = Application::get_instance();
+        $app = Application::get_instance();
         $language = $this->get_language();
-        $application->set_language($language);
+        $app->set_language($language);
 
         // set the module routes if exists
-        $module = $application->get_module();
+        $module = $app->get_module();
         if (!empty($module))
         {
             array_key_exists($module, $urls)
@@ -71,15 +72,18 @@ class Action
         // validate controller and action
         if (empty($controller))
         {
-            $application->set_http_error(404);
+            $app->set_http_error(404);
             return;
         }
 
+        // set the action controller
+        $app->set_controller($controller);
+
+        // run the predispatcher
+        $this->load_predispatcher();
+
         // check for https/http redirections
         $this->check_https($controller);
-
-        // set the action controller
-        $application->set_controller($controller);
 
         // inits the controller action
         $this->run_action($controller);
@@ -304,10 +308,11 @@ class Action
      */
     private function load_bootstrap()
     {
-        $config = Application::get_config();
+        $app = Application::get_instance();
+        $config = $app->get_config();
 
         // set module path if exists
-        $module = Application::get_module();
+        $module = $app->get_module();
         $module_path = !empty($module)
             ? 'module' . DIRECTORY_SEPARATOR . $module . DIRECTORY_SEPARATOR
             : '';
@@ -333,6 +338,29 @@ class Action
             {
                 $bootstrap->{$method}();
             }
+        }
+    }
+
+    /**
+     * Loads predispatcher class
+     * This will run just before the controller action is fired
+     */
+    private function load_predispatcher()
+    {
+        $predispatcher = Application::get_instance()->get_predispatcher();
+
+        // get the bootstrap and make sure the class exists
+        if (!class_exists($predispatcher))
+        {
+            Error::set(sprintf(self::ERROR_NO_PREDISPATCHER, $predispatcher));
+        }
+
+        // get the bootstrap methods and call them
+        $methods = get_class_methods($predispatcher);
+        $predispatcher = new $predispatcher();
+        foreach($methods as $method)
+        {
+            $predispatcher->{$method}();
         }
     }
 

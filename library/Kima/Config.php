@@ -135,7 +135,7 @@ class Config
     private function get_module_config($environment)
     {
         // if there is a module, lets get the custom config also
-        $module = Application::get_module();
+        $module = Application::get_instance()->get_module();
         if (!empty($module))
         {
             $path = ROOT_FOLDER

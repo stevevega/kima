@@ -33,79 +33,85 @@ class Application
      * config
      * @var array
      */
-    private static $config;
+    private $config;
 
     /**
      * module
      * @var string
      */
-    private static $module;
+    private $module;
 
     /**
      * controller
      * @var string
      */
-    private static $controller;
+    private $controller;
 
     /**
      * method
      * @var string
      */
-    private static $method;
+    private $method;
 
     /**
      * Current request language
      * @var string
      */
-    private static $language;
+    private $language;
 
     /**
      * The default application language
      * @var string
      */
-    private static $default_language;
+    private $default_language;
 
     /**
      * The language prefix used in urls
      * @var string
      */
-    private static $language_url_prefix;
+    private $language_url_prefix;
 
     /**
      * All the available languages in the application
      * @var array
      */
-    private static $available_languages = [];
+    private $available_languages = [];
 
     /**
      * Default time zone
      * @var string
      */
-    private static $time_zone;
+    private $time_zone;
 
     /**
      * Whether the connection is secure or not
      * @var boolean
      */
-    private static $is_https;
+    private $is_https;
 
     /**
      * Enforces the controller to be https
      * @var boolean
      */
-    private static $enforce_https;
+    private $enforce_https;
+
+    /**
+     * Application predispatcher class
+     * @var string
+     */
+    private $predispatcher;
 
     /**
      * Individual controllers that should be always https
      * @var array
      */
-    private static $https_controllers = [];
+    private $https_controllers = [];
 
     /**
      * Global default view params
      * @var array
      */
-    private static $view_params = [];
+    private $view_params = [];
 
     /**
      * Construct
@@ -140,7 +146,7 @@ class Application
     /**
      * Setup the basic application config
      */
-    public static function setup()
+    public function setup()
     {
         // get the module and HTTP method
         switch (true)
@@ -155,24 +161,26 @@ class Application
                 $module = null;
         }
         $method = strtolower(Request::get_method());
+        $app = self::get_instance();
 
         // set module, controller and action
-        self::set_module($module);
-        self::set_method($method);
-        self::set_is_https();
+        $app->set_module($module);
+        $app->set_method($method);
+        $app->set_is_https();
 
         // set the config
-        self::set_config();
+        $app->set_config();
     }
 
     /**
      * Run the application
      * @param array $urls
      */
-    public static function run(array $urls)
+    public function run(array $urls)
     {
         // setup the application
-        self::setup();
+        $app = self::get_instance();
+        $app->setup();
 
         // run the action
         $action = new Action($urls);
@@ -182,9 +190,10 @@ class Application
      * Return the application config
      * @return array
      */
-    public static function get_config()
+    public function get_config()
     {
-        return self::$config;
+        $app = self::get_instance();
+        return $app->config;
     }
 
     /**
@@ -201,8 +210,9 @@ class Application
             implode(PATH_SEPARATOR,
             [realpath($config->application['folder'] . '/model'), get_include_path()]));
 
-        self::$config = $config;
-        return self::$instance;
+        $app = self::get_instance();
+        $app->config = $config;
+        return $app;
     }
 
     /**
@@ -211,7 +221,8 @@ class Application
      */
     public static function get_module()
     {
-        return self::$module;
+        $app = self::get_instance();
+        return $app->module;
     }
 
     /**
@@ -220,8 +231,9 @@ class Application
      */
     public static function set_module($module)
     {
-        self::$module = (string)$module;
-        return self::$module;
+        $app = self::get_instance();
+        $app->module = (string)$module;
+        return $app;
     }
 
     /**
@@ -230,7 +242,8 @@ class Application
      */
     public static function get_controller()
     {
-        return self::$controller;
+        $app = self::get_instance();
+        return $app->controller;
     }
 
     /**
@@ -239,8 +252,9 @@ class Application
      */
     public static function set_controller($controller)
     {
-        self::$controller = (string)$controller;
-        return self::$instance;
+        $app = self::get_instance();
+        $app->controller = (string)$controller;
+        return $app;
     }
 
     /**
@@ -249,7 +263,8 @@ class Application
      */
     public static function get_method()
     {
-        return self::$method;
+        $app = self::get_instance();
+        return $app->method;
     }
 
     /**
@@ -258,8 +273,9 @@ class Application
      */
     public static function set_method($method)
     {
-        self::$method = (string)$method;
-        return self::$instance;
+        $app = self::get_instance();
+        $app->method = (string)$method;
+        return $app;
     }
 
     /**
@@ -268,7 +284,8 @@ class Application
      */
     public static function get_language()
     {
-        return self::$language;
+        $app = self::get_instance();
+        return $app->language;
     }
 
     /**
@@ -277,7 +294,8 @@ class Application
      */
     public static function get_language_url_prefix()
     {
-        return self::$language_url_prefix;
+        $app = self::get_instance();
+        return $app->language_url_prefix;
     }
 
     /**
@@ -286,11 +304,13 @@ class Application
      */
     public static function set_language($language)
     {
-        self::$language = (string)$language;
+        $app = self::get_instance();
+        $app->language = (string)$language;
 
         // set the url prefix depending on the language selected
-        self::$language_url_prefix = self::get_default_language() !== $language ? "/$language" : '';
-        return self::$instance;
+        $app->language_url_prefix =
+            $app->get_default_language() !== $language ? "/$language" : '';
+        return $app;
     }
 
     /**
@@ -299,7 +319,9 @@ class Application
      */
     public static function set_default_language($language)
     {
-        self::$default_language = $language;
+        $app = self::get_instance();
+        $app->default_language = (string)$language;
+        return $app;
     }
 
     /**
@@ -308,9 +330,11 @@ class Application
      */
     public static function get_default_language()
     {
-        if (!empty(self::$default_language))
+        $app = self::get_instance();
+
+        if (!empty($app->default_language))
         {
-            return self::$default_language;
+            return $app->default_language;
         }
 
         switch (true)
@@ -321,16 +345,16 @@ class Application
             case Request::server('LANGUAGE_DEFAULT'):
                 $language = Request::server('LANGUAGE_DEFAULT');
                 break;
-            case property_exists(self::get_config(), 'language')
-                && !empty(self::get_config()->language['default']):
-                $language = self::get_config()->language['default'];
+            case property_exists($app->get_config(), 'language')
+                && !empty($app->get_config()->language['default']):
+                $language = $app->get_config()->language['default'];
                 break;
             default:
                 Error::set(self::ERROR_NO_DEFAULT_LANGUAGE);
         }
 
-        self::$default_language = $language;
-        return self::$default_language;
+        $app->default_language = $language;
+        return $app->$default_language;
     }
 
     /**
@@ -339,7 +363,9 @@ class Application
      */
     public static function set_available_languages(array $languages)
     {
-        self::$available_languages = $languages;
+        $app = self::get_instance();
+        $app->available_languages = $languages;
+        return $app;
     }
 
     /**
@@ -348,9 +374,11 @@ class Application
      */
     public static function get_available_languages()
     {
-        if (!empty(self::$available_languages))
+        $app = self::get_instance();
+
+        if (!empty($app->available_languages))
         {
-            return self::$available_languages;
+            return $app->available_languages;
         }
 
         switch (true)
@@ -361,16 +389,16 @@ class Application
             case Request::server('LANGUAGES_AVAILABLE'):
                 $languages = Request::server('LANGUAGES_AVAILABLE');
                 break;
-            case property_exists(self::get_config(), 'language')
-                && !empty(self::get_config()->language['available']):
-                $languages = self::get_config()->language['available'];
+            case property_exists($app->get_config(), 'language')
+                && !empty($app->get_config()->language['available']):
+                $languages = $app->get_config()->language['available'];
                 break;
             default:
                 $languages = '';
         }
 
-        self::$available_languages = explode(',', $languages);
-        return self::$available_languages;
+        $app->available_languages = explode(',', $languages);
+        return $app->available_languages;
     }
 
     /**
@@ -379,7 +407,9 @@ class Application
      */
     public static function set_time_zone($time_zone)
     {
-        self::$time_zone = $time_zone;
+        $app = self::get_instance();
+        $app->time_zone = $time_zone;
+        return $app;
     }
 
     /**
@@ -388,9 +418,10 @@ class Application
      */
     public static function get_time_zone()
     {
-        return empty(self::$time_zone)
+        $app = self::get_instance();
+        return empty($app->time_zone)
             ? date_default_timezone_get()
-            : self::$time_zone;
+            : $app->time_zone;
     }
 
     /**
@@ -399,7 +430,9 @@ class Application
      */
     public static function set_view_params(array $params)
     {
-        self::$view_params = array_merge(self::$view_params, $params);
+        $app = self::get_instance();
+        $app->view_params = array_merge($app->view_params, $params);
+        return $app;
     }
 
     /**
@@ -408,7 +441,8 @@ class Application
      */
     public static function get_view_params()
     {
-        return self::$view_params;
+        $app = self::get_instance();
+        return $app->view_params;
     }
 
     /**
@@ -417,7 +451,8 @@ class Application
      */
     public static function is_https()
     {
-        return self::$is_https;
+        $app = self::get_instance();
+        return $app->is_https;
     }
 
     /**
@@ -425,12 +460,17 @@ class Application
      */
     private static function set_is_https()
     {
+        $app = self::get_instance();
+
         // get values from sever
         $https = Request::server('HTTPS');
         $port = Request::server('SERVER_PORT');
 
         // check if https is on
-        self::$is_https = !empty($https) && 'off' !== $https || 443 == $port ? true : false;
+        $app->is_https = !empty($https) && 'off' !== $https || 443 == $port
+            ? true
+            : false;
+        return $app;
     }
 
     /**
@@ -438,7 +478,8 @@ class Application
      */
     public static function enforce_https()
     {
-        self::$enforce_https = true;
+        $app = self::get_instance();
+        $app->enforce_https = true;
     }
 
     /**
@@ -447,7 +488,8 @@ class Application
      */
     public static function is_https_enforced()
     {
-        return empty(self::$enforce_https) ? false : true;
+        $app = self::get_instance();
+        return empty($app->enforce_https) ? false : true;
     }
 
     /**
@@ -456,7 +498,9 @@ class Application
      */
     public static function set_https_controllers(array $controllers)
     {
-        self::$https_controllers = $controllers;
+        $app = self::get_instance();
+        $app->https_controllers = $controllers;
+        return $app;
     }
 
     /**
@@ -465,7 +509,8 @@ class Application
      */
     public static function get_https_controllers()
     {
-        return self::$https_controllers;
+        $app = self::get_instance();
+        return $app->https_controllers;
     }
 
     /**
@@ -486,7 +531,8 @@ class Application
             ? $config->module['folder'] . '/' . $module . '/controller'
             : $config->controller['folder'];
 
-        self::$controller = 'Error';
+        $app = self::get_instance();
+        $app->controller = 'Error';
         $controller_path = $controller_folder . '/Error.php';
         require_once $controller_path;
 
@@ -494,6 +540,27 @@ class Application
         $controller_obj = new \Error();
         $controller_obj->$method();
         exit;
+    }
+
+    /**
+     * Sets the predispatcher class
+     * @param string $predispatcher
+     */
+    public static function set_predispatcher($predispatcher)
+    {
+        $app = self::get_instance();
+        $app->predispatcher = $predispatcher;
+        return $app;
+    }
+
+    /**
+     * Gets the predispatcher class
+     * @param string $predispatcher
+     */
+    public static function get_predispatcher()
+    {
+        $app = self::get_instance();
+        return $app->predispatcher;
     }
 
 }

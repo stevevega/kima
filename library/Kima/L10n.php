@@ -41,16 +41,17 @@ class L10n
      */
     public static function t($key, array $args = [], $language = '')
     {
+        $app = Application::get_instance();
         // set the language
-        $language = !empty($language) ? $language : Application::get_language();
+        $language = !empty($language) ? $language : $app->get_language();
 
         // check if we do have the language strings loaded
         if (empty(self::$strings[$language]))
         {
             // get the module, controller and method from the application
-            $module = Application::get_module();
-            $controller = strtolower(Application::get_controller());
-            $method = Application::get_method();
+            $module = $app->get_module();
+            $controller = strtolower($app->get_controller());
+            $method = $app->get_method();
 
             // get the string path and sets the cache key
             $strings_path = self::get_strings_path($module, $language);
@@ -83,7 +84,7 @@ class L10n
     private static function get_strings_path($module, $language)
     {
         // get the module and config
-        $config = Application::get_config();
+        $config = Application::get_instance()->get_config();
 
         // set the strings path
         (!is_null($config->l10n) && isset($config->l10n['folder']))

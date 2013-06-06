@@ -39,7 +39,7 @@ class Cache
     {
         if (empty($options))
         {
-            $options = Application::get_config()->cache;
+            $options = Application::get_instance()->get_config()->cache;
         }
 
         switch ($type)

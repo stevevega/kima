@@ -67,7 +67,7 @@ class Error
             $error_caller['file'],
             print_r($error_caller['args'], true));
 
-        $config = Application::get_config();
+        $config = Application::get_instance()->get_config();
         if (isset($config->database) && !empty($config->database['mongo']['host']))
         {
             Logger::log($error_message, 'error', $error_level_name);
