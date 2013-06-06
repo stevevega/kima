@@ -354,7 +354,7 @@ class Application
         }
 
         $app->default_language = $language;
-        return $app->$default_language;
+        return $app->default_language;
     }
 
     /**
