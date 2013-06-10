@@ -349,18 +349,21 @@ class Action
     {
         $predispatcher = Application::get_instance()->get_predispatcher();
 
-        // get the bootstrap and make sure the class exists
-        if (!class_exists($predispatcher))
+        if (!empty($predispatcher))
         {
-            Error::set(sprintf(self::ERROR_NO_PREDISPATCHER, $predispatcher));
-        }
+            // get the bootstrap and make sure the class exists
+            if (!class_exists($predispatcher))
+            {
+                Error::set(sprintf(self::ERROR_NO_PREDISPATCHER, $predispatcher));
+            }
 
-        // get the bootstrap methods and call them
-        $methods = get_class_methods($predispatcher);
-        $predispatcher = new $predispatcher();
-        foreach($methods as $method)
-        {
-            $predispatcher->{$method}();
+            // get the bootstrap methods and call them
+            $methods = get_class_methods($predispatcher);
+            $predispatcher = new $predispatcher();
+            foreach($methods as $method)
+            {
+                $predispatcher->{$method}();
+            }
         }
     }
 
