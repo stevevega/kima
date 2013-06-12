@@ -133,6 +133,12 @@ abstract class Model
     private $total_count;
 
     /**
+     * Sets debug mode
+     * @var boolean
+     */
+    private $debug = false;
+
+    /**
      * constructor
      */
     public function __construct()
@@ -387,6 +393,15 @@ abstract class Model
     }
 
     /**
+     * Turns on debug mode
+     */
+    public function debug()
+    {
+        $this->debug = true;
+        return $this;
+    }
+
+    /**
      * Sets the query fields to fetch/insert
      * @param array $fields
      */
@@ -505,7 +520,8 @@ abstract class Model
             'get_count' => $get_as_result_set ? true : false,
             'count_query_string' => $count_query_string,
             'model' => $this->model,
-            'fetch_all' => $fetch_all
+            'fetch_all' => $fetch_all,
+            'debug' => $this->debug
         ];
 
         // get result from the query
@@ -549,7 +565,8 @@ abstract class Model
         // set execution options
         $options = [
             'query' => $params,
-            'query_string' => $this->query_string
+            'query_string' => $this->query_string,
+            'debug' => $this->debug
         ];
 
         # run the query
@@ -579,7 +596,8 @@ abstract class Model
         // set execution options
         $options = [
             'query' => $params,
-            'query_string' => $this->query_string
+            'query_string' => $this->query_string,
+            'debug' => $this->debug
         ];
 
         $this->clear_query_params();
@@ -602,7 +620,8 @@ abstract class Model
         // set execution options
         $options = [
             'query' => $params,
-            'query_string' => $this->query_string
+            'query_string' => $this->query_string,
+            'debug' => $this->debug
         ];
 
         $this->clear_query_params();

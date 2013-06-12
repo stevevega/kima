@@ -250,6 +250,11 @@ class Mongo extends ADatabase
      */
     public function execute(array $options)
     {
+        if (!empty($options['debug']))
+        {
+            var_dump($options);
+        }
+
         $connection = $this->get_connection();
 
         $db_name = !empty($options['query']['database'])

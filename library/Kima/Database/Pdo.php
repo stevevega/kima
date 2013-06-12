@@ -197,6 +197,11 @@ class Pdo extends ADatabase
 
         try
         {
+            if (!empty($options['debug']))
+            {
+                var_dump($options);
+            }
+
             $statement = $this->get_connection()->prepare($options['query_string']);
 
             // bind prepare statement values if necessary
