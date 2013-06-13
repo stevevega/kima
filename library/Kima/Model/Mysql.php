@@ -194,6 +194,19 @@ class Mysql implements IModel
     }
 
     /**
+     * Prepares query having
+     * @param array $having
+     * @param array $binds
+     * @return string
+     */
+    public function prepare_having(array $having, array &$binds)
+    {
+        $having = $this->parse_operators($having, $binds);
+
+        return empty($having) ? '' : ' HAVING ' . $having;
+    }
+
+    /**
      * Prepares query grouping
      * @param array $group
      * @return string
@@ -254,6 +267,7 @@ class Mysql implements IModel
                 $this->prepare_joins($params['joins']) .
                 $this->prepare_filters($params['filters'], $params['binds']) .
                 $this->prepare_group($params['group']) .
+                $this->prepare_having($params['having'], $params['binds']) .
                 $this->prepare_order($params['order']) .
                 $this->prepare_limit($params['limit'], $params['start']);
 

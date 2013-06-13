@@ -79,6 +79,12 @@ abstract class Model
     private $filters = [];
 
     /**
+     * Query group by having
+     * @var array
+     */
+    private $having = [];
+
+    /**
      * Query binds for prepare statements
      * @var array
      */
@@ -330,6 +336,15 @@ abstract class Model
         return $this;
     }
 
+    /**
+     * Sets the query having
+     * @param array $having
+     */
+    public function having(array $having)
+    {
+        $this->having = $having;
+        return $this;
+    }
 
     /**
      * Set binds used for prepare statements
@@ -424,6 +439,7 @@ abstract class Model
             'table' => $this->table,
             'joins' => $this->joins,
             'filters' => $this->filters,
+            'having' => $this->having,
             'binds' => $this->binds,
             'group' => $this->group,
             'order' => $this->order,
@@ -444,6 +460,7 @@ abstract class Model
         $this->table = constant($this->model . '::TABLE');
         $this->joins = [];
         $this->filters = [];
+        $this->having = [];
         $this->binds = [];
         $this->group = [];
         $this->order = [];
