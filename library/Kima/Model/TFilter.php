@@ -50,7 +50,7 @@ trait TFilter
      * @param string $logical_operator
      * @param int $i
      */
-    private function parse_operators(array $filters, array &$binds, $logical_operator = 'AND')
+    private function parse_operators(array $filters, &$binds, $logical_operator = 'AND')
     {
         $filter = [];
 
@@ -105,16 +105,25 @@ trait TFilter
      * @param mixed $value
      * @param array $binds
      */
-    private function parse_key_value($key, $value, array &$binds)
+    private function parse_key_value($key, $value, &$binds)
     {
-        // set the bind key
-        $bind_key = ':' . $this->i;
+        if (isset($binds))
+        {
+            // set the bind key
+            $bind_key = ':' . $this->i;
 
-        // set the filter with prepare statements
-        $filter = $key . ' = ' . $bind_key;
+            // set the filter with prepare statements
+            $filter = $key . ' = ' . $bind_key;
 
-        // set the prepare statement
-        $binds[$bind_key] = $value;
+            // set the prepare statement
+            $binds[$bind_key] = $value;
+        }
+        else
+        {
+            // set the filter with prepare statements
+            $filter = $key . ' = ' . $value;
+        }
+
 
         return $filter;
     }
@@ -126,7 +135,7 @@ trait TFilter
      * @param mixed $value
      * @param array $binds
      */
-    private function parse_custom_operator($operator, $key, $value, array &$binds)
+    private function parse_custom_operator($operator, $key, $value, &$binds)
     {
         switch ($operator)
         {
@@ -175,11 +184,18 @@ trait TFilter
      * @param mixed $value
      * @param array $binds
      */
-    private function parse_simple_operator($operator, $key, $value, array &$binds)
+    private function parse_simple_operator($operator, $key, $value, &$binds)
     {
-        $bind_key = ':' . $this->i;
-        $filter = "$key $operator $bind_key";
-        $binds[$bind_key] = $value;
+        if (isset($binds))
+        {
+            $bind_key = ':' . $this->i;
+            $filter = "$key $operator $bind_key";
+            $binds[$bind_key] = $value;
+        }
+        else
+        {
+            $filter = "$key $operator $value";
+        }
 
         return $filter;
     }
@@ -191,7 +207,7 @@ trait TFilter
      * @param mixed $value
      * @param array $binds
      */
-    private function parse_in_operator($operator, $key, $value, array &$binds)
+    private function parse_in_operator($operator, $key, $value, &$binds)
     {
         $values = [];
 
@@ -203,9 +219,16 @@ trait TFilter
         // parse and bind every value of the "in" filter
         foreach ($value as $v)
         {
-            $values[] = ':' . $this->i;
-            $binds[':' . $this->i] = $v;
-            $this->i++;
+            if (isset($binds))
+            {
+                $values[] = ':' . $this->i;
+                $binds[':' . $this->i] = $v;
+                $this->i++;
+            }
+            else
+            {
+                $values[] = $v;
+            }
         }
 
         return $key . ' ' . sprintf($operator, implode(',', $values));
@@ -218,11 +241,18 @@ trait TFilter
      * @param mixed $value
      * @param array $binds
      */
-    private function parse_like_operator($operator, $key, $value, array &$binds)
+    private function parse_like_operator($operator, $key, $value, &$binds)
     {
-        $bind_key = ':' . $this->i;
-        $filter = $key . ' ' . sprintf($operator, $bind_key);
-        $binds[$bind_key] = '%' . $value . '%';
+        if (isset($binds))
+        {
+            $bind_key = ':' . $this->i;
+            $filter = $key . ' ' . sprintf($operator, $bind_key);
+            $binds[$bind_key] = '%' . $value . '%';
+        }
+        else
+        {
+            $filter = $key . ' ' . sprintf($operator, $value);
+        }
 
         return $filter;
     }

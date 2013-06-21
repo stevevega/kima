@@ -31,6 +31,12 @@ abstract class Model
      const ERROR_INVALID_FUNCTION = 'Function "%s" is not available for %s models';
 
     /**
+      * Common formats
+      */
+     const FORMAT_UNIXTIME = 'UNIX_TIMESTAMP(%s)';
+     const FORMAT_MAX = 'MAX(%s)';
+
+    /**
      * The model name
      * @var string
      */

@@ -66,13 +66,8 @@ class Mysql implements IModel
         $join_type = !empty($options['type']) ? $options['type'] : 'LEFT';
         $join_query = " $join_type JOIN $join_table ON ";
 
-        $joins = [];
-        foreach ($options['on'] as $joiner => $on)
-        {
-            $joins[] = "$joiner = $on";
-        }
-        $join_query .= implode(' AND ', $joins);
-
+        $binds = null;
+        $join_query .= $this->parse_operators($options['on'], $binds);
         return $join_query;
     }
 
@@ -163,7 +158,7 @@ class Mysql implements IModel
 
     /**
      * Prepares query joins
-     * @param array $joins
+     * @param  array $joins
      * @return string
      */
     public function prepare_joins(array $joins)
