@@ -243,9 +243,10 @@ class Mysql implements IModel
     /**
      * Gets fetch query
      * @param array $params
+     * @param boolean $is_count_query
      * @return string
      */
-    public function get_fetch_query(array &$params)
+    public function get_fetch_query(array &$params, $is_count_query = false)
     {
         $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
 
@@ -253,6 +254,11 @@ class Mysql implements IModel
         if (array_key_exists('i', $params))
         {
             $this->i = 1;
+        }
+
+        if ($is_count_query)
+        {
+            $params['fields'] = empty($params['group']) ? ['COUNT(*)' => 'count'] : [1];
         }
 
         $query_string =
@@ -265,6 +271,11 @@ class Mysql implements IModel
                 $this->prepare_having($params['having'], $params['binds']) .
                 $this->prepare_order($params['order']) .
                 $this->prepare_limit($params['limit'], $params['start']);
+
+        if ($is_count_query)
+        {
+            $query_string = 'SELECT COUNT(*) AS count FROM (' . $query_string . ') AS count';
+        }
 
         return $query_string;
     }

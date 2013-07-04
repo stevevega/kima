@@ -68,9 +68,10 @@ interface IModel
     /**
      * Gets fetch query
      * @param array $params
+     * @param boolean $is_count_query
      * @return string
      */
-    function get_fetch_query(array &$params);
+    function get_fetch_query(array &$params, $is_count_query = false);
 
     /**
      * Gets update query

@@ -526,14 +526,13 @@ abstract class Model
         $count_query_string = '';
         if ($get_as_result_set && $this->adapter)
         {
-            $params['fields'] = ['COUNT(*)' => 'count'];
-            $params['group'] = [];
+            $params['fields'] = [];
             $params['order'] = [];
             $params['start'] = 0;
             $params['limit'] = 0;
             $params['i'] = 1;
             $params['binds'] = [];
-            $count_query_string = $this->adapter->get_fetch_query($params);
+            $count_query_string = $this->adapter->get_fetch_query($params, true);
         }
 
         // set execution options
