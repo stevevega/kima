@@ -30,6 +30,22 @@ abstract class Model
      const ERROR_NO_JOIN_TABLE = 'Required join table field is empty';
      const ERROR_INVALID_FUNCTION = 'Function "%s" is not available for %s models';
 
+     /**
+      * Join constants
+      */
+     const JOIN_TABLE = 'table';
+     const JOIN_TYPE = 'type';
+     const JOIN_LEFT = 'left';
+     const JOIN_INNER = 'inner';
+     const JOIN_RIGHT = 'right';
+     const JOIN_ON = 'on';
+
+     /**
+      * Order constants
+      */
+     const ORDER_ASC = 'ASC';
+     const ORDER_DESC = 'DESC';
+
     /**
       * Common formats
       */
@@ -328,7 +344,7 @@ abstract class Model
      */
     public function join(array $joins)
     {
-        $this->joins = $joins;
+        $this->joins = array_merge($this->joins, $joins);
         return $this;
     }
 
@@ -338,7 +354,7 @@ abstract class Model
      */
     public function filter(array $filters)
     {
-        $this->filters = $filters;
+        $this->filters = array_merge($this->filters, $filters);
         return $this;
     }
 
@@ -348,7 +364,7 @@ abstract class Model
      */
     public function having(array $having)
     {
-        $this->having = $having;
+        $this->having = array_merge($this->having, $having);
         return $this;
     }
 
@@ -359,18 +375,18 @@ abstract class Model
      */
     public function bind(array $binds)
     {
-        $this->binds = $binds;
+        $this->binds = array_merge($this->binds, $binds);
         return $this;
     }
 
 
     /**
      * Sets a group join
-     * @param string $field
+     * @param array group
      */
-    public function group($field)
+    public function group(array $group)
     {
-        $this->group[] = $field;
+        $this->group = array_merge($this->group, $group);
         return $this;
     }
 

@@ -91,7 +91,6 @@ class Mysql implements IModel
             $field_name = is_string($field) ? $field . ' AS ' . $value : $value;
             $fields_query[] = $field_name;
         }
-
         return implode(',', $fields_query);
     }
 
