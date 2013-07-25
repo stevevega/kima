@@ -51,6 +51,7 @@ abstract class Model
       */
      const FORMAT_UNIXTIME = 'UNIX_TIMESTAMP(%s)';
      const FORMAT_MAX = 'MAX(%s)';
+     const GROUP_CONCAT_DISTINCT = 'GROUP_CONCAT(DISTINCT(%s) SEPARATOR "%s")';
 
     /**
      * The model name
