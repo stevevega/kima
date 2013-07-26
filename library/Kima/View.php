@@ -468,9 +468,10 @@ class View
 
     /**
      * Sets a style value to html type templates
-     * @param string $style
+     * @param  string $style
+     * @param  string $media_type
      */
-    public function style($style_file)
+    public function style($style_file, $media_type = null)
     {
         // make sure we are on a html template
         if ('html' !== $this->content_type)
@@ -478,8 +479,11 @@ class View
             Error::set(sprintf(self::ERROR_HTML_ONLY, 'Styles'), Error::WARNING);
         }
 
+        $media = isset($media_type) ? sprintf('media="%s"', $media_type) : '';
+
         // set the style
-        $style = '<link rel="stylesheet" href="' . $style_file . '" type="text/css" />';
+        $style_format = '<link rel="stylesheet" href="%s" type="text/css" %s />';
+        $style = sprintf($style_format, $style_file, $media);
 
         // avoid duplicates
         if (!in_array($style_file, $this->style_files))
