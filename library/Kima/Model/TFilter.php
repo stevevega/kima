@@ -27,7 +27,9 @@ trait TFilter
         '$in' => 'IN (%s)',
         '$nin' => 'NOT IN (%s)',
         '$exists' => 'IS %s NULL',
-        '$like' => 'LIKE (%s)'];
+        '$like' => 'LIKE (%s)',
+        '$raw'
+    ];
 
     /**
      * Query logical operators
@@ -167,6 +169,10 @@ trait TFilter
             case '$like':
                 $filter = $this->parse_like_operator(
                     $this->query_operators[$operator], $key, $value, $binds);
+                break;
+
+            case '$raw':
+                $filter = $key . $value;
                 break;
 
             default:

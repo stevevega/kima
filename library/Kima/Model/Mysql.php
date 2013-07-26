@@ -113,7 +113,7 @@ class Mysql implements IModel
         $fields_data = [];
 
         // check if the array is multidimensional
-        if (count($fields) !== count($fields, COUNT_RECURSIVE))
+        if (count($fields) !== count($fields, COUNT_RECURSIVE) && isset($fields[0]))
         {
             $fields_data['fields'] = array_keys($fields[0]);
             foreach ($fields as $key => $field)
@@ -142,14 +142,20 @@ class Mysql implements IModel
         foreach ($fields as $field => $value)
         {
             $key = $field;
-            $value = $value;
 
-            // format the bind key since it only allows alphanumeric and _
-            $bind_key = ':' . str_replace('.', '_', $key)  . '_' . $count;
-            $binds[$bind_key] = $value;
+            if (is_array($value) && isset($value['$raw']))
+            {
+                $result = $value['$raw'];
+            }
+            else
+            {
+                // format the bind key since it only allows alphanumeric and _
+                $result = ':' . str_replace('.', '_', $key)  . '_' . $count;
+                $binds[$result] = $value;
+            }
 
             // add the value
-            $values[] = $bind_key;
+            $values[] = $result;
         }
 
         return $values;
