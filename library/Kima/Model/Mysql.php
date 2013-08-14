@@ -277,7 +277,7 @@ class Mysql implements IModel
                 $this->prepare_order($params['order']) .
                 $this->prepare_limit($params['limit'], $params['start']);
 
-        if ($is_count_query)
+        if ($is_count_query && !empty($params['group']))
         {
             $query_string = 'SELECT COUNT(*) AS count FROM (' . $query_string . ') AS count';
         }
