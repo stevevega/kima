@@ -959,7 +959,7 @@ class View
     private function set_default_params()
     {
         // set the view default params
-        $default_params = Application::get_view_params();
+        $default_params = Application::get_instance()->get_view_params();
 
         foreach ($default_params as $key => $param)
         {

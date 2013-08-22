@@ -65,17 +65,7 @@ class Config
     private function parse_config($path)
     {
         // gets the enviroment
-        switch (true)
-        {
-            case getenv('ENVIRONMENT'):
-                $environment = getenv('ENVIRONMENT');
-                break;
-            case !empty($_SERVER['ENVIRONMENT']):
-                $environment = $_SERVER['ENVIRONMENT'];
-                break;
-            default:
-                $environment = 'default';
-        }
+        $environment = Application::get_instance()->get_environment();
 
         // parse using ini file if file exists
         is_readable($path)

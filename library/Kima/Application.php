@@ -36,6 +36,12 @@ class Application
     private $config;
 
     /**
+     * Application environment
+     * @var string
+     */
+    private $environment;
+
+    /**
      * module
      * @var string
      */
@@ -200,7 +206,7 @@ class Application
      * Set the config
      * @param string $path
      */
-    public static function set_config($path = '')
+    public function set_config($path = '')
     {
         // set the application config
         $config = new Config($path);
@@ -216,10 +222,37 @@ class Application
     }
 
     /**
+     * Gets the app environment
+     * @return string
+     */
+    public function get_environment()
+    {
+        if (isset($this->environment))
+        {
+            return $this->environment;
+        }
+
+        // get the environment
+        switch (true)
+        {
+            case getenv('ENVIRONMENT'):
+                $this->environment = getenv('ENVIRONMENT');
+                break;
+            case !empty($_SERVER['ENVIRONMENT']):
+                $this->environment = $_SERVER['ENVIRONMENT'];
+                break;
+            default:
+                $this->environment = 'default';
+        }
+
+        return $this->environment;
+    }
+
+    /**
      * Return the application module
      * @return string
      */
-    public static function get_module()
+    public function get_module()
     {
         $app = self::get_instance();
         return $app->module;
@@ -229,7 +262,7 @@ class Application
      * Set the application module
      * @param string $module
      */
-    public static function set_module($module)
+    public function set_module($module)
     {
         $app = self::get_instance();
         $app->module = (string)$module;
@@ -240,7 +273,7 @@ class Application
      * Return the application controller
      * @return string
      */
-    public static function get_controller()
+    public function get_controller()
     {
         $app = self::get_instance();
         return $app->controller;
@@ -250,7 +283,7 @@ class Application
      * Set the application controller
      * @param string $controller
      */
-    public static function set_controller($controller)
+    public function set_controller($controller)
     {
         $app = self::get_instance();
         $app->controller = (string)$controller;
@@ -261,7 +294,7 @@ class Application
      * Returns the application method
      * @return string
      */
-    public static function get_method()
+    public function get_method()
     {
         $app = self::get_instance();
         return $app->method;
@@ -271,7 +304,7 @@ class Application
      * Set the method
      * @param string $method
      */
-    public static function set_method($method)
+    public function set_method($method)
     {
         $app = self::get_instance();
         $app->method = (string)$method;
@@ -282,7 +315,7 @@ class Application
      * Return the application language
      * @return string
      */
-    public static function get_language()
+    public function get_language()
     {
         $app = self::get_instance();
         return $app->language;
@@ -292,7 +325,7 @@ class Application
      * Returns the language prefix to be used in urls
      * @return string
      */
-    public static function get_language_url_prefix()
+    public function get_language_url_prefix()
     {
         $app = self::get_instance();
         return $app->language_url_prefix;
@@ -302,7 +335,7 @@ class Application
      * Sets the language
      * @param string $language
      */
-    public static function set_language($language)
+    public function set_language($language)
     {
         $app = self::get_instance();
         $app->language = (string)$language;
@@ -317,7 +350,7 @@ class Application
      * Sets the default language
      * @param string $language
      */
-    public static function set_default_language($language)
+    public function set_default_language($language)
     {
         $app = self::get_instance();
         $app->default_language = (string)$language;
@@ -328,7 +361,7 @@ class Application
      * Gets the application default language
      * @return string
      */
-    public static function get_default_language()
+    public function get_default_language()
     {
         $app = self::get_instance();
 
@@ -361,7 +394,7 @@ class Application
      * Sets all the available languages in the application
      * @param array $languages
      */
-    public static function set_available_languages(array $languages)
+    public function set_available_languages(array $languages)
     {
         $app = self::get_instance();
         $app->available_languages = $languages;
@@ -372,7 +405,7 @@ class Application
      * Gets all the available languages in the application
      * @return array
      */
-    public static function get_available_languages()
+    public function get_available_languages()
     {
         $app = self::get_instance();
 
@@ -405,7 +438,7 @@ class Application
      * Sets the default time zone
      * @param string $time_zone
      */
-    public static function set_time_zone($time_zone)
+    public function set_time_zone($time_zone)
     {
         $app = self::get_instance();
         $app->time_zone = $time_zone;
@@ -416,7 +449,7 @@ class Application
      * Gets the application default time zone
      * @return string
      */
-    public static function get_time_zone()
+    public function get_time_zone()
     {
         $app = self::get_instance();
         return empty($app->time_zone)
@@ -428,7 +461,7 @@ class Application
      * Sets view global default params to set
      * @param array $params
      */
-    public static function set_view_params(array $params)
+    public function set_view_params(array $params)
     {
         $app = self::get_instance();
         $app->view_params = array_merge($app->view_params, $params);
@@ -439,7 +472,7 @@ class Application
      * Gets view global default params to set
      * @param array $params
      */
-    public static function get_view_params()
+    public function get_view_params()
     {
         $app = self::get_instance();
         return $app->view_params;
@@ -449,7 +482,7 @@ class Application
      * Returns whether is a secure connection or not
      * @return boolean
      */
-    public static function is_https()
+    public function is_https()
     {
         $app = self::get_instance();
         return $app->is_https;
@@ -458,7 +491,7 @@ class Application
     /**
      * Set whether the connections is https or not
      */
-    private static function set_is_https()
+    private function set_is_https()
     {
         $app = self::get_instance();
 
@@ -476,7 +509,7 @@ class Application
     /**
      * Makes all request https by default
      */
-    public static function enforce_https()
+    public function enforce_https()
     {
         $app = self::get_instance();
         $app->enforce_https = true;
@@ -486,7 +519,7 @@ class Application
      * Returns whether the request should be https or not
      * @return boolean
      */
-    public static function is_https_enforced()
+    public function is_https_enforced()
     {
         $app = self::get_instance();
         return empty($app->enforce_https) ? false : true;
@@ -496,7 +529,7 @@ class Application
      * Sets the controllers that should be always https
      * @param array $controllers
      */
-    public static function set_https_controllers(array $controllers)
+    public function set_https_controllers(array $controllers)
     {
         $app = self::get_instance();
         $app->https_controllers = $controllers;
@@ -507,7 +540,7 @@ class Application
      * Gets the controllers that should be always https
      * @return array
      */
-    public static function get_https_controllers()
+    public function get_https_controllers()
     {
         $app = self::get_instance();
         return $app->https_controllers;
@@ -517,7 +550,7 @@ class Application
      * Set an http error for the page
      * @param int $status_code
      */
-    public static function set_http_error($status_code)
+    public function set_http_error($status_code)
     {
         // set the status code
         http_response_code($status_code);
@@ -546,7 +579,7 @@ class Application
      * Sets the predispatcher class
      * @param string $predispatcher
      */
-    public static function set_predispatcher($predispatcher)
+    public function set_predispatcher($predispatcher)
     {
         $app = self::get_instance();
         $app->predispatcher = $predispatcher;
@@ -557,7 +590,7 @@ class Application
      * Gets the predispatcher class
      * @param string $predispatcher
      */
-    public static function get_predispatcher()
+    public function get_predispatcher()
     {
         $app = self::get_instance();
         return $app->predispatcher;
