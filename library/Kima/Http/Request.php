@@ -20,7 +20,8 @@ class Request
      */
     public static function get($param, $default = null)
     {
-        return isset($_GET[$param]) ? $_GET[$param] : $default;
+        $value = isset($_GET[$param]) ? $_GET[$param] : null;
+        return self::clean_value($value, $default);
     }
 
     /**
@@ -30,7 +31,8 @@ class Request
      */
     public static function post($param, $default = null)
     {
-        return isset($_POST[$param]) ? $_POST[$param] : $default;
+        $value = isset($_POST[$param]) ? $_POST[$param] : null;
+        return self::clean_value($value, $default);
     }
 
     /**
@@ -40,7 +42,8 @@ class Request
      */
     public static function cookie($param, $default = null)
     {
-        return isset($_COOKIE[$param]) ? $_COOKIE[$param] : $default;
+        $value = isset($_COOKIE[$param]) ? $_COOKIE[$param] : null;
+        return self::clean_value($value, $default);
     }
 
     /**
@@ -50,7 +53,8 @@ class Request
      */
     public static function server($param, $default = null)
     {
-        return isset($_SERVER[$param]) ? $_SERVER[$param] : $default;
+        $value = isset($_SERVER[$param]) ? $_SERVER[$param] : null;
+        return self::clean_value($value, $default);
     }
 
     /**
@@ -60,7 +64,8 @@ class Request
      */
     public static function env($param, $default = null)
     {
-        return isset($_ENV[$param]) ? $_ENV[$param] : $default;
+        $value = isset($_ENV[$param]) ? $_ENV[$param] : null;
+        return self::clean_value($value, $default);
     }
 
     /**
@@ -69,16 +74,15 @@ class Request
      * @param mixed $default
      * @param string $namespace
      */
-    public static function session($param, $default = null, $namespace = '')
+    public static function session($param, $default = null, $namespace = null)
     {
-        if (empty($namespace))
-        {
-            return isset($_SESSION[$param]) ? $_SESSION[$param] : $default;
-        }
-        else
-        {
-            return isset($_SESSION[$namespace][$param]) ? $_SESSION[$namespace][$param] : $default;
-        }
+        $session_var = isset($namespace) && isset($_SESSION[$namespace])
+            ? $_SESSION[$namespace]
+            : $_SESSION;
+
+        $value = isset($session_var[$param]) ? $session_var[$param] : null;
+
+        return self::clean_value($value, $default);
     }
 
     /**
@@ -87,29 +91,29 @@ class Request
      * @param mixed $default
      * @param string $namespace Only affects session variables
      */
-    public static function get_all($param, $default = null, $namespace = '')
+    public static function get_all($param, $default = null, $namespace = null)
     {
         // ask for the parameter
         switch (true)
         {
             // GET param
             case isset($_GET[$param]):
-                return $_GET[$param];
+                return self::get($param, $default);
             // POST param
             case isset($_POST[$param]):
-                return $_POST[$param];
+                return self::post($param, $default);
             // COOKIE param
             case isset($_COOKIE[$param]):
-                return $_COOKIE[$param];
+                return self::cookie($param, $default);
             // SERVER param
             case isset($_SERVER[$param]):
-                return $_SERVER[$param];
+                return self::cookie($param, $default);
             // ENV param
             case isset($_ENV[$param]):
-                return $_ENV[$param];
+                return self::cookie($param, $default);
             // SESSION param
             case isset($_SESSION[$param]):
-                return empty($namespace) ? $_SESSION[$param] : $_SESSION[$namespace][$param];
+                return self::session($param, $default, $namespace);
             // send the default value if nothing found
             default:
                 return $default;
@@ -123,6 +127,26 @@ class Request
     public static function get_method()
     {
         return $_SERVER['REQUEST_METHOD'];
+    }
+
+    /**
+     * Cleans a http value
+     * @param  string $value
+     * @param  mixed $default
+     * @return mixed
+     */
+    private static function clean_value($value, $default)
+    {
+        if (isset($value))
+        {
+            $value = is_array($value) ? array_map('trim', $value) : trim($value);
+        }
+        else
+        {
+            $value = $default;
+        }
+
+        return $value;
     }
 
 }
