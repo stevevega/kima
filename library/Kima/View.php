@@ -533,7 +533,7 @@ class View
             }
         }
 
-        $result = $this->use_compression
+        $result = $this->use_compression && !$this->apply_styles_inline
             ? $this->compress($this->parsed_blocks[$template])
             : $this->parsed_blocks[$template];
 
