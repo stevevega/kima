@@ -252,6 +252,8 @@ class View
                 ? $this->vars[$template][$name] = $value
                 : Error::set(sprintf(self::ERROR_NO_TEMPLATE, $template), Error::WARNING);
         }
+
+        return $this;
     }
 
     /**
