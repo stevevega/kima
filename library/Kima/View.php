@@ -234,13 +234,24 @@ class View
      * @param string $value
      * @param string $template
      * @param boolean $escaped Escaped by default
+     * @param boolean $apply_nl2br Whether to apply nl2br to values or not
+     * @return View
      */
-    public function set($name, $value, $template = '', $escape = true)
+    public function set($name, $value, $template = null, $escaped = true, $apply_nl2br = false)
     {
-        // escape the value if necessary
-        $value = $escape ? htmlentities($value, ENT_QUOTES, 'UTF-8', false) : $value;
+        // escape value if required
+        if ($escaped)
+        {
+            $value = htmlentities($value, ENT_QUOTES, 'UTF-8', false);
+        }
 
-        if (empty($template))
+        // apply nl2br to the value if required
+        if ($apply_nl2br)
+        {
+            $value = nl2br($value, true);
+        }
+
+        if (!isset($template))
         {
             // set global variable
             $this->globals[$name] = $value;
