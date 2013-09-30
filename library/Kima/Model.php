@@ -588,6 +588,28 @@ abstract class Model
     }
 
     /**
+     * Aggregate method for models
+     * @return array
+     */
+    public function aggregate()
+    {
+        $params = $this->get_query_params();
+
+        // set execution options
+        $options = [
+            'query' => $params,
+            'model' => $this->model,
+            'fetch_all' => true
+        ];
+
+        // get result from the query
+        $result = Database::get_instance($this->db_engine)->aggregate($options);
+
+        $this->clear_query_params();
+        return $result['objects'];
+    }
+
+    /**
      * Updates data
      * Use this method for batch or custom updates
      * @param array $fields

@@ -23,6 +23,7 @@ class Pdo extends ADatabase
      * Error messages
      */
      const ERROR_NO_PDO = 'PDO extension is not present on this server';
+     const ERROR_NO_AGGREGATE = 'Aggregate not implemented for PDO';
      const ERROR_PDO_CONNECTION_FAILED = 'PDO Connection failed: "%s"';
      const ERROR_PDO_EMPTY_QUERY = 'PDO query error: Query is empty';
      const ERROR_PDO_EMPTY_MODEL = 'PDO query error: Model is empty';
@@ -158,6 +159,15 @@ class Pdo extends ADatabase
 
         $result['count'] = $count;
         return $result;
+    }
+
+    /**
+     * Not implemented for PDO
+     * @param  array  $options
+     */
+    public function aggregate(array $options)
+    {
+        Error::set(self::ERROR_NO_AGGREGATE);
     }
 
     /**

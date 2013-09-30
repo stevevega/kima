@@ -47,6 +47,13 @@ abstract class ADatabase
     abstract function fetch(array $options);
 
     /**
+     * Performs an aggregate method in the database
+     * @param array $options The execution options
+     * @return mixed
+     */
+    abstract function aggregate(array $options);
+
+    /**
      * Fetch results from the database
      * @param array $options The execution options
      * @return mixed

@@ -28,6 +28,7 @@ class Mongo extends ADatabase
      const ERROR_NO_MONGO = 'Mongo extension is not present on this server';
      const ERROR_NO_COLLECTION = 'Mongo error: empty collection name';
      const ERROR_MONGO_QUERY = 'Mongo query error: "%s"';
+     const ERROR_MONGO_AGGREGATION = 'Mongo aggregation error: "%s"';
 
     /**
      * The Mongo Client connection
@@ -152,11 +153,8 @@ class Mongo extends ADatabase
             if (!empty($options['query']['order']))
             {
                 // make the sort compatible with mongo
-                foreach ($options['query']['order'] as &$sort)
-                {
-                    $sort = 'DESC' === $sort ? -1 : 1;
-                }
-                $cursor->sort($options['query']['order']);
+                $sort = $this->get_sort($options['query']['order']);
+                $cursor->sort($sort);
             }
 
             if (!empty($options['query']['start']))
@@ -187,6 +185,46 @@ class Mongo extends ADatabase
         {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
+    }
+
+    /**
+     * Applies an aggreate method to a mongo collection
+     * @see    http://php.net/manual/en/mongocollection.aggregate.php
+     * @param  array  $options
+     * @return array
+     */
+    public function aggregate(array $options)
+    {
+        $collection = $this->execute($options);
+        $pipeline = [];
+
+        // include the match filters
+        if (!empty($options['query']['filters']))
+        {
+            $pipeline[]['$match'] = $options['query']['filters'];
+        }
+
+        // include the grouping
+        if (!empty($options['query']['group']))
+        {
+            $pipeline[]['$group'] = $options['query']['group'];
+        }
+
+        // include the sorting
+        if (!empty($options['query']['order']))
+        {
+            $pipeline[]['$sort'] = $this->get_sort($options['query']['order']);;
+        }
+
+        $objects = $collection->aggregate($pipeline);
+
+        if (isset($objects['errmsg']))
+        {
+            Error::set(sprintf(self::ERROR_MONGO_AGGREGATION, $objects['errmsg']));
+        }
+
+        $result['objects'] = $objects['result'];
+        return $result;
     }
 
     /**
@@ -274,6 +312,21 @@ class Mongo extends ADatabase
         $collection = new MongoCollection($db, $collection_name);
 
         return $collection;
+    }
+
+    /**
+     * Gets the sort value formatted for mongo queries
+     * @param  array $sorts
+     * @return int
+     */
+    private function get_sort(array $sorts)
+    {
+        foreach ($sorts as &$sort)
+        {
+            $sort = 'DESC' === $sort ? -1 : 1;
+        }
+
+        return $sorts;
     }
 
 }
