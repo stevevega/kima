@@ -213,7 +213,7 @@ class View
 
         // get the blocks from cache?
         $file_path = $view_path . DIRECTORY_SEPARATOR . $file;
-        $cache_key = str_replace(DIRECTORY_SEPARATOR, '-', $file);
+        $cache_key = str_replace(DIRECTORY_SEPARATOR, '-', $file_path);
         $blocks = $this->cache->get_by_file($cache_key, $file_path);
 
         // do we have cached content?
