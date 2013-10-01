@@ -77,7 +77,7 @@ class Controller
                 // load the action view
                 if ($this->use_default_view)
                 {
-                    $view_path = strtolower($controller) . '/' . $method . '.html';
+                    $view_path = strtolower($controller) . DIRECTORY_SEPARATOR . $method . '.html';
                     $this->view['view']->load($view_path);
                 }
 
@@ -115,9 +115,7 @@ class Controller
         if ($module)
         {
             $module_folder = Application::get_instance()->get_config()->module['folder'];
-
             $config['folder'] = $module_folder . '/' . $module . '/view';
-            $config['cache']['prefix'] = $module;
         }
 
         return $config;

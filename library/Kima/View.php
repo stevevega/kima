@@ -194,8 +194,9 @@ class View
     /**
      * Loads a view and set it into blocks
      * @param string $file
+     * @param string $view_path custom view path
      */
-    public function load($file)
+    public function load($file, $view_path = null)
     {
         // is the first (main) view to load?
         if (empty($this->blocks))
@@ -204,15 +205,22 @@ class View
             $this->set_content_type($file);
         }
 
+        // set the view path to the default if not set
+        if (!isset($view_path))
+        {
+            $view_path = $this->view_path;
+        }
+
         // get the blocks from cache?
+        $file_path = $view_path . DIRECTORY_SEPARATOR . $file;
         $cache_key = str_replace(DIRECTORY_SEPARATOR, '-', $file);
-        $blocks = $this->cache->get_by_file($cache_key, $this->view_path . '/' . $file);
+        $blocks = $this->cache->get_by_file($cache_key, $file_path);
 
         // do we have cached content?
         if (empty($blocks))
         {
             // get the file contents
-            $template = $this->get_view_file($file);
+            $template = $this->get_view_file($file, $view_path);
 
             // get the blocks from the template content
             $blocks = $this->get_blocks($template, $file);
@@ -708,18 +716,19 @@ class View
 
     /**
      * Gets the main template file and set its contents into a string
-     * @param string $file
+     * @param  string $file
+     * @param  string $view_path
      * @return string
      */
-    private function get_view_file($file)
+    private function get_view_file($file, $view_path)
     {
         // set the view file path
-        $view_path = $this->view_path . '/' . $file;
+        $file_path = $view_path . DIRECTORY_SEPARATOR . $file;
 
         // get the template content
-        is_readable($view_path)
-            ? $content = file_get_contents($view_path)
-            : Error::set(sprintf(self::ERROR_INVALID_VIEW_PATH, $view_path));
+        is_readable($file_path)
+            ? $content = file_get_contents($file_path)
+            : Error::set(sprintf(self::ERROR_INVALID_VIEW_PATH, $file_path));
 
         // return the content
         return $content;
