@@ -5,6 +5,8 @@
  */
 namespace Kima\Http;
 
+use \Kima\Application;
+
 /**
  * Request
  * HTTP Request handler class
@@ -12,6 +14,12 @@ namespace Kima\Http;
  */
 class Request
 {
+
+    /**
+     * Protocols
+     */
+    const PROTOCOL_HTTP = 'http://';
+    const PROTOCOL_HTTPS = 'https://';
 
     /**
      * Request GET variabless
@@ -127,6 +135,40 @@ class Request
     public static function get_method()
     {
         return $_SERVER['REQUEST_METHOD'];
+    }
+
+    /**
+     * Gets the required http protocol
+     * @return string
+     */
+    public static function get_protocol()
+    {
+        return Application::get_instance()->is_https()
+            ? self::PROTOCOL_HTTPS
+            : self::PROTOCOL_HTTP;
+    }
+
+    /**
+     * Gets the base url
+     * @param boolean $force_https
+     * @return string
+     */
+    public static function get_base_url($force_https = false)
+    {
+        $protocol = $force_https ? self::PROTOCOL_HTTPS : self::get_protocol();
+        return $protocol . Request::server('SERVER_NAME');
+    }
+
+
+    /**
+     * Gets the current url
+     * @param boolean $force_https
+     * @return string
+     */
+    public static function get_request_url($force_https = false)
+    {
+        $protocol = $force_https ? self::PROTOCOL_HTTPS : self::get_protocol();
+        return $protocol . Request::server('SERVER_NAME') . Request::server('REQUEST_URI');
     }
 
     /**

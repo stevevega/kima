@@ -21,7 +21,14 @@ class Application
     /**
      * Error messages
      */
-    const ERROR_NO_DEFAULT_LANGUAGE = 'Default language should be set in the application ini or as a server param "DEFAULT_LANGUAGE"';
+    const ERROR_NO_DEFAULT_LANGUAGE = 'Default language has not been set';
+    const ERROR_NO_DEFAULT_LANGUAGE_TYPE = 'Default language type has not been set';
+
+    /**
+     * Application default language type
+     */
+    const LANG_DEFAULT_EXPLICIT = 'explicit';
+    const LANG_DEFAULT_IMPLICIT = 'implicit';
 
     /**
      * instance
@@ -72,10 +79,10 @@ class Application
     private $default_language;
 
     /**
-     * The language prefix used in urls
+     * The default application language type
      * @var string
      */
-    private $language_url_prefix;
+    private $default_language_type;
 
     /**
      * All the available languages in the application
@@ -312,23 +319,29 @@ class Application
     }
 
     /**
-     * Return the application language
-     * @return string
+     * Return whether a language is available or not
+     * @param  string  $language
+     * @return boolean
      */
-    public function get_language()
+    public function is_language_available($language)
     {
         $app = self::get_instance();
-        return $app->language;
+        return in_array($language, $app->get_available_languages());
     }
 
     /**
-     * Returns the language prefix to be used in urls
+     * Return the application language
      * @return string
      */
-    public function get_language_url_prefix()
+    public function get_language($include_implicit = true)
     {
         $app = self::get_instance();
-        return $app->language_url_prefix;
+
+        return (self::LANG_DEFAULT_IMPLICIT === $app->default_language_type
+                && !$include_implicit
+                && $app->language === $app->default_language)
+            ? null
+            : $app->language;
     }
 
     /**
@@ -340,9 +353,6 @@ class Application
         $app = self::get_instance();
         $app->language = (string)$language;
 
-        // set the url prefix depending on the language selected
-        $app->language_url_prefix =
-            $app->get_default_language() !== $language ? "/$language" : '';
         return $app;
     }
 
@@ -365,11 +375,19 @@ class Application
     {
         $app = self::get_instance();
 
+        // set the default language type if not set already
+        if (empty($app->default_language_type))
+        {
+            $this->set_default_language_type();
+        }
+
+        // check if the default language was already set
         if (!empty($app->default_language))
         {
             return $app->default_language;
         }
 
+        $config = $app->get_config()->language;
         switch (true)
         {
             case Request::env('LANGUAGE_DEFAULT'):
@@ -378,9 +396,9 @@ class Application
             case Request::server('LANGUAGE_DEFAULT'):
                 $language = Request::server('LANGUAGE_DEFAULT');
                 break;
-            case property_exists($app->get_config(), 'language')
-                && !empty($app->get_config()->language['default']):
-                $language = $app->get_config()->language['default'];
+            case !empty($config['default'])
+                && !empty($config['default']['value']):
+                $language = $config['default']['value'];
                 break;
             default:
                 Error::set(self::ERROR_NO_DEFAULT_LANGUAGE);
@@ -414,6 +432,8 @@ class Application
             return $app->available_languages;
         }
 
+        $config = $app->get_config()->language;
+
         switch (true)
         {
             case Request::env('LANGUAGES_AVAILABLE'):
@@ -422,9 +442,8 @@ class Application
             case Request::server('LANGUAGES_AVAILABLE'):
                 $languages = Request::server('LANGUAGES_AVAILABLE');
                 break;
-            case property_exists($app->get_config(), 'language')
-                && !empty($app->get_config()->language['available']):
-                $languages = $app->get_config()->language['available'];
+            case !empty($config['available']):
+                $languages = $config['available'];
                 break;
             default:
                 $languages = '';
@@ -573,6 +592,40 @@ class Application
         $controller_obj = new \Error();
         $controller_obj->$method();
         exit;
+    }
+
+    /**
+     * Gets the application default language type
+     * @return string
+     */
+    public function get_default_language_type()
+    {
+        return $this->default_language_type;
+    }
+
+    /**
+     * Sets the language default type
+     */
+    private function set_default_language_type()
+    {
+        $app = Application::get_instance();
+        $config = $app->get_config()->language;
+        if (empty($config['default']) || empty($config['default']['type']))
+        {
+            Error::set(self::ERROR_NO_DEFAULT_LANGUAGE_TYPE);
+        }
+
+        // set the language type and valid types
+        $type = $config['default']['type'];
+        $types = [self::LANG_DEFAULT_IMPLICIT, self::LANG_DEFAULT_EXPLICIT];
+
+        // validate the type set
+        if (!in_array($type, $types))
+        {
+            Error::set(sprintf(self::ERROR_INVALID_DEFAULT_LANGUAGE_TYPE, $type));
+        }
+
+        $app->default_language_type = $type;
     }
 
     /**

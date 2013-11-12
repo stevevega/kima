@@ -10,6 +10,8 @@ use \Kima\Error,
     \Kima\Http\Redirector,
     \Kima\Http\Request,
     \Kima\Http\StatusCode,
+    \Kima\Language,
+    \Kima\Language\Directory as LanguageDirectory,
     \Bootstrap;
 
 /**
@@ -54,8 +56,9 @@ class Action
 
         // set the application language
         $app = Application::get_instance();
-        $language = $this->get_language();
-        $app->set_language($language);
+
+        // set the app language
+        $this->set_language();
 
         // set the module routes if exists
         $module = $app->get_module();
@@ -68,12 +71,17 @@ class Action
 
         // get the controller matching the routes
         $controller = $this->get_controller($urls);
-
-        // validate controller and action
         if (empty($controller))
         {
+            $app->set_language($app->get_default_language());
             $app->set_http_error(404);
-            return;
+        }
+
+        if (empty($app->get_language()))
+        {
+            $lang_source = Language::get_instance();
+            $lang_url = $lang_source->get_language_url($app->get_default_language());
+            Redirector::redirect($lang_url, 301);
         }
 
         // set the action controller
@@ -89,7 +97,6 @@ class Action
         $this->run_action($controller);
     }
 
-
     /**
      * Gets the url match route to follow
      * Returns the required controller to process the action
@@ -99,7 +106,7 @@ class Action
     private function get_controller(array $urls)
     {
         // gets the URL path needed parameters
-        $url_parameters = $this->get_url_parameters();
+        $url_parameters = $this->url_parameters;
         $url_parameters_count = count($url_parameters);
 
         // loop the defined urls looking for a match
@@ -202,7 +209,7 @@ class Action
             return;
         }
 
-        $params = $this->get_url_parameters();
+        $params = $this->url_parameters;
         $controller_obj->$method($params);
     }
 
@@ -255,51 +262,41 @@ class Action
 
     /**
      * gets the language required for the current action
-     * @return string
      */
-    public function get_language()
+    private function set_language()
     {
-        // get the possible language
-        $url_parameters = $this->get_url_parameters();
-        $language = array_shift($url_parameters);
-        $languages = Application::get_instance()->get_available_languages();
+        $app = Application::get_instance();
 
-        // get the default language
-        $default_language = Application::get_instance()->get_default_language();
+        // get the language object
+        $lang_source = Language::get_instance();
+        $language = $lang_source->get_app_language();
 
-        // return the desired languages
-        if (in_array($language, $languages) && $default_language !== $language)
+        // for directory language we should remove the first url parameter
+        if (isset($language)
+            && $lang_source instanceof LanguageDirectory
+            && (($language !== $app->get_default_language()
+                && Application::LANG_DEFAULT_IMPLICIT === $app->get_default_language_type())
+            || Application::LANG_DEFAULT_EXPLICIT === $app->get_default_language_type()))
         {
             array_shift($this->url_parameters);
         }
-        else
-        {
-            $language = $default_language;
-        }
 
-        return $language;
+        // set the language to the application
+        $app->set_language($language);
+        return $this;
     }
 
     /**
      * Sets the url parameters
      */
-    public function set_url_parameters()
+    private function set_url_parameters()
     {
-        $path_parts = explode('?', Request::server('REQUEST_URI'));
-        $path = array_shift($path_parts);
-        $path_elements = array_values(array_filter(explode('/', $path)));
+        // get the URL path
+        $path = parse_url(Request::server('REQUEST_URI'), PHP_URL_PATH);
+        $url_parameters = array_values(array_filter(explode('/', $path)));
 
-        $this->url_parameters = $path_elements;
+        $this->url_parameters = $url_parameters;
         return $this;
-    }
-
-    /**
-     * Gets the url parameters
-     * @return array
-     */
-    public function get_url_parameters()
-    {
-        return $this->url_parameters;
     }
 
     /**

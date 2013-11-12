@@ -5,12 +5,12 @@
  */
 namespace Kima\Http;
 
-use \Kima\Http\Request;
+use \Kima\Application,
+    \Kima\Http\Request;
 
 /**
  * Redirector
  * HTTP Redirector library
- * @package Kima
  */
 class Redirector
 {
@@ -37,8 +37,7 @@ class Redirector
         $url = Request::server('REQUEST_URI');
 
         $http = 'http://' . $host . $url;
-        header('Location: ' . $http);
-        exit;
+        self::redirect($http);
     }
 
     /**
@@ -51,8 +50,7 @@ class Redirector
         $url = Request::server('REQUEST_URI');
 
         $https = 'https://' . $host . $url;
-        header('Location: ' . $https);
-        exit;
+        self::redirect($https);
     }
 
 }

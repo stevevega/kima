@@ -53,7 +53,7 @@ class Config
         // set the key value if exists
         isset($this->config[$key])
             ? $value = $this->config[$key]
-            : Error::set(sprintf(self::ERROR_NO_KEY, $key), false);
+            : Error::set(sprintf(self::ERROR_NO_KEY, $key));
 
         return isset($value) ? $value : null;
     }
