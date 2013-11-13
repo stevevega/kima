@@ -57,8 +57,8 @@ class Action
         // set the application language
         $app = Application::get_instance();
 
-        // set the app language
-        $this->set_language();
+        // get the app language
+        $language = $this->get_language();
 
         // set the module routes if exists
         $module = $app->get_module();
@@ -77,7 +77,7 @@ class Action
             $app->set_http_error(404);
         }
 
-        if (empty($app->get_language()))
+        if (empty($language))
         {
             $lang_source = Language::get_instance();
             $lang_url = $lang_source->get_language_url($app->get_default_language());
@@ -263,7 +263,7 @@ class Action
     /**
      * gets the language required for the current action
      */
-    private function set_language()
+    private function get_language()
     {
         $app = Application::get_instance();
 
@@ -283,7 +283,7 @@ class Action
 
         // set the language to the application
         $app->set_language($language);
-        return $this;
+        return $language;
     }
 
     /**
