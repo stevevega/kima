@@ -73,7 +73,7 @@ abstract class ALanguage
     protected function build_url(array $url_parts)
     {
         // remove unnecessary folder separators
-        $url = rtrim($url_parts['path'], '/');
+        $url = preg_replace('/\/+/', '/', $url_parts['path']);
 
         // add the URL params
         $url_params = [];
@@ -87,7 +87,7 @@ abstract class ALanguage
         if (isset($url_parts['host']))
         {
             $scheme = isset($url_parts['scheme']) ? $url_parts['scheme'] . '://' : '';
-            $url = $scheme . $url_parts['host'] . '/' . $url;
+            $url = $scheme . $url_parts['host'] . '/' . ltrim($url, '/');
         }
 
         return $url;
