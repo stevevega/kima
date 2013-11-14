@@ -105,40 +105,20 @@ class Action
      */
     private function get_controller(array $urls)
     {
-        // gets the URL path needed parameters
-        $url_parameters = $this->url_parameters;
-        $url_parameters_count = count($url_parameters);
-
         // loop the defined urls looking for a match
         foreach ($urls as $url => $controller)
         {
             if (is_string($controller))
             {
-                // split the url elements
-                $url_elements = array_values(array_filter(explode('/', $url)));
+                // set the match pattern
+                $pattern = str_replace('/', '\/', $url);
 
-                // compare the elements size
-                if ($url_parameters_count === count($url_elements))
+                // set the string to search
+                $subject = '/' . implode('/', $this->url_parameters);
+
+                if (preg_match('/^' . $pattern . '$/', $subject))
                 {
-                    $is_match = true;
-
-                    // loop each url elements
-                    foreach ($url_elements as $key => $url_element)
-                    {
-                        // match the url element with the path element
-                        preg_match('/^' . $url_element . '$/', $url_parameters[$key], $matches);
-                        if (!$matches)
-                        {
-                            $is_match = false;
-                            break;
-                        }
-                    }
-
-                    // if all the elements matched, return its controller
-                    if ($is_match)
-                    {
-                        return $controller;
-                    }
+                    return $controller;
                 }
             }
         }
