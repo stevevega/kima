@@ -121,12 +121,6 @@ class Application
     private $https_controllers = [];
 
     /**
-     * Global default view params
-     * @var array
-     */
-    private $view_params = [];
-
-    /**
      * Construct
      */
     private function __construct()
@@ -474,27 +468,6 @@ class Application
         return empty($app->time_zone)
             ? date_default_timezone_get()
             : $app->time_zone;
-    }
-
-    /**
-     * Sets view global default params to set
-     * @param array $params
-     */
-    public function set_view_params(array $params)
-    {
-        $app = self::get_instance();
-        $app->view_params = array_merge($app->view_params, $params);
-        return $app;
-    }
-
-    /**
-     * Gets view global default params to set
-     * @param array $params
-     */
-    public function get_view_params()
-    {
-        $app = self::get_instance();
-        return $app->view_params;
     }
 
     /**

@@ -5,8 +5,7 @@
  */
 namespace Kima;
 
-use \Kima\Application,
-    \Kima\Cache,
+use \Kima\Cache,
     \Kima\Error,
     \Kima\L10n,
     \Html\CssToInline;
@@ -29,6 +28,13 @@ class View
     const ERROR_HTML_ONLY = '%s can only be added to html views';
     const ERROR_INVALID_HTML_HEADER = 'Invalid html format, <head> needed for meta tags and styles';
     const ERROR_INVALID_HTML_BODY = 'Invalid html format, <head> needed for %s';
+
+    /**
+     * Content types
+     */
+    const HTML = 'html';
+    const XML = 'xml';
+    const TXT = 'txt';
 
     /**
      * Scripts lazy load
@@ -62,7 +68,7 @@ class View
      * Available content types
      * @var array
      */
-    private $content_types = ['html', 'xml', 'txt'];
+    private $content_types = [self::HTML, self::XML, self::TXT];
 
     /**
      * Template content type
@@ -179,9 +185,6 @@ class View
 
         // set the compression option
         $this->set_compression(isset($options['compression']) ? $options['compression'] : false);
-
-        // set the default values set by the application
-        $this->set_default_params();
 
         // set the main template file path
         if (isset($options['layout']))
@@ -439,7 +442,7 @@ class View
     public function meta($name, $content, $http_equiv = false)
     {
         // make sure we are on a html template
-        if ('html' !== $this->content_type)
+        if (self::HTML !== $this->content_type)
         {
             Error::set(sprintf(self::ERROR_HTML_ONLY, 'Meta tags'), Error::WARNING);
         }
@@ -463,7 +466,7 @@ class View
      */
     public function script($script, $lazy_load = false)
     {
-        if ('html' !== $this->content_type)
+        if (self::HTML !== $this->content_type)
         {
             Error::set(sprintf(self::ERROR_HTML_ONLY, 'Scripts'), Error::WARNING);
         }
@@ -489,13 +492,14 @@ class View
 
     /**
      * Sets a style value to html type templates
-     * @param  string $style
+     * @param  string $style_file (Requires full path wehn load_in_header is true)
      * @param  string $media_type
+     * @param  boolean $load_in_header
      */
-    public function style($style_file, $media_type = null)
+    public function style($style_file, $media_type = null, $load_in_header = false)
     {
         // make sure we are on a html template
-        if ('html' !== $this->content_type)
+        if (self::HTML !== $this->content_type)
         {
             Error::set(sprintf(self::ERROR_HTML_ONLY, 'Styles'), Error::WARNING);
         }
@@ -503,8 +507,17 @@ class View
         $media = isset($media_type) ? sprintf('media="%s"', $media_type) : '';
 
         // set the style
-        $style_format = '<link rel="stylesheet" href="%s" type="text/css" %s />';
-        $style = sprintf($style_format, $style_file, $media);
+        if ($load_in_header)
+        {
+            $style_format = '<style type="text/css" %s />%s</style>';
+            $style_content = file_get_contents($style_file);
+            $style = sprintf($style_format, $media, $style_content);
+        }
+        else
+        {
+            $style_format = '<link rel="stylesheet" href="%s" type="text/css" %s />';
+            $style = sprintf($style_format, $style_file, $media);
+        }
 
         // avoid duplicates
         if (!in_array($style_file, $this->style_files))
@@ -534,7 +547,7 @@ class View
             switch ($this->content_type)
             {
                 // set the default html headers
-                case 'html':
+                case self::HTML:
                     @header('Content-Type: text/html; charset=utf-8');
                     @header('X-UA-Compatible: IE=edge,chrome=1');
 
@@ -544,11 +557,11 @@ class View
 
                     break;
                 // set the default xml headers
-                case 'xml':
+                case self::XML:
                     @header('Content-Type: text/xml; charset=utf-8');
                     break;
                 // set the default txt headers
-                case 'txt':
+                case self::TXT:
                     @header('Content-Type: text/plain; charset=utf-8');
                     break;
             }
@@ -559,15 +572,12 @@ class View
             : $this->parsed_blocks[$template];
 
         // apply styles inline
-        if ($this->apply_styles_inline && 'html' === $this->content_type)
+        if ($this->apply_styles_inline && self::HTML === $this->content_type)
         {
-            // get the static resources folder
-            $sr_folder = Application::get_instance()->get_config()->sr['folder'];
-
             $css = '';
             foreach ($this->style_files as $file)
             {
-                $css .= file_get_contents($sr_folder . $file);
+                $css .= file_get_contents($file);
             }
 
             $inlineCss = new CssToInline($result, $css);
@@ -973,20 +983,6 @@ class View
         $output = preg_replace('/<!--(?!\s*(?:\[if [^\]]+]|<!|>))(?:(?!-->).)*-->/', '', $output);
 
         return $output;
-    }
-
-    /**
-     * Sets the view default params
-     */
-    private function set_default_params()
-    {
-        // set the view default params
-        $default_params = Application::get_instance()->get_view_params();
-
-        foreach ($default_params as $key => $param)
-        {
-            $this->set($key, $param);
-        }
     }
 
    /**

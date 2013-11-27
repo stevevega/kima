@@ -52,7 +52,7 @@ class Directory extends ALanguage
         }
 
         // add the language to the URL
-        $url_parts['path'] = '/' . $language . '/' . $url_path;
+        $url_parts['path'] = rtrim('/' . $language . '/' . $url_path, '/');
 
         // build the url
         return $this->build_url($url_parts);

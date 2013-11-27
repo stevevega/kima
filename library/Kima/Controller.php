@@ -101,6 +101,8 @@ class Controller
      */
     private function get_view_config(array $config, $module)
     {
+        $app_config = Application::get_instance()->get_config();
+
         // disable layout if not wanted
         if (!$this->use_layout)
         {
@@ -108,13 +110,13 @@ class Controller
         }
 
         // set cache config
-        $config['cache'] = Application::get_instance()->get_config()->cache;
+        $config['cache'] = $app_config->cache;
         $config['cache']['folder'] .= '/template';
 
         // set module config if necessary
         if ($module)
         {
-            $module_folder = Application::get_instance()->get_config()->module['folder'];
+            $module_folder = $app_config->module['folder'];
             $config['folder'] = $module_folder . '/' . $module . '/view';
         }
 
