@@ -73,7 +73,8 @@ class Action
         $controller = $this->get_controller($urls);
         if (empty($controller))
         {
-            $app->set_language($app->get_default_language());
+            $language = isset($language) ? $language : $app->get_default_language();
+            $app->set_language($language);
             $app->set_http_error(404);
         }
 
