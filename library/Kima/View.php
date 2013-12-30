@@ -608,6 +608,7 @@ class View
     public function set_auto_display($auto_display)
     {
         $this->auto_display = (boolean)$auto_display;
+        return $this;
     }
 
     /**
@@ -617,6 +618,7 @@ class View
     public function set_compression($compression)
     {
         $this->use_compression = (boolean)$compression;
+        return $this;
     }
 
     /**
@@ -625,6 +627,7 @@ class View
     public function apply_styles_inline()
     {
         $this->apply_styles_inline = true;
+        return $this;
     }
 
     /**

@@ -63,10 +63,11 @@ class Controller
             else
             {
                 // get the config and application module-controller-action
-                $config = Application::get_instance()->get_config()->view;
-                $module = Application::get_instance()->get_module();
-                $controller = Application::get_instance()->get_controller();
-                $method = Application::get_instance()->get_method();
+                $app = Application::get_instance();
+                $config = $app->get_config()->view;
+                $module = $app->get_module();
+                $controller = $app->get_controller();
+                $method = $app->get_method();
 
                 // get the config adapted for the view
                 $config = $this->get_view_config($config, $module);
