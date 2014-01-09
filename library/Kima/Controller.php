@@ -118,6 +118,7 @@ class Controller
         if ($module)
         {
             $module_folder = $app_config->module['folder'];
+            $config['folder_failover'] = $config['folder'];
             $config['folder'] = $module_folder . '/' . $module . '/view';
         }
 

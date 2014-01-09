@@ -26,7 +26,7 @@ class Action
      */
     const ERROR_NO_BOOTSTRAP = 'Class Boostrap not defined in Bootstrap.php';
     const ERROR_NO_PREDISPATCHER = 'Registered Predispatcher class %s is not accesible';
-    const ERROR_NO_CONTROLLER_FILE = 'Class file for "%s" is not accesible on "%s"';
+    const ERROR_NO_CONTROLLER_FILE = 'Class file for "%s" is not accesible on "%s" or %s';
     const ERROR_NO_CONTROLLER_CLASS = ' Class "%s" not declared on "%s"';
     const ERROR_NO_CONTROLLER_INSTANCE = 'Object for "%s" is not an instance of \Kima\Controller';
     const ERROR_NO_MODULE_ROUTES = 'Routes for module "%s" are not set';
@@ -166,21 +166,19 @@ class Action
     {
         // get the application values
         $application = Application::get_instance();
-        $config = $application->get_config();
         $module = $application->get_module();
         $method = $application->get_method();
-
-        // get the controller path
-        $controller_folder = $module
-            ? $config->module['folder'] . '/' . $module . '/controller'
-            : $config->controller['folder'];
-
-        $controller_path = $controller_folder . '/' . $controller . '.php';
 
         // get the controller class
         $controller_class = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', $controller);
 
-        $controller_obj = $this->get_controller_instance($controller_class, $controller_path);
+        // get the controller path for the module
+        $controller_path = $this->get_controller_path($controller, $module);
+        $default_path = isset($module) ? $this->get_controller_path($controller, null) : null;
+
+        // get the controller instance
+        $controller_obj = $this->get_controller_instance(
+            $controller_class, $controller_path, $default_path);
 
         // validate-call action
         $methods = $this->get_controller_methods($controller_class);
@@ -195,21 +193,49 @@ class Action
     }
 
     /**
+     * Returns the controller path for a controller
+     * @param  string $controller
+     * @param  string $module
+     * @return string
+     */
+    private function get_controller_path($controller, $module = null)
+    {
+        // get the app config
+        $config = $application = Application::get_instance()->get_config();
+
+        // get the controller folder
+        $controller_folder = isset($module)
+            ? $config->module['folder'] . '/' . $module . '/controller'
+            : $config->controller['folder'];
+
+        // return the controller path
+        return $controller_folder . '/' . $controller . '.php';
+    }
+
+    /**
      * Gets the controller instance
      * @param string $controller The controller name
      * @param string $controller_path
      * @return \Kima\Controller
      */
-    private function get_controller_instance($controller, $controller_path)
+    private function get_controller_instance($controller, $controller_path, $default_path)
     {
         // require the controller file
         if (is_readable($controller_path))
         {
             require_once $controller_path;
         }
+        // look for the default controller path if the other one is not accessible
+        else if (is_readable($default_path))
+        {
+            $controller_path = $default_path;
+            require_once $controller_path;
+        }
+        // no controller was found, error is triggered
         else
         {
-            Error::set(sprintf(self::ERROR_NO_CONTROLLER_FILE, $controller, $controller_path));
+            Error::set(sprintf(self::ERROR_NO_CONTROLLER_FILE,
+                $controller, $controller_path, $default_path));
             return;
         }
 

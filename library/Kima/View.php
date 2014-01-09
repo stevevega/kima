@@ -83,6 +83,12 @@ class View
     private $view_path;
 
     /**
+     * Template failover view path
+     * @var string
+     */
+    private $failover_path;
+
+    /**
      * Should we use the layout?
      * @var boolean
      */
@@ -179,6 +185,12 @@ class View
         // set the view directory
         $view_path = isset($options['folder']) ? $options['folder'] : '.';
         $this->set_view_path($view_path);
+
+        // and failover path if required
+        if (isset($options['folder_failover']))
+        {
+            $this->set_view_path($options['folder_failover'], true);
+        }
 
         // set auto display option
         $this->set_auto_display(isset($options['autodisplay']) ? $options['autodisplay'] : false);
@@ -669,13 +681,28 @@ class View
     /**
      * Set the folder path where the views are located
      * @param string $view_path
+     * @param boolean $is_failover
+     * @return self
      */
-    private function set_view_path($view_path)
+    private function set_view_path($view_path, $is_failover = false)
     {
         // get the view directory path
-        is_dir($view_path) && is_readable($view_path)
-            ? $this->view_path = $view_path
-            : Error::set(sprintf(self::ERROR_INVALID_VIEW_PATH, $view_path));
+        if (!is_dir($view_path) || !is_readable($view_path))
+        {
+            Error::set(sprintf(self::ERROR_INVALID_VIEW_PATH, $view_path));
+        }
+
+        // set the view path or failover path if required
+        if ($is_failover)
+        {
+            $this->failover_path = $view_path;
+        }
+        else
+        {
+            $this->view_path = $view_path;
+        }
+
+        return $this;
     }
 
     /**
@@ -737,6 +764,12 @@ class View
     {
         // set the view file path
         $file_path = $view_path . DIRECTORY_SEPARATOR . $file;
+
+        // check if we need to use the failover path
+        if (!is_readable($file_path) && isset($this->failover_path))
+        {
+            $file_path = $this->failover_path . DIRECTORY_SEPARATOR . $file;
+        }
 
         // get the template content
         is_readable($file_path)
