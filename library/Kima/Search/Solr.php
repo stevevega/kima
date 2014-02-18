@@ -312,6 +312,30 @@ class Solr
     }
 
     /**
+     * Deletes all documents matching the given query
+     * @param  string $query The query; example "*:*" (This will erase the entire index)
+     * @return SolrUpdateResponse on success and throws a SolrClientException on failure
+     */
+    public function delete_by_query($query_string)
+    {
+        $connection = $this->get_connection();
+
+        try
+        {
+            $response = $connection->deleteByQuery($query_string);
+            // $response = $connection->commit();
+            $response = $this->commit();
+        }
+        catch (SolrClientException $e)
+        {
+            Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
+        }
+
+        // return $response->getResponse();
+        return $response;
+    }
+
+    /**
      * Deletes a list of values from the index
      */
     public function delete(array $ids)
@@ -467,4 +491,53 @@ class Solr
         $this->highlight_fields = $highlight_fields;
         return $this;
     }
+
+    /**
+     * Alternative commit function while the bug 'waiteflush' is fixed
+     * @See https://bugs.php.net/bug.php?id=62332
+     * @return
+     */
+    private function commit()
+    {
+        $config = Application::get_instance()->get_config();
+        $response = false;
+        if (empty($config->search['solr'][$this->core]))
+        {
+            Error:set(self::ERROR_NO_CONFIG);
+        }
+        else
+        {
+            $solrConfig = $config->search['solr'][$this->core];
+            $solrAddress = $solrConfig['hostname'] . ':' . $solrConfig['port'] . '/' .$solrConfig['path'];
+            $url = 'http://' . $solrAddress . '/update?commit=true';
+
+            // Open curl session
+            $ch = curl_init();
+
+            curl_setopt($ch, CURLOPT_URL, $url);
+
+            // timeout after 10 ms, tried with 100 ms but it seems some of the
+            // calls were not correctly routed
+            curl_setopt($ch, CURLOPT_TIMEOUT_MS, 10);
+
+            // this allows curl to ignore the signals and correctly timeout on MS
+            // "If libcurl is built to use the standard system name resolver, that
+            // portion of the transfer will still use full-second resolution for timeouts
+            // with a minimum timeout allowed of one second."
+            // http://nl3.php.net/manual/en/function.curl-setopt.php#104597
+            curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
+
+            // Stop printing the result on the screen
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+            //execute post, this will return false as we are not waiting for the response
+            $response = curl_exec($ch);
+
+            //close connection
+            curl_close($ch);
+        }
+
+        return $response;
+    }
+
 }
