@@ -11,8 +11,13 @@ use \Kima\Error,
 /**
  * Kima Image library
  */
-class Image
+class Image extends Imagick
 {
+
+    /**
+     * Stores locally the file passed in the constructor
+     */
+    private $image_file;
 
     /**
      * Error messages
@@ -30,100 +35,112 @@ class Image
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct($file)
     {
         if (!extension_loaded(self::IMAGICK_EXTENSION))
         {
             Error::set(self::ERROR_NO_IMAGICK);
         }
+        // make sure the file exists
+        $this->validate_file($file);
+
+        // Pass images to parent Imageck object
+        parent::__construct($file);
+
+        $this->image_file = $file;
     }
 
     /**
-     * Creates a thumbnail of an image file
-     * @param string $file
+     * Creates a thumbnail of an image file, if the image does not fit the specified dimmesions
+     * after resizing, it will be cropped
      * @param string $destination
      * @param int $width
      * @param int $height
      * @param string $format
      * @return boolean
      */
-    public function thumbnail($file, $destination, $width, $height, $format = 'jpg')
+    public function cropThumbnail($destination, $width, $height, $format = 'jpg')
     {
-        // make sure the file exists
-        $this->validate_file($file);
-
-        // get the image and new image resource
-        $image = new Imagick($file);
-
         // set the image format
-        $format = strtoupper($format);
-        if (!in_array($format, $image->queryFormats()))
-        {
-            Error::set(sprintf(self::ERROR_FORMAT_NO_AVAILABLE, $format));
-        }
-        $image->setImageFormat($format);
+        $this->set_format($this, $format);
 
         // create the thumbnail
-        $image->cropThumbnailImage((int)$width, (int)$height);
+        $this->cropThumbnailImage((int)$width, (int)$height);
 
         // remove potential insecure exif data
-        $image->stripImage();
+        $this->stripImage();
 
         // save the image
-        $result = $this->save_image($image, $destination);
-        $image->destroy();
+        $result = $this->save_image($this, $destination);
+        $this->destroy();
+        return $result;
+    }
+
+
+    /**
+     * Creates a thumbnail of an image file
+     * @param string $destination
+     * @param int $width
+     * @param int $height
+     * @param string $format
+     * @param string $best_fit
+     * @return boolean
+     */
+    public function thumbnail($destination, $width, $height, $format = 'jpg', $best_fit = false)
+    {
+        // set the image format
+        $this->set_format($this, $format);
+
+        // create the thumbnail
+        $this->thumbnailImage((int)$width, (int)$height, $best_fit);
+
+        // remove potential insecure exif data
+        $this->stripImage();
+
+        // save the image
+        $result = $this->save_image($this, $destination);
+        $this->destroy();
         return $result;
     }
 
     /**
      * Transforms an image into another format
-     * @param string $file
      * @param string $destination the path to write
      * @param string $format
      * @return boolean
      */
-    protected function convert($file, $destination, $format)
+    protected function convert($destination, $format)
     {
-        // make sure the file exists
-        $this->validate_file($file);
-
         // set the image format
-        $image = new Imagick($file);
-        $this->set_format($image, $format);
+        $this->set_format($this, $format);
 
         // save image
-        $result = $this->save_image($image, $destination);
-        $image->destroy();
+        $result = $this->save_image($this, $destination);
+        $this->destroy();
         return $result;
     }
 
     /**
      * MOv a new image based on a source image
-     * @param string $source
      * @param string $destination
      * @param string $format
      */
-    public function move_uploaded_image($source, $destination, $format = '')
+    public function move_uploaded_image($destination, $format = '')
     {
-        // make sure the file exists
-        $this->validate_file($source);
-
-        $image = new Imagick($source);
-
         if (!empty($format))
         {
-            $this->set_format($image, $format);
+            $this->set_format($this, $format);
         }
 
         // remove potential insecure exif data
-        $image->stripImage();
+        $this->stripImage();
 
         // save the image into the new location
-        $result = $this->save_image($image, $destination);
-        $image->destroy();
+        $result = $this->save_image($this, $destination);
+        $this->destroy();
 
         // remove the source
-        @unlink($source);
+        @unlink($this->image_file);
 
         return $result;
     }
