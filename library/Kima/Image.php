@@ -62,7 +62,7 @@ class Image extends Imagick
     public function cropThumbnail($destination, $width, $height, $format = 'jpg')
     {
         // set the image format
-        $this->set_format($this, $format);
+        $this->set_format($format);
 
         // create the thumbnail
         $this->cropThumbnailImage((int)$width, (int)$height);
@@ -89,7 +89,7 @@ class Image extends Imagick
     public function thumbnail($destination, $width, $height, $format = 'jpg', $best_fit = false)
     {
         // set the image format
-        $this->set_format($this, $format);
+        $this->set_format($format);
 
         // create the thumbnail
         $this->thumbnailImage((int)$width, (int)$height, $best_fit);
@@ -112,7 +112,7 @@ class Image extends Imagick
     protected function convert($destination, $format)
     {
         // set the image format
-        $this->set_format($this, $format);
+        $this->set_format($format);
 
         // save image
         $result = $this->save_image($this, $destination);
@@ -129,7 +129,7 @@ class Image extends Imagick
     {
         if (!empty($format))
         {
-            $this->set_format($this, $format);
+            $this->set_format($format);
         }
 
         // remove potential insecure exif data
@@ -150,15 +150,15 @@ class Image extends Imagick
      * @param Imagick $image
      * @param string $format
      */
-    protected function set_format(Imagick &$image, $format)
+    protected function set_format($format)
     {
         // set the image format
         $format = strtoupper($format);
-        if (!in_array($format, $image->queryFormats()))
+        if (!in_array($format, $this->queryFormats()))
         {
             Error::set(sprintf(self::ERROR_FORMAT_NO_AVAILABLE, $format));
         }
-        $image->setImageFormat($format);
+        $this->setImageFormat($format);
     }
 
     /**

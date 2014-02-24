@@ -55,8 +55,8 @@ class Image extends File
         }
 
         // move the file to the new location
-        $image = new KimaImage();
-        return $image->move_uploaded_image($temp_file, $path, $this->save_as);
+        $image = new KimaImage($temp_file);
+        return $image->move_uploaded_image($path, $this->save_as);
     }
 
 }
