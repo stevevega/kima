@@ -297,7 +297,8 @@ class Solr
         try
         {
             $connection->addDocuments($docs);
-            $response = $connection->commit();
+            // $response = $connection->commit();
+            $response = $this->commit();
         }
         catch (SolrClientException $e)
         {
@@ -308,7 +309,8 @@ class Solr
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
         }
 
-        return $response->getResponse();
+        // return $response->getResponse();
+        return $response;
     }
 
     /**
