@@ -112,7 +112,6 @@ class Controller
 
         // set cache config
         $config['cache'] = $app_config->cache;
-        $config['cache']['folder'] .= '/template';
 
         // set module config if necessary
         if ($module)

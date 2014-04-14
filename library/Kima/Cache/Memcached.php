@@ -5,30 +5,27 @@
  */
 namespace Kima\Cache;
 
-use \Kima\Cache\ACache,
+use \Kima\Cache\ICache,
     \Kima\Error,
     \Memcached as PhpMemcached;
 
 /**
  * Memcached Adapter for Kima Cache
  */
-class Memcached extends ACache
+class Memcached extends PhpMemcached implements ICache
 {
 
     /**
      * Memcached Connection Pool
      */
-    const MEMCACHED_POOL = 'Kima_Memcached';
+    const MEMCACHED_POOL = 'kima_memcached';
 
     /**
-     * @var string $cache_type
+     * Default cache values
      */
-    protected $cache_type = 'memcached';
-
-    /**
-     * @var Memcached $memcached
-     */
-    protected $memcached;
+    const DEFAULT_HOST = '127.0.0.1';
+    const DEFAULT_PORT = 11211;
+    const DEFAULT_WEIGHT = 0;
 
     /**
      * Construct
@@ -36,33 +33,13 @@ class Memcached extends ACache
      */
     public function __construct(array $options = [])
     {
-        if (!extension_loaded($this->cache_type))
+        // call the parent with the cache pool name
+        parent::__construct(self::MEMCACHED_POOL);
+
+        // add the memcache server pool
+        if (!$this->getServerList() && isset($options['memcached']['server']))
         {
-            Error::set(sprintf(self::ERROR_NO_CACHE_SYSTEM, $this->cache_type));
-        }
-
-        $this->cache_enabled = !empty($options['enabled']) ? true : false;
-
-        $this->memcached = new PhpMemcached(self::MEMCACHED_POOL);
-
-        if (isset($options['prefix']))
-        {
-            $this->set_prefix($options['prefix']);
-        }
-
-        if (!$this->memcached->getServerList() && isset($options['memcached']['server']))
-        {
-            $servers = [];
-
-            foreach ($options['memcached']['server'] as $server)
-            {
-                $host = isset($server['host']) ? $server['host'] : '127.0.0.1';
-                $port = isset($server['port']) ? $server['port'] : '11211';
-                $weight = isset($server['weight']) ? $server['weight'] : 0;
-                $servers[] = [$host, $port, $weight];
-            }
-
-            $this->memcached->addServers($servers);
+            $this->set_server_pool($options['memcached']['server']);
         }
     }
 
@@ -73,14 +50,8 @@ class Memcached extends ACache
      */
     public function get($key)
     {
-        if ($this->cache_enabled)
-        {
-            $key = $this->get_key($key);
-            $item = $this->memcached->get($key);
-            return $item ? $item['value'] : null;
-        }
-
-        return null;
+        $item = parent::get($key);
+        return $item ? $item['value'] : null;
     }
 
     /**
@@ -92,22 +63,14 @@ class Memcached extends ACache
      */
     public function get_by_file($key, $file_path)
     {
-        if ($this->cache_enabled)
+        // can we access the original file?
+        if (!is_readable($file_path))
         {
-            // can we access the original file?
-            if (is_readable($file_path))
-            {
-                $key = $this->get_key($key);
-                $item = $this->memcached->get($key);
-
-                // is it newer than the last file modification date?
-                return (filemtime($file_path) <= $item['timestamp'])
-                    ? $item['value']
-                    : null;
-            }
+            return null;
         }
 
-        return null;
+        $item = parent::get($key);
+        return (filemtime($file_path) <= $item['timestamp']) ? $item['value'] : null;
     }
 
     /**
@@ -118,17 +81,26 @@ class Memcached extends ACache
      */
     public function set($key, $value, $expiration = 0)
     {
-        if ($this->cache_enabled)
-        {
-            $key = $this->get_key($key);
-            $value = [
-                'timestamp' => time(),
-                'value' => $value];
+        $value = ['timestamp' => time(), 'value' => $value];
+        return parent::set($key, $value, $expiration);
+    }
 
-            return $this->memcached->set($key, $value, $expiration);
+    /**
+     * Sets servers to the memcached servers pool
+     * @param array $servers
+     */
+    private function set_server_pool($servers)
+    {
+        $servers = (array)$servers;
+        foreach ($servers as $server)
+        {
+            $host = isset($server['host']) ? $server['host'] : self::DEFAULT_HOST;
+            $port = isset($server['port']) ? $server['port'] : self::DEFAULT_PORT;
+            $weight = isset($server['weight']) ? $server['weight'] : self::DEFAULT_WEIGHT;
+            $servers[] = [$host, $port, $weight];
         }
 
-        return null;
+        $this->addServers($servers);
     }
 
 }
