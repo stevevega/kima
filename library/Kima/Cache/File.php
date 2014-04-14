@@ -17,13 +17,14 @@ class File implements ICache
     /**
      * Error Messages
      */
-     const ERROR_NO_FOLDER = 'Folder path %s does not exists and cannot be created';
-     const ERROR_FOLDER_PERMISSION = 'Cache folder path %s is not accesible or writable';
+    const ERROR_NO_FOLDER_PATH = 'Option file.folder is required for file cache';
+    const ERROR_FOLDER_NOT_EXISTS = 'Folder path %s does not exists and cannot be created';
+    const ERROR_FOLDER_PERMISSION = 'Cache folder path %s is not accesible or writable';
 
-     /**
-      * Cache file extension
-      */
-     const FILE_EXTENSION = '.cache';
+    /**
+     * Cache file extension
+     */
+    const FILE_EXTENSION = '.cache';
 
     /**
      * Cache folder path
@@ -38,10 +39,12 @@ class File implements ICache
      */
     public function __construct(array $options = [])
     {
-        if (isset($options['file']['folder']))
+        if (!isset($options['file']['folder']))
         {
-            $this->set_folder_path($options['file']['folder']);
+            Error::set(self::ERROR_NO_FOLDER_PATH);
         }
+
+        $this->set_folder_path($options['file']['folder']);
     }
 
     /**
@@ -129,7 +132,7 @@ class File implements ICache
         {
             if (@!mkdir($folder_path, 0755, true))
             {
-                Error::set(sprintf(self::ERROR_NO_FOLDER, $folder_path));
+                Error::set(sprintf(self::ERROR_FOLDER_NOT_EXISTS, $folder_path));
             }
 
         }
