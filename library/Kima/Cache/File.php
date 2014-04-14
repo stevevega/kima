@@ -52,7 +52,7 @@ class File implements ICache
     public function get($key)
     {
         $cache_path = $this->folder_path . DIRECTORY_SEPARATOR . $key . self::FILE_EXTENSION;
-        if (is_readable($cache_path))
+        if (!is_readable($cache_path))
         {
             return null;
         }
