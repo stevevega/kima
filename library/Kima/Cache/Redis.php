@@ -79,9 +79,11 @@ class Redis extends PhpRedis implements ICache
         }
 
         // conect to the redis server
-        $host = isset($options['host']) ? $options['host'] : self::DEFAULT_HOST;
-        $port = isset($options['port']) ? $options['port'] : self::DEFAULT_PORT;
-        $weight = isset($options['timeout']) ? $options['timeout'] : self::DEFAULT_TIMEOUT;
+        $host = isset($options['redis']['host']) ? $options['redis']['host'] : self::DEFAULT_HOST;
+        $port = isset($options['redis']['port']) ? $options['redis']['port'] : self::DEFAULT_PORT;
+        $weight = isset($options['redis']['timeout'])
+            ? $options['redis']['timeout']
+            : self::DEFAULT_TIMEOUT;
         $this->connect($host, $port, $weight);
 
         // set data serializer after connection
