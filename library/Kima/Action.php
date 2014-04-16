@@ -200,16 +200,16 @@ class Action
      */
     private function get_controller_path($controller, $module = null)
     {
-        // get the app config
-        $config = $application = Application::get_instance()->get_config();
+        // get the app
+        $app = Application::get_instance();
 
         // get the controller folder
         $controller_folder = isset($module)
-            ? $config->module['folder'] . '/' . $module . '/controller'
-            : $config->controller['folder'];
+            ? $app->get_module_folder() . '/' . $module . '/controller/'
+            : $app->get_controller_folder();
 
         // return the controller path
-        return $controller_folder . '/' . $controller . '.php';
+        return $controller_folder . $controller . '.php';
     }
 
     /**
@@ -313,7 +313,6 @@ class Action
     private function load_bootstrap()
     {
         $app = Application::get_instance();
-        $config = $app->get_config();
 
         // set module path if exists
         $module = $app->get_module();
@@ -322,7 +321,7 @@ class Action
             : '';
 
         // set the bootstrap path
-        $bootstrap_path = $config->application['folder'] . DIRECTORY_SEPARATOR
+        $bootstrap_path = $app->get_application_folder() . DIRECTORY_SEPARATOR
             . $module_path . self::BOOTSTRAP_PATH;
 
         // load the bootstrap if available

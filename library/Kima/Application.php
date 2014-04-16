@@ -37,6 +37,18 @@ class Application
     private static $instance;
 
     /**
+     * Folder paths
+     */
+    private $application_folder;
+    private $controller_folder;
+    private $model_folder;
+    private $module_folder;
+    private $view_folder;
+    private $l10n_folder;
+    private $library_folder;
+    private $kima_folder;
+
+    /**
      * config
      * @var array
      */
@@ -125,8 +137,10 @@ class Application
      */
     private function __construct()
     {
+        $this->set_application_folders();
+
         // register the auto load function
-        spl_autoload_register('Kima\Application::autoload');
+        spl_autoload_register(array('self', 'autoload'));
     }
 
     /**
@@ -147,7 +161,14 @@ class Application
     protected static function autoload($class)
     {
         // get the required file
-        require_once str_replace('\\', '/', $class).'.php';
+        $filename = str_replace('\\', '/', $class) . '.php';
+
+        // load file
+        $app = self::get_instance();
+        $include_paths = [$app->library_folder, $app->model_folder, $app->kima_folder];
+        $app->load_class($include_paths, $filename);
+
+        return true;
     }
 
     /**
@@ -190,7 +211,7 @@ class Application
         $app->setup();
 
         // run the action
-        $action = new Action($urls);
+        return new Action($urls);
     }
 
     /**
@@ -211,11 +232,6 @@ class Application
     {
         // set the application config
         $config = new Config($path);
-
-        // add the model to the include path
-        set_include_path(
-            implode(PATH_SEPARATOR,
-            [realpath($config->application['folder'] . '/model'), get_include_path()]));
 
         $app = self::get_instance();
         $app->config = $config;
@@ -547,18 +563,17 @@ class Application
         // set the status code
         http_response_code($status_code);
 
-        $application = Application::get_instance();
-        $config = $application->get_config();
-        $module = $application->get_module();
+        $app = Application::get_instance();
+        $module = $app->get_module();
 
         //  the controller path
         $controller_folder = $module
-            ? $config->module['folder'] . '/' . $module . '/controller'
-            : $config->controller['folder'];
+            ? $app->module_folder . '/' . $module . '/controller/'
+            : $app->controller_folder;
 
         $app = self::get_instance();
         $app->controller = 'Error';
-        $controller_path = $controller_folder . '/Error.php';
+        $controller_path = $controller_folder . $app->controller . '.php';
         require_once $controller_path;
 
         $method = 'get';
@@ -574,6 +589,150 @@ class Application
     public function get_default_language_type()
     {
         return $this->default_language_type;
+    }
+
+    /**
+     * Sets the predispatcher class
+     * @param string $predispatcher
+     */
+    public function set_predispatcher($predispatcher)
+    {
+        $app = self::get_instance();
+        $app->predispatcher = $predispatcher;
+        return $app;
+    }
+
+    /**
+     * Gets the predispatcher class
+     * @param string $predispatcher
+     */
+    public function get_predispatcher()
+    {
+        $app = self::get_instance();
+        return $app->predispatcher;
+    }
+
+    /**
+     * Gets the application_folder
+     * @return string
+     */
+    public function get_application_folder()
+    {
+        $app = self::get_instance();
+        return $app->application_folder;
+    }
+
+    /**
+     * Gets the controller_folder
+     * @return string
+     */
+    public function get_controller_folder()
+    {
+        $app = self::get_instance();
+        return $app->controller_folder;
+    }
+
+    /**
+     * Gets the model_folder
+     * @return string
+     */
+    public function get_model_folder()
+    {
+        $app = self::get_instance();
+        return $app->model_folder;
+    }
+
+    /**
+     * Gets the module_folder
+     * @return string
+     */
+    public function get_module_folder()
+    {
+        $app = self::get_instance();
+        return $app->module_folder;
+    }
+
+    /**
+     * Gets the view_folder
+     * @return string
+     */
+    public function get_view_folder()
+    {
+        $app = self::get_instance();
+        return $app->view_folder;
+    }
+
+    /**
+     * Gets the l10n_folder
+     * @return string
+     */
+    public function get_l10n_folder()
+    {
+        $app = self::get_instance();
+        return $app->l10n_folder;
+    }
+
+    /**
+     * Gets the library_folder
+     * @return string
+     */
+    public function get_library_folder()
+    {
+        $app = self::get_instance();
+        return $app->library_folder;
+    }
+
+    /**
+     * Gets the kima_folder
+     * @return string
+     */
+    public function get_kima_folder()
+    {
+        $app = self::get_instance();
+        return $app->kima_folder;
+    }
+
+    /**
+     * Sets the application folders
+     * @return  Application
+     */
+    private function set_application_folders()
+    {
+        $this->application_folder = ROOT_FOLDER . '/application/';
+        $this->controller_folder = $this->application_folder . 'controller/';
+        $this->model_folder = $this->application_folder . 'model/';
+        $this->module_folder = $this->application_folder . 'module/';
+        $this->view_folder = $this->application_folder . 'view/';
+        $this->l10n_folder = ROOT_FOLDER . '/resource/l10n/';
+        $this->library_folder = ROOT_FOLDER . '/library/';
+        $this->kima_folder = realpath(dirname(__FILE__) . '/..') . '/';
+
+        return $this;
+    }
+
+    /**
+     * Try loading a class from a list of include paths
+     * It makes sure the file exists to avoid throwing errors
+     * so other auto_loaders can be registered
+     * @param  array  $include_paths
+     * @param  string $filename
+     * @return boolean
+     */
+    private function load_class(array $include_paths, $filename)
+    {
+        // try the include paths
+        foreach ($include_paths as $include_path)
+        {
+            $filepath = $include_path . $filename;
+            if (file_exists($filepath))
+            {
+                require_once $filepath;
+                return true;
+            }
+        }
+
+        // try the php include paths
+        return false;
     }
 
     /**
@@ -599,27 +758,6 @@ class Application
         }
 
         $app->default_language_type = $type;
-    }
-
-    /**
-     * Sets the predispatcher class
-     * @param string $predispatcher
-     */
-    public function set_predispatcher($predispatcher)
-    {
-        $app = self::get_instance();
-        $app->predispatcher = $predispatcher;
-        return $app;
-    }
-
-    /**
-     * Gets the predispatcher class
-     * @param string $predispatcher
-     */
-    public function get_predispatcher()
-    {
-        $app = self::get_instance();
-        return $app->predispatcher;
     }
 
 }

@@ -102,7 +102,8 @@ class Controller
      */
     private function get_view_config(array $config, $module)
     {
-        $app_config = Application::get_instance()->get_config();
+        $app = Application::get_instance();
+        $app_config = $app->get_config();
 
         // disable layout if not wanted
         if (!$this->use_layout)
@@ -116,9 +117,8 @@ class Controller
         // set module config if necessary
         if ($module)
         {
-            $module_folder = $app_config->module['folder'];
-            $config['folder_failover'] = $config['folder'];
-            $config['folder'] = $module_folder . '/' . $module . '/view';
+            $config['folder_failover'] = $app->get_view_folder();
+            $config['folder'] = $app->get_module_folder() . $module . '/view';
         }
 
         return $config;

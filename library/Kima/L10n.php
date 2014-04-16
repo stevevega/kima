@@ -17,7 +17,6 @@ class L10n
     /**
      * Error messages
      */
-    const ERROR_NO_L10N_FOLDER = 'Required config key l10n.folder not found in application ini';
     const ERROR_INVALID_STRINGS_PATH = 'Cannot access strings path "%s"';
 
     /**
@@ -84,12 +83,10 @@ class L10n
     private static function get_strings_path($module, $language)
     {
         // get the module and config
-        $config = Application::get_instance()->get_config();
+        $app = Application::get_instance();
 
         // set the strings path
-        (!is_null($config->l10n) && isset($config->l10n['folder']))
-            ? $strings_path = $config->l10n['folder']
-            : Error::set(self::ERROR_NO_L10N_FOLDER);
+        $strings_path = $app->get_l10n_folder();
 
         // add the module and file name to the string path
         $strings_path .= !empty($module) ? $module . DIRECTORY_SEPARATOR : '';
