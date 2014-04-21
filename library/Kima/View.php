@@ -8,7 +8,7 @@ namespace Kima;
 use \Kima\Cache,
     \Kima\Error,
     \Kima\L10n,
-    \Html\CssToInline;
+    \Kima\Html\CssToInline;
 
 /**
  * View
