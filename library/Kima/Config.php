@@ -22,8 +22,8 @@ class Config
     const ERROR_NO_KEY = 'Config key "%s" doesn\'t exists';
     const ERROR_CONFIG_PATH = 'Cannot access config file on "%s"';
 
-    const DEFAULT_CONFIG_FOLDER = '/application/config/';
-    const DEFAULT_CONFIG_MODULE_FOLDER = '/application/module/%s/config/';
+    const DEFAULT_CONFIG_FOLDER = 'config/';
+    const DEFAULT_CONFIG_MODULE_FOLDER = 'module/%s/config/';
     const DEFAULT_CONFIG_FILE = 'application.ini';
 
     /**
@@ -38,9 +38,10 @@ class Config
      */
     public function __construct($path = '')
     {
+        $app_folder = Application::get_instance()->get_application_folder();
         $path = !empty($path)
             ? $path
-            : ROOT_FOLDER . self::DEFAULT_CONFIG_FOLDER . self::DEFAULT_CONFIG_FILE;
+            : $app_folder . self::DEFAULT_CONFIG_FOLDER . self::DEFAULT_CONFIG_FILE;
         $this->parse_config($path);
     }
 
@@ -125,10 +126,12 @@ class Config
     private function get_module_config($environment)
     {
         // if there is a module, lets get the custom config also
-        $module = Application::get_instance()->get_module();
+        $app = Application::get_instance();
+        $module = $app->get_module();
         if (!empty($module))
         {
-            $path = ROOT_FOLDER
+            $app_path = $app->get_application_folder();
+            $path =  $app_path
                 . sprintf(self::DEFAULT_CONFIG_MODULE_FOLDER, $module)
                 . self::DEFAULT_CONFIG_FILE;
 
