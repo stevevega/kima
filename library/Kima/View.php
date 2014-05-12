@@ -476,7 +476,7 @@ class View
      * @param string $script
      * @param boolean $lazyLoad
      */
-    public function script($script, $lazy_load = false)
+    public function script($script, $lazy_load = false, $attrs = null)
     {
         if (self::HTML !== $this->content_type)
         {
@@ -491,7 +491,8 @@ class View
         }
         else
         {
-            $script = '<script src="' . $script . '" type="text/javascript"></script>';
+            $attrs_str = $this->format_attrs($attrs);
+            $script = '<script src="' . $script . '" ' .  $attrs_str . ' type="text/javascript"></script>';
             $target = 'scripts';
         }
 
@@ -1030,6 +1031,28 @@ class View
         $html = $this->get_view($template);
 
         echo $html;
+    }
+
+    /**
+     * Receives an array of key value attributes and converts them
+     * into a string of key values for an HTML tags
+     * @param  [array] $attrs array of key values
+     * @return [string]
+     */
+    private function format_attrs(array $attrs = null)
+    {
+        $formatted_attrs = '';
+        if ($attrs)
+        {
+            $KEY_VALUE_PAIR = '%s="%s"';
+            $attrs_key_value_pair = [];
+            foreach ($attrs as $key => $value)
+            {
+                $attrs_key_value_pair[] = sprintf($KEY_VALUE_PAIR, $key, $value);
+            }
+            $formatted_attrs = implode(' ', $attrs_key_value_pair);
+        }
+        return $formatted_attrs;
     }
 
 }
