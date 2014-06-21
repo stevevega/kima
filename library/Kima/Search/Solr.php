@@ -147,7 +147,7 @@ class Solr
 
             if (empty($config->search['solr'][$this->core]))
             {
-                Error:set(self::ERROR_NO_CONFIG);
+                Error::set(self::ERROR_NO_CONFIG);
             }
 
             $options = $config->search['solr'][$this->core];
