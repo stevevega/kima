@@ -5,9 +5,7 @@
  */
 namespace Kima;
 
-use \Exception,
-    \Kima\Application,
-    \Kima\Logger;
+use \Exception;
 
 /**
  * Handles user trigger errors in the application
@@ -42,11 +40,11 @@ class Error
     /**
      * Error class cannot be instanced directly
      */
-    private function __contruct(){}
+    private function __contruct() {}
 
     /**
      * Sets an application error
-     * @param string $message the error message
+     * @param string  $message     the error message
      * @param boolean $is_critical whether is a critical error or not
      */
     public static function set($message, $level = null)
@@ -61,15 +59,14 @@ class Error
         // sets the error message
         $error_message = sprintf(self::ERROR_FORMAT,
             $error_level_name,
-            (string)$message,
+            (string) $message,
             $error_caller['class'],
             $error_caller['function'],
-            $error_caller['file'],
+            isset($error_caller['file']) ? $error_caller['file'] : '',
             print_r($error_caller['args'], true));
 
         $config = Application::get_instance()->get_config();
-        if (isset($config->database) && !empty($config->database['mongo']['host']))
-        {
+        if (isset($config->database) && !empty($config->database['mongo']['host'])) {
             Logger::log($error_message, 'error', $error_level_name);
         }
 
@@ -85,6 +82,7 @@ class Error
     {
         $e = new Exception();
         $trace = $e->getTrace();
+
         return $trace[2];
     }
 

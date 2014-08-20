@@ -5,8 +5,7 @@
  */
 namespace Kima\Cache;
 
-use \Kima\Cache\ICache,
-    \Kima\Error;
+use \Kima\Error;
 
 /**
  * File Adapter for Kima Cache
@@ -35,12 +34,11 @@ class File implements ICache
 
     /**
      * Construct
-     * @param   array   $options the config options
+     * @param array $options the config options
      */
     public function __construct(array $options = [])
     {
-        if (!isset($options['file']['folder']))
-        {
+        if (!isset($options['file']['folder'])) {
             Error::set(self::ERROR_NO_FOLDER_PATH);
         }
 
@@ -49,14 +47,13 @@ class File implements ICache
 
     /**
      * Gets a cache key
-     * @param   string  $key the cache key
-     * @return  mixed
+     * @param  string $key the cache key
+     * @return mixed
      */
     public function get($key)
     {
         $cache_path = $this->folder_path . DIRECTORY_SEPARATOR . $key . self::FILE_EXTENSION;
-        if (!is_readable($cache_path))
-        {
+        if (!is_readable($cache_path)) {
             return null;
         }
 
@@ -69,30 +66,29 @@ class File implements ICache
     /**
      * Gets a cache key using the file last mofication
      * as reference instead of the cache expiration
-     * @param   string  $key the cache key
-     * @param   string  $file_path the file path
-     * @return  mixed
+     * @param  string $key       the cache key
+     * @param  string $file_path the file path
+     * @return mixed
      */
     public function get_by_file($key, $file_path)
     {
-        if (!is_readable($file_path))
-        {
+        if (!is_readable($file_path)) {
             return null;
         }
 
         $cache_path = $this->folder_path . DIRECTORY_SEPARATOR . $key . self::FILE_EXTENSION;
-        if (is_readable($cache_path) && filemtime($file_path) <= filemtime($cache_path))
-        {
+        if (is_readable($cache_path) && filemtime($file_path) <= filemtime($cache_path)) {
             $item = unserialize(file_get_contents($cache_path));
+
             return $item['value'];
         }
     }
 
     /**
      * Sets the cache key
-     * @param   string  $key the cache key
-     * @param   mixed   $value
-     * @param   time    $expiration
+     * @param string $key        the cache key
+     * @param mixed  $value
+     * @param time   $expiration
      */
     public function set($key, $value, $expiration = 0)
     {
@@ -111,7 +107,7 @@ class File implements ICache
 
     /**
      * Gets the folder path
-     * @return  string
+     * @return string
      */
     public function get_folder_path()
     {
@@ -120,30 +116,28 @@ class File implements ICache
 
     /**
      * Sets the cache path
-     * @param   string $folder_path
-     * @return  ICache
+     * @param  string $folder_path
+     * @return ICache
      */
     public function set_folder_path($folder_path)
     {
-        $folder_path = (string)$folder_path;
+        $folder_path = (string) $folder_path;
 
         // if the folder path doesn't exists, try to create it
-        if (!is_dir($folder_path))
-        {
-            if (@!mkdir($folder_path, 0755, true))
-            {
+        if (!is_dir($folder_path)) {
+            if (@!mkdir($folder_path, 0755, true)) {
                 Error::set(sprintf(self::ERROR_FOLDER_NOT_EXISTS, $folder_path));
             }
 
         }
 
         // make sure the path is writable
-        if (!is_writeable($folder_path))
-        {
+        if (!is_writeable($folder_path)) {
             Error::set(sprintf(self::ERROR_FOLDER_PERMISSION, $folder_path));
         }
 
         $this->folder_path = $folder_path;
+
         return $this;
     }
 

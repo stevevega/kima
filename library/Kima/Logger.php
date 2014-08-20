@@ -5,8 +5,6 @@
  */
 namespace Kima;
 
-use \Kima\Model;
-
 /**
  * Logger
  * Logger for Kima
@@ -48,8 +46,7 @@ class Logger extends Model
     {
         $logger = new self();
 
-        if (!empty($type))
-        {
+        if (!empty($type)) {
             $logger->table($type);
         }
 

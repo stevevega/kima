@@ -9,9 +9,9 @@
  */
 namespace Kima\Html;
 
-use \Kima\Error,
-    \DOMDocument,
-    \DOMXPath;
+use \Kima\Error;
+use \DOMDocument;
+use \DOMXPath;
 
 /**
  * HTML CSS to Inline library
@@ -69,8 +69,8 @@ class CssToInline
     /**
      * Creates a CssToInline instance
      * Optionally sets the html and css to use
-     * @param  string $html The HTML to process.
-     * @param  string $css  The CSS to use.
+     * @param string $html The HTML to process.
+     * @param string $css  The CSS to use.
      */
     public function __construct($html = null, $css = null)
     {
@@ -80,20 +80,20 @@ class CssToInline
 
     /**
      * Set HTML to process
-     * @param  string $html The HTML to process.
+     * @param string $html The HTML to process.
      */
     public function set_html($html)
     {
-        $this->html = (string)$html;
+        $this->html = (string) $html;
     }
 
     /**
      * Set CSS to use
-     * @param  string $css The CSS to use.
+     * @param string $css The CSS to use.
      */
     public function set_css($css)
     {
-        $this->css = (string)$css;
+        $this->css = (string) $css;
     }
 
     /**
@@ -107,11 +107,11 @@ class CssToInline
 
     /**
      * Set the encoding to use with the DOMDocument
-     * @param  string $encoding
+     * @param string $encoding
      */
     public function set_encoding($encoding)
     {
-        $this->encoding = (string)$encoding;
+        $this->encoding = (string) $encoding;
     }
 
     /**
@@ -128,8 +128,7 @@ class CssToInline
      */
     public function convert()
     {
-        if (empty($this->html))
-        {
+        if (empty($this->html)) {
             Error::set(self::ERROR_NO_HTML);
         }
 
@@ -146,28 +145,23 @@ class CssToInline
         $document->loadHTML($this->html);
         $xpath = new DOMXPath($document);
 
-        if (!empty($this->css_rules))
-        {
+        if (!empty($this->css_rules)) {
             // apply every rule
-            foreach ($this->css_rules as $rule)
-            {
+            foreach ($this->css_rules as $rule) {
                 // get query
                 $query = $this->build_xpath_query($rule['selector']);
-                if (empty($query))
-                {
+                if (empty($query)) {
                     continue;
                 }
 
                 // search elements
                 $elements = $xpath->query($query);
-                if (empty($elements))
-                {
+                if (empty($elements)) {
                     continue;
                 }
 
                 // loop found elements
-                foreach ($elements as $element)
-                {
+                foreach ($elements as $element) {
                     $this->set_original_styles($element);
 
                     // get the properties
@@ -181,8 +175,7 @@ class CssToInline
 
             // reapply original styles
             $query = $this->build_xpath_query('*[@' . self::ORIGINAL_STYLES . ']');
-            if (false === $query)
-            {
+            if (false === $query) {
                 return;
             }
 
@@ -190,15 +183,13 @@ class CssToInline
             $elements = $xpath->query($query);
 
             // loop found elements
-            foreach ($elements as $element)
-            {
+            foreach ($elements as $element) {
                 // get the original styles
                 $original_style =
                     $element->attributes->getNamedItem(self::ORIGINAL_STYLES);
                 $original_properties = $this->get_properties($original_style);
 
-                if (!empty($original_properties))
-                {
+                if (!empty($original_properties)) {
                     // get current styles
                     $styles_attribute = $element->attributes->getNamedItem('style');
                     $properties = $this->get_properties($styles_attribute);
@@ -216,8 +207,7 @@ class CssToInline
         $html = $document->saveHTML();
 
         // cleanup the HTML if we need to
-        if ($this->cleanup)
-        {
+        if ($this->cleanup) {
             $html = $this->cleanup_html($html);
         }
 
@@ -234,8 +224,7 @@ class CssToInline
         $properties = [];
 
         // get current styles
-        if (null !== $attribute)
-        {
+        if (null !== $attribute) {
             // get value for the styles attribute
             $defined_styles = $attribute->value;
 
@@ -243,20 +232,17 @@ class CssToInline
             $defined_properties = explode(';', $defined_styles);
 
             // loop properties
-            foreach ($defined_properties as $property)
-            {
+            foreach ($defined_properties as $property) {
                 // validate property
-                if (empty($property))
-                {
+                if (empty($property)) {
                     continue;
                 }
 
                 // split into chunks
                 $chunks = explode(':', trim($property), 2);
 
-                if (isset($chunks[1]))
-                {
-                    $properties[$chunks[0]] = (array)trim($chunks[1]);
+                if (isset($chunks[1])) {
+                    $properties[$chunks[0]] = (array) trim($chunks[1]);
                 }
             }
         }
@@ -266,15 +252,14 @@ class CssToInline
 
     /**
      * Sets the properties to the defined element
-     * @param array $original_properties
-     * @param array $properties
+     * @param array      $original_properties
+     * @param array      $properties
      * @param DOMELement $element
      */
     private function set_properties($original_properties, $properties, &$element)
     {
         // add new properties into the list
-        foreach ($original_properties as $key => $value)
-        {
+        foreach ($original_properties as $key => $value) {
             $properties[$key] = $value;
         }
 
@@ -282,10 +267,8 @@ class CssToInline
         $property_chunks = [];
 
         // build chunks
-        foreach ($properties as $key => $values)
-        {
-            foreach ($values as $value)
-            {
+        foreach ($properties as $key => $values) {
+            foreach ($values as $value) {
                 $property_chunks[] = $key . ': ' . $value . ';';
             }
         }
@@ -294,8 +277,7 @@ class CssToInline
         $properties_string = implode(' ', $property_chunks);
 
         // set attribute
-        if (!empty($properties_string))
-        {
+        if (!empty($properties_string)) {
             $element->setAttribute('style', $properties_string);
         }
     }
@@ -359,7 +341,7 @@ class CssToInline
         ];
 
         // return
-        $xpath = (string)'//' . preg_replace($css_selector, $xpath_query, $selector);
+        $xpath = (string) '//' . preg_replace($css_selector, $xpath_query, $selector);
 
         return str_replace('] *', ']//*', $xpath);
     }
@@ -371,11 +353,9 @@ class CssToInline
     private function set_original_styles(&$element)
     {
         // no styles stored?
-        if (null == $element->attributes->getNamedItem(self::ORIGINAL_STYLES))
-        {
+        if (null == $element->attributes->getNamedItem(self::ORIGINAL_STYLES)) {
             $original_style = '';
-            if (null !== $element->attributes->getNamedItem('style'))
-            {
+            if (null !== $element->attributes->getNamedItem('style')) {
                 $original_style =
                     $element->attributes->getNamedItem('style')->value;
             }
@@ -429,8 +409,7 @@ class CssToInline
         // init vars
         $css = $this->clean_css($this->css);
 
-        if (!$this->include_media_queries)
-        {
+        if (!$this->include_media_queries) {
             $css = preg_replace('/@media [^{]*{([^{}]|{[^{}]*})*}/', '', $css);
         }
 
@@ -441,14 +420,12 @@ class CssToInline
         $i = 1;
 
         // loop rules
-        foreach ($rules as $rule)
-        {
+        foreach ($rules as $rule) {
             // split into chunks
             $chunks = explode('{', $rule);
 
             // invalid rule?
-            if (!isset($chunks[1]))
-            {
+            if (!isset($chunks[1])) {
                 continue;
             }
 
@@ -462,8 +439,7 @@ class CssToInline
             $selectors = explode(',', $selectors);
 
             // loop selectors
-            foreach ($selectors as $selector)
-            {
+            foreach ($selectors as $selector) {
                 // cleanup
                 $selector = trim($selector);
 
@@ -489,8 +465,7 @@ class CssToInline
         }
 
         // sort based on specifity
-        if (!empty($this->css_rules))
-        {
+        if (!empty($this->css_rules)) {
             usort($this->css_rules, [__CLASS__, 'sort_on_specifity']);
         }
     }
@@ -531,8 +506,7 @@ class CssToInline
         $pairs = [];
 
         // loop properties
-        foreach ($properties as $property)
-        {
+        foreach ($properties as $property) {
             $chunks = explode(':', $property, 2);
 
             // validate
@@ -575,21 +549,17 @@ class CssToInline
         $chunks = explode(' ', $selector);
 
         // loop chunks
-        foreach ($chunks as $chunk)
-        {
+        foreach ($chunks as $chunk) {
             // an ID is important, so give it a high specifity
-            if (false !== strstr($chunk, '#'))
-            {
+            if (false !== strstr($chunk, '#')) {
                 $specifity += 100;
             }
             // classes are more important than a tag, but less important then an ID
-            else if ((strstr($chunk, '.')))
-            {
+            else if ((strstr($chunk, '.'))) {
                 $specifity += 10;
             }
             // anything else isn't that important
-            else
-            {
+            else {
                 $specifity += 1;
             }
         }
@@ -607,14 +577,12 @@ class CssToInline
     private function sort_on_specifity($e1, $e2)
     {
         // lower
-        if ($e1['specifity'] < $e2['specifity'])
-        {
+        if ($e1['specifity'] < $e2['specifity']) {
             return -1;
         }
 
         // higher
-        if ($e1['specifity'] > $e2['specifity'])
-        {
+        if ($e1['specifity'] > $e2['specifity']) {
             return 1;
         }
 

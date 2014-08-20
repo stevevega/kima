@@ -62,6 +62,7 @@ class UrlShortener
         // perform the request
         if (!$result = curl_exec($ch)) {
             Error::set(__METHOD__, ' Couldn\'t connect with shorten service', false);
+
             return null;
         }
 
@@ -77,6 +78,7 @@ class UrlShortener
                 $result['error']['errors']['locationType'] . ' ' .
                 $result['error']['errors']['location'] . ' ' .
                 $result['error']['errors']['message'], false);
+
             return null;
         }
 

@@ -5,9 +5,9 @@
  */
 namespace Kima\Upload;
 
-use \Kima\Error,
-    \Kima\Http\Request,
-    \finfo;
+use \Kima\Error;
+use \Kima\Http\Request;
+use \finfo;
 
 /**
  * Kima File Upload library
@@ -87,18 +87,16 @@ class File
 
     /**
      * Uploads a file into the desired location
-     * @param string $input
-     * @param string $folder
-     * @param string $name the desired file name, on multiple files: name_1, name_2, name_n
+     * @param  string  $input
+     * @param  string  $folder
+     * @param  string  $name   the desired file name, on multiple files: name_1, name_2, name_n
      * @return boolean
      */
     public function upload($input, $folder, $name = '')
     {
         // make sure the file input exists
-        if (empty($_FILES[$input]))
-        {
-            if (!$this->exceeds_post_max_size())
-            {
+        if (empty($_FILES[$input])) {
+            if (!$this->exceeds_post_max_size()) {
                 Error::set(sprintf(self::ERROR_NO_FILE_INPUT, $input));
             }
 
@@ -106,8 +104,7 @@ class File
         }
 
         // make sure the folder is writable
-        if (!is_writable($folder))
-        {
+        if (!is_writable($folder)) {
             Error::set(sprintf(self::ERROR_INVALID_FOLDER, $folder));
         }
 
@@ -118,38 +115,29 @@ class File
         $files = $this->rearrange_files($_FILES[$input]);
 
         // set the name key if required
-        if (!empty($name) && empty($this->name_key) && count($files) > 1)
-        {
+        if (!empty($name) && empty($this->name_key) && count($files) > 1) {
             $this->name_key = 1;
         }
 
         // upload each file
-        foreach ($files as $file)
-        {
-            if ($this->is_successful_upload($file['error']) && $this->is_valid_file($file))
-            {
+        foreach ($files as $file) {
+            if ($this->is_successful_upload($file['error']) && $this->is_valid_file($file)) {
                 // set the file path/name
-                if (!empty($name))
-                {
-                    $name = (string)$name;
+                if (!empty($name)) {
+                    $name = (string) $name;
                     $new_name = empty($this->name_key) ? $name : $name . '_' . $this->name_key;
 
                     $this->name_key++;
-                }
-                else
-                {
+                } else {
                     $new_name = $file['name'];
                 }
 
                 // try to move the uploaded file to its destination
-                if (!$this->transfer($file['tmp_name'], $folder, $new_name))
-                {
+                if (!$this->transfer($file['tmp_name'], $folder, $new_name)) {
                     $this->set_error_message(self::ERROR_CODE_UNABLE_TO_MOVE);
                     $all_succeed = false;
                 }
-            }
-            else
-            {
+            } else {
                 $all_succeed = false;
             }
         }
@@ -159,15 +147,14 @@ class File
 
     /**
      * Uploads all files to the destination folder
-     * @param string $folder
-     * @param string $name
+     * @param  string   $folder
+     * @param  string   $name
      * @return $boolean
      */
     public function upload_all($folder, $name = '')
     {
         // make sure the file input exists
-        if (empty($_FILES))
-        {
+        if (empty($_FILES)) {
             Error::set(self::ERROR_NO_FILES);
         }
 
@@ -175,16 +162,13 @@ class File
         $all_succeed = true;
 
         // set name key if required
-        if (!empty($name) && count($_FILES) > 1)
-        {
+        if (!empty($name) && count($_FILES) > 1) {
             $this->name_key = 1;
         }
 
         // upload all files
-        foreach ($_FILES as $input => $file)
-        {
-            if (!$this->upload($input, $folder, $name))
-            {
+        foreach ($_FILES as $input => $file) {
+            if (!$this->upload($input, $folder, $name)) {
                 $all_succeed = false;
             }
         }
@@ -195,23 +179,25 @@ class File
     /**
      * Sets the allowed types for upload
      * @see http://www.iana.org/assignments/media-types
-     * @param array $allowed_types An key/value array of extension/allowed mime types
+     * @param  array $allowed_types An key/value array of extension/allowed mime types
      * @return File
      */
     public function set_allowed_types(array $allowed_types)
     {
         $this->allowed_types = $allowed_types;
+
         return $this;
     }
 
     /**
      * Sets the max allowed size (in bytes) for a file
-     * @param int $max_allowed_size
+     * @param  int  $max_allowed_size
      * @return File
      */
     public function set_max_allowed_size($max_allowed_size)
     {
-        $this->max_allowed_size = (int)$max_allowed_size;
+        $this->max_allowed_size = (int) $max_allowed_size;
+
         return $this;
     }
 
@@ -231,6 +217,7 @@ class File
     public function set_strict_type_validation()
     {
         $this->strict_type_validation = true;
+
         return $this;
     }
 
@@ -244,19 +231,14 @@ class File
         $rearranged_files = [];
 
         // check if it is a single or multiple upload
-        if (is_array($files['error']))
-        {
+        if (is_array($files['error'])) {
             // rearrange multiple files array
-            foreach($files as $input => $values)
-            {
-                foreach($values as $key => $value)
-                {
+            foreach ($files as $input => $values) {
+                foreach ($values as $key => $value) {
                     $rearranged_files[$key][$input] = $value;
                 }
             }
-        }
-        else
-        {
+        } else {
             $rearranged_files[] = $files;
         }
 
@@ -265,37 +247,35 @@ class File
 
     /**
      * Check whether the file upload was successful or not
-     * @param int $error
+     * @param  int      $error
      * @return $boolean
      */
     protected function is_successful_upload($error)
     {
-        if (UPLOAD_ERR_OK === $error)
-        {
+        if (UPLOAD_ERR_OK === $error) {
             return true;
         }
 
         // set error messages
         $this->set_error_message($error);
+
         return false;
     }
 
     /**
      * Checks if the file upload attempt is valid
-     * @param array $file
+     * @param  array   $file
      * @return boolean
      */
     protected function is_valid_file(array $file)
     {
         // check the file size if required
-        if ($this->max_allowed_size > 0 && !$this->is_valid_size($file))
-        {
+        if ($this->max_allowed_size > 0 && !$this->is_valid_size($file)) {
             return false;
         }
 
         // check the file type if required
-        if (!empty($this->allowed_types) && !$this->is_valid_type($file))
-        {
+        if (!empty($this->allowed_types) && !$this->is_valid_type($file)) {
             return false;
         }
 
@@ -304,15 +284,15 @@ class File
 
     /**
      * Checks if the file size is valid
-     * @param array $file
+     * @param  array   $file
      * @return boolean
      */
     protected function is_valid_size(array $file)
     {
         $file_size = @filesize($file['tmp_name']);
-        if (!$file_size || $file_size > $this->max_allowed_size)
-        {
+        if (!$file_size || $file_size > $this->max_allowed_size) {
             $this->set_error_message(self::ERROR_CODE_FILE_SIZE);
+
             return false;
         }
 
@@ -321,7 +301,7 @@ class File
 
     /**
      * Checks if the file mime type is valid
-     * @param array $file
+     * @param  array   $file
      * @return boolean
      */
     protected function is_valid_type(array $file)
@@ -330,9 +310,9 @@ class File
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $type = $finfo->file($file['tmp_name']);
 
-        if (!in_array($type, $this->allowed_types))
-        {
+        if (!in_array($type, $this->allowed_types)) {
             $this->set_error_message(self::ERROR_CODE_FILE_TYPE);
+
             return false;
         }
 
@@ -341,22 +321,19 @@ class File
         $extension = strtolower(end($name_parts));
 
         // check the extension strict or normal mode
-        if (true === $this->strict_type_validation)
-        {
+        if (true === $this->strict_type_validation) {
             // strict mode makes sure the key value set in allowed types match
-            if ($extension !== array_search($type, $this->allowed_types))
-            {
+            if ($extension !== array_search($type, $this->allowed_types)) {
                 $this->set_error_message(self::ERROR_CODE_FILE_EXTENSION);
+
                 return false;
             }
-        }
-        else
-        {
+        } else {
             // normal mode just check the extension was set for any type
             $allowed_extensions = array_keys($this->allowed_types);
-            if (!in_array($extension, $allowed_extensions))
-            {
+            if (!in_array($extension, $allowed_extensions)) {
                 $this->set_error_message(self::ERROR_CODE_FILE_EXTENSION);
+
                 return false;
             }
         }
@@ -374,6 +351,7 @@ class File
     {
         // move the file to the new location
         $path = $folder . DIRECTORY_SEPARATOR . $new_name;
+
         return move_uploaded_file($temp_file, $path);
     }
 
@@ -383,8 +361,7 @@ class File
      */
     protected function set_error_message($error)
     {
-        switch ($error)
-        {
+        switch ($error) {
             case self::ERROR_CODE_INI_SIZE:
                 $post_max_size = ini_get('post_max_size');
                 $message = sprintf(self::ERROR_INI_SIZE, $post_max_size);
@@ -438,8 +415,7 @@ class File
         $unit = strtoupper(substr($post_max_size, -1));
 
         // set the unit multiplier to convert to bytes
-        switch ($unit)
-        {
+        switch ($unit) {
             case 'M':
                 $multiplier = 1048576;
                 break;
@@ -455,13 +431,13 @@ class File
         }
 
         // get the post size and the max post size value in bytes
-        $post_size = (int)Request::server('CONTENT_LENGTH');
-        $post_max_size_bytes = $multiplier * (int)$post_max_size;
+        $post_size = (int) Request::server('CONTENT_LENGTH');
+        $post_max_size_bytes = $multiplier * (int) $post_max_size;
 
         // check if the post size exceeded the max allowed size
-        if ($post_max_size && $post_size > $post_max_size_bytes)
-        {
+        if ($post_max_size && $post_size > $post_max_size_bytes) {
             $this->set_error_message(self::ERROR_CODE_INI_SIZE);
+
             return true;
         }
 

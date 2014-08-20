@@ -5,11 +5,7 @@
  */
 namespace Kima;
 
-use \Kima\Action,
-    \Kima\Config,
-    \Kima\Error,
-    \Kima\Http\Request,
-    Exception;
+use \Kima\Http\Request;
 
 /**
  * Application
@@ -150,6 +146,7 @@ class Application
     public static function get_instance()
     {
         isset(self::$instance) || self::$instance = new self;
+
         return self::$instance;
     }
 
@@ -177,8 +174,7 @@ class Application
     public function setup()
     {
         // get the module and HTTP method
-        switch (true)
-        {
+        switch (true) {
             case getenv('MODULE'):
                 $module = getenv('MODULE');
                 break;
@@ -221,6 +217,7 @@ class Application
     public function get_config()
     {
         $app = self::get_instance();
+
         return $app->config;
     }
 
@@ -235,6 +232,7 @@ class Application
 
         $app = self::get_instance();
         $app->config = $config;
+
         return $app;
     }
 
@@ -244,14 +242,12 @@ class Application
      */
     public function get_environment()
     {
-        if (isset($this->environment))
-        {
+        if (isset($this->environment)) {
             return $this->environment;
         }
 
         // get the environment
-        switch (true)
-        {
+        switch (true) {
             case getenv('ENVIRONMENT'):
                 $this->environment = getenv('ENVIRONMENT');
                 break;
@@ -272,6 +268,7 @@ class Application
     public function get_module()
     {
         $app = self::get_instance();
+
         return $app->module;
     }
 
@@ -282,7 +279,8 @@ class Application
     public function set_module($module)
     {
         $app = self::get_instance();
-        $app->module = (string)$module;
+        $app->module = (string) $module;
+
         return $app;
     }
 
@@ -293,6 +291,7 @@ class Application
     public function get_controller()
     {
         $app = self::get_instance();
+
         return $app->controller;
     }
 
@@ -303,7 +302,8 @@ class Application
     public function set_controller($controller)
     {
         $app = self::get_instance();
-        $app->controller = (string)$controller;
+        $app->controller = (string) $controller;
+
         return $app;
     }
 
@@ -314,6 +314,7 @@ class Application
     public function get_method()
     {
         $app = self::get_instance();
+
         return $app->method;
     }
 
@@ -324,7 +325,8 @@ class Application
     public function set_method($method)
     {
         $app = self::get_instance();
-        $app->method = (string)$method;
+        $app->method = (string) $method;
+
         return $app;
     }
 
@@ -336,6 +338,7 @@ class Application
     public function is_language_available($language)
     {
         $app = self::get_instance();
+
         return in_array($language, $app->get_available_languages());
     }
 
@@ -361,7 +364,7 @@ class Application
     public function set_language($language)
     {
         $app = self::get_instance();
-        $app->language = (string)$language;
+        $app->language = (string) $language;
 
         return $app;
     }
@@ -373,7 +376,8 @@ class Application
     public function set_default_language($language)
     {
         $app = self::get_instance();
-        $app->default_language = (string)$language;
+        $app->default_language = (string) $language;
+
         return $app;
     }
 
@@ -386,20 +390,17 @@ class Application
         $app = self::get_instance();
 
         // set the default language type if not set already
-        if (empty($app->default_language_type))
-        {
+        if (empty($app->default_language_type)) {
             $this->set_default_language_type();
         }
 
         // check if the default language was already set
-        if (!empty($app->default_language))
-        {
+        if (!empty($app->default_language)) {
             return $app->default_language;
         }
 
         $config = $app->get_config()->language;
-        switch (true)
-        {
+        switch (true) {
             case Request::env('LANGUAGE_DEFAULT'):
                 $language = Request::env('LANGUAGE_DEFAULT');
                 break;
@@ -415,6 +416,7 @@ class Application
         }
 
         $app->default_language = $language;
+
         return $app->default_language;
     }
 
@@ -426,6 +428,7 @@ class Application
     {
         $app = self::get_instance();
         $app->available_languages = $languages;
+
         return $app;
     }
 
@@ -437,15 +440,13 @@ class Application
     {
         $app = self::get_instance();
 
-        if (!empty($app->available_languages))
-        {
+        if (!empty($app->available_languages)) {
             return $app->available_languages;
         }
 
         $config = $app->get_config()->language;
 
-        switch (true)
-        {
+        switch (true) {
             case Request::env('LANGUAGES_AVAILABLE'):
                 $languages = Request::env('LANGUAGES_AVAILABLE');
                 break;
@@ -460,6 +461,7 @@ class Application
         }
 
         $app->available_languages = explode(',', $languages);
+
         return $app->available_languages;
     }
 
@@ -471,6 +473,7 @@ class Application
     {
         $app = self::get_instance();
         $app->time_zone = $time_zone;
+
         return $app;
     }
 
@@ -481,6 +484,7 @@ class Application
     public function get_time_zone()
     {
         $app = self::get_instance();
+
         return empty($app->time_zone)
             ? date_default_timezone_get()
             : $app->time_zone;
@@ -493,6 +497,7 @@ class Application
     public function is_https()
     {
         $app = self::get_instance();
+
         return $app->is_https;
     }
 
@@ -511,6 +516,7 @@ class Application
         $app->is_https = !empty($https) && 'off' !== $https || 443 == $port
             ? true
             : false;
+
         return $app;
     }
 
@@ -530,6 +536,7 @@ class Application
     public function is_https_enforced()
     {
         $app = self::get_instance();
+
         return empty($app->enforce_https) ? false : true;
     }
 
@@ -541,6 +548,7 @@ class Application
     {
         $app = self::get_instance();
         $app->https_controllers = $controllers;
+
         return $app;
     }
 
@@ -551,6 +559,7 @@ class Application
     public function get_https_controllers()
     {
         $app = self::get_instance();
+
         return $app->https_controllers;
     }
 
@@ -599,6 +608,7 @@ class Application
     {
         $app = self::get_instance();
         $app->predispatcher = $predispatcher;
+
         return $app;
     }
 
@@ -609,6 +619,7 @@ class Application
     public function get_predispatcher()
     {
         $app = self::get_instance();
+
         return $app->predispatcher;
     }
 
@@ -619,6 +630,7 @@ class Application
     public function get_application_folder()
     {
         $app = self::get_instance();
+
         return $app->application_folder;
     }
 
@@ -629,6 +641,7 @@ class Application
     public function get_controller_folder()
     {
         $app = self::get_instance();
+
         return $app->controller_folder;
     }
 
@@ -639,6 +652,7 @@ class Application
     public function get_model_folder()
     {
         $app = self::get_instance();
+
         return $app->model_folder;
     }
 
@@ -649,6 +663,7 @@ class Application
     public function get_module_folder()
     {
         $app = self::get_instance();
+
         return $app->module_folder;
     }
 
@@ -659,6 +674,7 @@ class Application
     public function get_view_folder()
     {
         $app = self::get_instance();
+
         return $app->view_folder;
     }
 
@@ -669,6 +685,7 @@ class Application
     public function get_l10n_folder()
     {
         $app = self::get_instance();
+
         return $app->l10n_folder;
     }
 
@@ -679,6 +696,7 @@ class Application
     public function get_library_folder()
     {
         $app = self::get_instance();
+
         return $app->library_folder;
     }
 
@@ -689,12 +707,13 @@ class Application
     public function get_kima_folder()
     {
         $app = self::get_instance();
+
         return $app->kima_folder;
     }
 
     /**
      * Sets the application folders
-     * @return  Application
+     * @return Application
      */
     private function set_application_folders()
     {
@@ -714,19 +733,18 @@ class Application
      * Try loading a class from a list of include paths
      * It makes sure the file exists to avoid throwing errors
      * so other auto_loaders can be registered
-     * @param  array  $include_paths
-     * @param  string $filename
+     * @param  array   $include_paths
+     * @param  string  $filename
      * @return boolean
      */
     private function load_class(array $include_paths, $filename)
     {
         // try the include paths
-        foreach ($include_paths as $include_path)
-        {
+        foreach ($include_paths as $include_path) {
             $filepath = $include_path . $filename;
-            if (file_exists($filepath))
-            {
+            if (file_exists($filepath)) {
                 require_once $filepath;
+
                 return true;
             }
         }
@@ -742,8 +760,7 @@ class Application
     {
         $app = Application::get_instance();
         $config = $app->get_config()->language;
-        if (empty($config['default']) || empty($config['default']['type']))
-        {
+        if (empty($config['default']) || empty($config['default']['type'])) {
             Error::set(self::ERROR_NO_DEFAULT_LANGUAGE_TYPE);
         }
 
@@ -752,8 +769,7 @@ class Application
         $types = [self::LANG_DEFAULT_IMPLICIT, self::LANG_DEFAULT_EXPLICIT];
 
         // validate the type set
-        if (!in_array($type, $types))
-        {
+        if (!in_array($type, $types)) {
             Error::set(sprintf(self::ERROR_INVALID_DEFAULT_LANGUAGE_TYPE, $type));
         }
 

@@ -78,18 +78,15 @@ class StatusCode
 
     /**
      * Get the message of a status code
-     * @param string $code The status code
+     * @param  string $code The status code
      * @return string
      */
     public static function get_message($code)
     {
-        $code = (int)$code;
-        if (array_key_exists($code, self::$status_code_messages))
-        {
+        $code = (int) $code;
+        if (array_key_exists($code, self::$status_code_messages)) {
             $message = self::$status_code_messages[$code];
-        }
-        else
-        {
+        } else {
             $message = sprintf(self::ERROR_UNKNOWN_STATUS_CODE, $code);
             Error::set($message, false);
         }

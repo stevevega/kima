@@ -13,21 +13,14 @@ class Int
 
     /**
      * Gets the integer value if is numeric, otherwise returns null
-     * @param  mixed $value
-     * @return  int|null
+     * @param  mixed    $value
+     * @return int|null
      */
-    public static function cast($value, $strict = true)
+    public static function cast($value)
     {
-        if ($strict)
-        {
-            $value = is_numeric($value) ? (int)$value : null;
-        }
-        else
-        {
-            $value = (int)preg_replace('/[^0-9]/', '', $value);
-        }
+        $value = str_replace(['+', '-'], '', filter_var($value, FILTER_SANITIZE_NUMBER_INT));
 
-        return $value;
+        return is_numeric($value) ? (int) $value : null;
     }
 
 }

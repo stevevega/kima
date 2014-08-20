@@ -4,8 +4,6 @@
  */
 namespace Kima\Language;
 
-use \Kima\Language\ALanguage;
-
 /**
  * Subdomain
  * Kima Subdomain class

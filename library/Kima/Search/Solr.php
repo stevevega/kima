@@ -5,13 +5,13 @@
  */
 namespace Kima\Search;
 
-use \Kima\Application,
-    \Kima\Error,
-    \SolrClient,
-    \SolrClientException,
-    \SolrIllegalArgumentException,
-    \SolrInputDocument,
-    \SolrQuery;
+use \Kima\Application;
+use \Kima\Error;
+use \SolrClient;
+use \SolrClientException;
+use \SolrIllegalArgumentException;
+use \SolrInputDocument;
+use \SolrQuery;
 
 /**
  * Solr
@@ -102,8 +102,7 @@ class Solr
     private function __construct($core)
     {
         // make sure solr is available
-        if (!extension_loaded('solr'))
-        {
+        if (!extension_loaded('solr')) {
             Error::set(self::ERROR_NO_SOLR);
         }
 
@@ -113,14 +112,15 @@ class Solr
 
     /**
      * Get the Solr instance
-     * @param string $core
+     * @param  string            $core
      * @return \Kima\Search\Solr
      */
     public static function get_instance($core)
     {
-        $core = (string)$core;
+        $core = (string) $core;
 
         isset(self::$instance[$core]) || self::$instance[$core] = new self($core);
+
         return self::$instance[$core];
     }
 
@@ -131,6 +131,7 @@ class Solr
     public function connect(array $options)
     {
         $this->connection = new SolrClient($options);
+
         return $this->connection;
     }
 
@@ -140,13 +141,11 @@ class Solr
      */
     public function get_connection()
     {
-        if (empty($this->connection))
-        {
+        if (empty($this->connection)) {
             // get the config values to connect
             $config = Application::get_instance()->get_config();
 
-            if (empty($config->search['solr'][$this->core]))
-            {
+            if (empty($config->search['solr'][$this->core])) {
                 Error::set(self::ERROR_NO_CONFIG);
             }
 
@@ -161,100 +160,81 @@ class Solr
 
     /**
      * Fetch values from the Solr index
-     * @param array $fields
-     * @param string $query_string
-     * @param array $params any additional params required
+     * @param  array             $fields
+     * @param  string            $query_string
+     * @param  array             $params       any additional params required
      * @return SolrQueryResponse
      */
     public function fetch(array $fields = [], $query_string = '*:*', array $params = [])
     {
         $query = new SolrQuery();
-        $query->setQuery((string)$query_string);
+        $query->setQuery((string) $query_string);
 
-        if (!empty($params))
-        {
+        if (!empty($params)) {
             // add each extra param to be added to the solr query
-            foreach ($params as $param => $value)
-            {
-                if (is_array($value))
-                {
+            foreach ($params as $param => $value) {
+                if (is_array($value)) {
                     // in the case of params to be included multiple times, such as fq,
                     // an array can be sent for each of the values
                     foreach ($value as $inner_value) {
-                        $query->addParam((string)$param, (string)$inner_value);
+                        $query->addParam((string) $param, (string) $inner_value);
                     }
-                }
-                else
-                {
+                } else {
                     // simple append single values
-                    $query->addParam((string)$param, (string)$value);
+                    $query->addParam((string) $param, (string) $value);
                 }
             }
         }
 
-        if (!empty($this->start))
-        {
+        if (!empty($this->start)) {
             $query->setStart($this->start);
         }
 
-        if (isset($this->rows))
-        {
+        if (isset($this->rows)) {
             $query->setRows($this->rows);
         }
 
-        foreach ($fields as $field)
-        {
+        foreach ($fields as $field) {
             $query->addField($field);
         }
 
         // add the sort fields to the query
-        if (!empty($this->sort_fields))
-        {
-            foreach ($this->sort_fields as $sort_field => $sort_order)
-            {
+        if (!empty($this->sort_fields)) {
+            foreach ($this->sort_fields as $sort_field => $sort_order) {
                 $query->addSortField($sort_field, $sort_order);
             }
         }
 
         // turn on faceting and add any field for it
-        if (!empty($this->facet_fields))
-        {
+        if (!empty($this->facet_fields)) {
             $query->setFacet(true);
             // ignore results with 0 as those are not useful
             $query->setFacetMinCount($this->facet_min_count);
-            foreach ($this->facet_fields as $facet)
-            {
+            foreach ($this->facet_fields as $facet) {
                 $query->addFacetField($facet);
             }
         }
 
         // turn on faceting and add any query for it
-        if (!empty($this->facet_queries))
-        {
+        if (!empty($this->facet_queries)) {
             $query->setFacet(true);
-            foreach ($this->facet_queries as $facet)
-            {
+            foreach ($this->facet_queries as $facet) {
                 $query->addFacetQuery($facet);
             }
         }
 
-        if (!empty($this->highlight_fields))
-        {
+        if (!empty($this->highlight_fields)) {
             $query->setHighlight(true);
-            foreach ($this->highlight_fields as $hl_field)
-            {
+            foreach ($this->highlight_fields as $hl_field) {
                 $query->addHighlightField($hl_field);
             }
         }
 
         $connection = $this->get_connection();
 
-        try
-        {
+        try {
             $response = $connection->query($query);
-        }
-        catch (SolrClientException $e)
-        {
+        } catch (SolrClientException $e) {
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
         }
 
@@ -270,42 +250,31 @@ class Solr
     {
         $docs = [];
 
-        if (!is_array($documents) && !is_object($documents))
-        {
+        if (!is_array($documents) && !is_object($documents)) {
             Error::set(self::ERROR_INVALID_DOCUMENT);
         }
 
-        if (is_array($documents))
-        {
-            foreach($documents as $document)
-            {
-                if (!is_object($document))
-                {
+        if (is_array($documents)) {
+            foreach ($documents as $document) {
+                if (!is_object($document)) {
                     Error::set(self::ERROR_INVALID_DOCUMENT);
                 }
 
                 $docs[] = $this->get_solr_document($document);
             }
-        }
-        else
-        {
+        } else {
             $docs[] = $this->get_solr_document($documents);
         }
 
         $connection = $this->get_connection();
 
-        try
-        {
+        try {
             $connection->addDocuments($docs);
             // $response = $connection->commit();
             $response = $this->commit();
-        }
-        catch (SolrClientException $e)
-        {
+        } catch (SolrClientException $e) {
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
-        }
-        catch(SolrIllegalArgumentException $e)
-        {
+        } catch (SolrIllegalArgumentException $e) {
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
         }
 
@@ -315,21 +284,18 @@ class Solr
 
     /**
      * Deletes all documents matching the given query
-     * @param  string $query The query; example "*:*" (This will erase the entire index)
+     * @param  string             $query The query; example "*:*" (This will erase the entire index)
      * @return SolrUpdateResponse on success and throws a SolrClientException on failure
      */
     public function delete_by_query($query_string)
     {
         $connection = $this->get_connection();
 
-        try
-        {
+        try {
             $response = $connection->deleteByQuery($query_string);
             // $response = $connection->commit();
             $response = $this->commit();
-        }
-        catch (SolrClientException $e)
-        {
+        } catch (SolrClientException $e) {
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
         }
 
@@ -344,17 +310,13 @@ class Solr
     {
         $connection = $this->get_connection();
 
-        try
-        {
-            foreach($ids as $id)
-            {
+        try {
+            foreach ($ids as $id) {
                 $response = $connection->deleteById($id);
             }
 
             $response = $connection->commit();
-        }
-        catch (SolrClientException $e)
-        {
+        } catch (SolrClientException $e) {
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
         }
 
@@ -367,12 +329,9 @@ class Solr
     public function optimize()
     {
         $connection = $this->get_connection();
-        try
-        {
+        try {
             $response = $connection->optimize();
-        }
-        catch (SolrClientException $e)
-        {
+        } catch (SolrClientException $e) {
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
         }
 
@@ -381,7 +340,7 @@ class Solr
 
     /**
      * Gets a Solr document based on a regular object
-     * @param mixed $document
+     * @param  mixed              $document
      * @return SolrUpdateResponse
      */
     private function get_solr_document($document)
@@ -389,17 +348,12 @@ class Solr
         $solr_doc = new SolrInputDocument();
 
         // use reflection to set the document values
-        foreach(get_object_vars($document) as $prop => $value)
-        {
-           if (is_array($value))
-           {
-               foreach ($value as $v)
-               {
+        foreach (get_object_vars($document) as $prop => $value) {
+           if (is_array($value)) {
+               foreach ($value as $v) {
                    $solr_doc->addField($prop, $v);
                }
-           }
-           else
-           {
+           } else {
                $solr_doc->addField($prop, $value);
            }
         }
@@ -412,13 +366,12 @@ class Solr
      */
     public function limit($limit, $page = 0)
     {
-        $limit = (int)$limit;
-        $page = (int)$page;
+        $limit = (int) $limit;
+        $page = (int) $page;
 
         $this->rows = $limit;
 
-        if ($limit > 0)
-        {
+        if ($limit > 0) {
             $this->start = $page > 0 ? $limit * ($page - 1) : 0;
         }
 
@@ -429,14 +382,13 @@ class Solr
      * Sets what fields to use for ordering the query results
      * @param  array $sort_fields contains the fields and (optionally) the order
      *                            ['name', 'type' => Solr::DESC]
-     * @return Solr reference to this
+     * @return Solr  reference to this
      */
     public function order(array $sort_fields = [])
     {
         $this->sort_fields = [];
 
-        foreach ($sort_fields as $key => $value)
-        {
+        foreach ($sort_fields as $key => $value) {
             $has_order = !is_numeric($key);
 
             $field = $has_order ? $key : $value;
@@ -448,26 +400,29 @@ class Solr
 
             $this->sort_fields[$field] = $order;
         }
+
         return $this;
     }
 
     /**
      * Sets the fields that will be used to generate the facet fields
-     * @param  array $facet_fields array of field names
+     * @param array $facet_fields array of field names
      */
     public function facet_fields($facet_fields = [])
     {
         $this->facet_fields = $facet_fields;
+
         return $this;
     }
 
     /**
      * Sets the fields that will be used to generate the facet queries
-     * @param  array $facet_fields array of query to be used to generate the facets
+     * @param array $facet_fields array of query to be used to generate the facets
      */
     public function facet_queries($facet_queries = [])
     {
         $this->facet_queries = $facet_queries;
+
         return $this;
     }
 
@@ -479,7 +434,8 @@ class Solr
      */
     public function facet_min_count($count = 1)
     {
-        $this->facet_min_count = (int)$count;
+        $this->facet_min_count = (int) $count;
+
         return $this;
     }
 
@@ -491,6 +447,7 @@ class Solr
     public function highlight_fields(array $highlight_fields = [])
     {
         $this->highlight_fields = $highlight_fields;
+
         return $this;
     }
 
@@ -503,12 +460,9 @@ class Solr
     {
         $config = Application::get_instance()->get_config();
         $response = false;
-        if (empty($config->search['solr'][$this->core]))
-        {
+        if (empty($config->search['solr'][$this->core])) {
             Error:set(self::ERROR_NO_CONFIG);
-        }
-        else
-        {
+        } else {
             $solrConfig = $config->search['solr'][$this->core];
             $solrAddress = $solrConfig['hostname'] . ':' . $solrConfig['port'] . '/' .$solrConfig['path'];
             $url = 'http://' . $solrAddress . '/update?commit=true';

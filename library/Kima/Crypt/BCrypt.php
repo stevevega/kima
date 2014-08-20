@@ -32,7 +32,7 @@ class BCrypt
     /**
      * Hash a password using bcrypt
      * @param string $password
-     * @param int $iteration_number
+     * @param int    $iteration_number
      */
     public static function hash($password, $iteration_number = 0)
     {
@@ -43,40 +43,36 @@ class BCrypt
         $salt = sprintf(self::SALT_FORMAT, $iteration_number, $salt);
 
         // return the bcrypt hash
-        return crypt((string)$password, $salt);
+        return crypt((string) $password, $salt);
     }
 
     /**
      * Verifies whether a password match or not with the hashed password
-     * @param string $password
-     * @param string $hashed_password
+     * @param  string  $password
+     * @param  string  $hashed_password
      * @return boolean
      */
     public static function verify($password, $hashed_password)
     {
-        return $hashed_password === crypt((string)$password, (string)$hashed_password)
+        return $hashed_password === crypt((string) $password, (string) $hashed_password)
             ? true
             : false;
     }
 
     /**
      * Gets the iteration number used for bcrypt hashing
-     * @param int $iteration_number
+     * @param  int $iteration_number
      * @return int
      */
     private static function get_iteration_number($iteration_number)
     {
         // get the iteration number if set
-        if (!empty($iteration_number))
-        {
-            $iteration_number = (int)$iteration_number;
-            if (4 > $iteration_number || 31 < $iteration_number)
-            {
+        if (!empty($iteration_number)) {
+            $iteration_number = (int) $iteration_number;
+            if (4 > $iteration_number || 31 < $iteration_number) {
                 Error::set(self::ERROR_INVALID_ITERATION_NUMBER);
             }
-        }
-        else
-        {
+        } else {
             $iteration_number = self::DEFAULT_ITERATION_NUMBER;
         }
 

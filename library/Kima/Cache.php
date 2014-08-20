@@ -5,13 +5,11 @@
  */
 namespace Kima;
 
-use \Kima\Application,
-    \Kima\Cache\Apc,
-    \Kima\Cache\File,
-    \Kima\Cache\Memcached,
-    \Kima\Cache\Redis,
-    \Kima\Cache\Void,
-    \Kima\Error;
+use \Kima\Cache\Apc;
+use \Kima\Cache\File;
+use \Kima\Cache\Memcached;
+use \Kima\Cache\Redis;
+use \Kima\Cache\Void;
 
 /**
  * Cache
@@ -44,38 +42,32 @@ class Cache
     /**
      * private construct
      */
-     private function __construct(){}
+     private function __construct() {}
 
     /**
      * Get an instance of the required cache system
-     * @param   string  $type       the cache type
-     * @param   array   $options    the config options set for the cache system
-     * @return  ICache
+     * @param  string $type    the cache type
+     * @param  array  $options the config options set for the cache system
+     * @return ICache
      */
     public static function get_instance($type = null, array $options = [])
     {
-        if (empty($options))
-        {
+        if (empty($options)) {
             $options = Application::get_instance()->get_config()->cache;
         }
 
         // return the null object if cache is not enabled
-        if (empty($options[self::ENABLED]))
-        {
+        if (empty($options[self::ENABLED])) {
             return new Void($options);
         }
 
-        switch ($type)
-        {
+        switch ($type) {
             case self::DEFAULT_KEY:
             case '':
             case null:
-                if (isset($options[self::DEFAULT_KEY]))
-                {
+                if (isset($options[self::DEFAULT_KEY])) {
                     return self::get_instance($options[self::DEFAULT_KEY], $options);
-                }
-                else
-                {
+                } else {
                     Error::set(self::ERROR_DEFAULT_NOT_SET, false);
                 }
                 break;
