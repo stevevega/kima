@@ -142,6 +142,12 @@ abstract class Model
     private $async;
 
     /**
+     * 'Multiple update' flag
+     * @var boolean
+     */
+    private $multiple;
+
+    /**
      * The query string created
      * @var string
      */
@@ -430,6 +436,17 @@ abstract class Model
     }
 
     /**
+     * Sets the 'multiple' flag for (mongo's) multiple update
+     * @param boolean $multiple
+     */
+    public function multiple($multiple)
+    {
+        $this->multiple = $multiple;
+
+        return $this;
+    }
+
+    /**
      * Turns on debug mode
      */
     public function debug()
@@ -469,7 +486,8 @@ abstract class Model
             'order' => $this->order,
             'limit' => $this->limit,
             'start' => $this->start,
-            'async' => $this->async
+            'async' => $this->async,
+            'multiple' => $this->multiple
         ];
     }
 

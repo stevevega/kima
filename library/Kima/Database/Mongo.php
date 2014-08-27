@@ -235,10 +235,14 @@ class Mongo extends ADatabase
                 ? 0
                 : 1;
 
+            $multiple = !empty($options['query']['multiple'])
+                ? true
+                : false;
+
             return $collection->update(
                 $filters,
                 $fields,
-                ['upsert' => true, 'w' => $async]);
+                ['upsert' => true, 'w' => $async, 'multiple' => $multiple]);
         } catch (MongoException $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
