@@ -28,6 +28,7 @@ class Mongo extends ADatabase
      const ERROR_NO_COLLECTION = 'Mongo error: empty collection name';
      const ERROR_MONGO_QUERY = 'Mongo query error: "%s"';
      const ERROR_MONGO_AGGREGATION = 'Mongo aggregation error: "%s"';
+     const ERROR_WRONG_UPDATE_LIMIT = 'You shouldn\'t perform an update, using a limit value different than 1';
 
     /**
      * The Mongo Client connection
@@ -235,10 +236,26 @@ class Mongo extends ADatabase
                 ? 0
                 : 1;
 
+            // by default, multiple update will be performed
+            $multiple = true;
+            $limit = $options['query']['limit'];
+
+            // if limit query parameter is set to 1, a single update
+            // will be performed
+            if (!$empty($limit)) {
+                // if limit is set, it should have a value of 1
+                if (1 == $limit) {
+                    $multiple = false;
+                } else {
+                    // an error occurs otherwise
+                    Error::set(self::ERROR_WRONG_UPDATE_LIMIT);
+                }
+            }
+
             return $collection->update(
                 $filters,
                 $fields,
-                ['upsert' => true, 'w' => $async]);
+                ['upsert' => true, 'w' => $async, 'multiple' => $multiple]);
         } catch (MongoException $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
