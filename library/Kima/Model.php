@@ -142,6 +142,12 @@ abstract class Model
     private $async;
 
     /**
+     * Prevent Mongo upsert flag
+     * @var boolean
+     */
+    private $prevent_upsert;
+
+    /**
      * The query string created
      * @var string
      */
@@ -430,6 +436,18 @@ abstract class Model
     }
 
     /**
+     * Prevents Mongo's upsert
+     * Can be used before a `put` invocation
+     * @param boolean $prevent_upsert
+     */
+    public function prevent_upsert($prevent_upsert = true)
+    {
+        $this->prevent_upsert = $prevent_upsert;
+
+        return $this;
+    }
+
+    /**
      * Turns on debug mode
      */
     public function debug()
@@ -626,7 +644,8 @@ abstract class Model
         $options = [
             'query' => $params,
             'query_string' => $this->query_string,
-            'debug' => $this->debug
+            'debug' => $this->debug,
+            'prevent_upsert' => $this->prevent_upsert
         ];
 
         # run the query
@@ -642,7 +661,7 @@ abstract class Model
     public function put(array $fields = [])
     {
         $this->fields = $this->set_fields($fields);
-        if (!empty($this->filters)) {
+        if (!empty($this->filters) || !empty($this->prevent_upsert)) {
             return $this->update_model();
         }
 
