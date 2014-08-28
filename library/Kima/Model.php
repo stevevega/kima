@@ -627,6 +627,36 @@ abstract class Model
     }
 
     /**
+     * Distinct method for model
+     * @param string $field
+     */
+    public function distinct($field)
+    {
+        $this->fields = $field;
+        $params = $this->get_query_params();
+
+        // build the query using the adapter
+        $this->query_string = $this->adapter
+            ? $this->adapter->get_fetch_query($params)
+            : null;
+
+        // set execution options
+        $options = [
+            'query' => $params,
+            'model' => $this->model,
+        ];
+
+        // get result from the query
+        $result = Database::get_instance($this->db_engine)->distinct($options);
+
+        $result = $result['objects'];
+
+        $this->clear_query_params();
+
+        return $result;
+    }
+
+    /**
      * Updates data
      * Use this method for batch or custom updates
      * @param array $fields
@@ -661,6 +691,7 @@ abstract class Model
     public function put(array $fields = [])
     {
         $this->fields = $this->set_fields($fields);
+
         if (!empty($this->filters) || !empty($this->prevent_upsert)) {
             return $this->update_model();
         }
