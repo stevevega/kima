@@ -159,6 +159,7 @@ class Mongo extends ADatabase
             }
 
             $objects = [];
+
             foreach ($cursor as $row) {
                 $object = new $options['model'];
                 foreach ($row as $key => $field) {
@@ -199,7 +200,11 @@ class Mongo extends ADatabase
 
         // include the sorting
         if (!empty($options['query']['order'])) {
-            $pipeline[]['$sort'] = $this->get_sort($options['query']['order']);;
+            $pipeline[]['$sort'] = $this->get_sort($options['query']['order']);
+        }
+
+        if (!empty($options['query']['limit'])) {
+            $pipeline[]['$limit'] = $options['query']['limit'];
         }
 
         $objects = $collection->aggregate($pipeline);
@@ -211,6 +216,36 @@ class Mongo extends ADatabase
         $result['objects'] = $objects['result'];
 
         return $result;
+    }
+
+    /**
+     * Applies a distinct method to a mongo collection
+     * @see    http://php.net/manual/en/mongocollection.distinct.php
+     * @param  array $options
+     * @return array
+     */
+    public function distinct(array $options)
+    {
+        $collection = $this->execute($options);
+
+        try {
+            $field = $options['query']['fields'];
+
+            $cursor = $collection->distinct($field, $options['query']['filters']);
+
+            $objects = [];
+            foreach ($cursor as $row) {
+                $object = new $options['model'];
+                $object->{$field} = $row;
+                $objects[] = $object;
+            }
+
+            $result['objects'] = $objects;
+
+            return $result;
+        } catch (MongoCursorException $e) {
+            Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
+        }
     }
 
     /**
@@ -260,7 +295,6 @@ class Mongo extends ADatabase
                 $filters,
                 $fields,
                 ['upsert' => $upsert, 'w' => $async, 'multiple' => $multiple]);
-
         } catch (MongoException $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
