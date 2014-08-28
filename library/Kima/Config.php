@@ -5,9 +5,6 @@
  */
 namespace Kima;
 
-use \Kima\Application,
-    \Kima\Error;
-
 /**
  * Config
  * Application config
@@ -78,35 +75,31 @@ class Config
         $module_config = $this->get_module_config($environment);
 
         // merge the module config (if exists) with the main config
-        if (!empty($module_config))
-        {
+        if (!empty($module_config)) {
             $config = array_merge($config, $module_config);
         }
 
         // create an associative array using the keys
-        foreach ($config as $key => $value)
-        {
+        foreach ($config as $key => $value) {
             $this->config = array_merge_recursive($this->config, $this->parse_keys($key, $value));
         }
     }
 
     /**
      * Make sure the require environments are setup
-     * @param array $config
-     * @param string $environment
+     * @param  array  $config
+     * @param  string $environment
      * @return array
      */
     private function get_environment_config(array $config, $environment)
     {
         // check if default environment exists
-        if (!isset($config['default']))
-        {
+        if (!isset($config['default'])) {
             Error::set(sprintf(self::ERROR_NO_ENVIRONMENT, 'default'));
         }
 
         // check if custom environment exists
-        if (!isset($config[$environment]))
-        {
+        if (!isset($config[$environment])) {
             Error::set(sprintf(self::ERROR_NO_ENVIRONMENT, $environment));
         }
 
@@ -120,7 +113,7 @@ class Config
 
     /**
      * Gets the module config
-     * @param string $environment
+     * @param  string $environment
      * @return array
      */
     private function get_module_config($environment)
@@ -128,17 +121,16 @@ class Config
         // if there is a module, lets get the custom config also
         $app = Application::get_instance();
         $module = $app->get_module();
-        if (!empty($module))
-        {
+        if (!empty($module)) {
             $app_path = $app->get_application_folder();
             $path =  $app_path
                 . sprintf(self::DEFAULT_CONFIG_MODULE_FOLDER, $module)
                 . self::DEFAULT_CONFIG_FILE;
 
             // parse using ini file if file exists
-            if (is_readable($path))
-            {
+            if (is_readable($path)) {
                 $config = parse_ini_file($path, true);
+
                 return $this->get_environment_config($config, $environment);
             }
         }
@@ -148,21 +140,19 @@ class Config
 
     /**
      * Parse the keys on the config file
-     * @param string $key
-     * @param string $value
+     * @param  string $key
+     * @param  string $value
      * @return array
      */
     private function parse_keys($key, $value)
     {
         // search for a key separator
-        if (false !== strpos($key, '.'))
-        {
+        if (false !== strpos($key, '.')) {
             // split the key in 2 parts and parse recursively the following key
             $keys = explode('.', $key, 2);
+
             return [$keys[0] => $this->parse_keys($keys[1], $value)];
-        }
-        else
-        {
+        } else {
             // return the key value
             return [$key => $value];
         }

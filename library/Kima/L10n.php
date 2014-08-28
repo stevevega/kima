@@ -5,9 +5,6 @@
  */
 namespace Kima;
 
-use \Kima\Application,
-    \Kima\Cache;
-
 /**
  * Kima Localization library
  */
@@ -33,9 +30,9 @@ class L10n
 
     /**
      * Gets the key wanted for translation
-     * @param string $key
-     * @param array $args
-     * @param string $language
+     * @param  string $key
+     * @param  array  $args
+     * @param  string $language
      * @return string
      */
     public static function t($key, array $args = [], $language = '')
@@ -45,8 +42,7 @@ class L10n
         $language = !empty($language) ? $language : $app->get_language();
 
         // check if we do have the language strings loaded
-        if (empty(self::$strings[$language]))
-        {
+        if (empty(self::$strings[$language])) {
             // get the module, controller and method from the application
             $module = $app->get_module();
             $controller = strtolower($app->get_controller());
@@ -60,8 +56,7 @@ class L10n
             $strings = Cache::get_instance()->get_by_file(self::$cache_key, $strings_path);
 
             // get the language strings from the application l10n file if the cache was empty
-            if (empty($strings))
-            {
+            if (empty($strings)) {
                 $strings = self::get_strings($controller, $method, $strings_path);
             }
 
@@ -76,8 +71,8 @@ class L10n
 
     /**
      * Gets the strings path for the current module/language
-     * @param string $module
-     * @param string $language
+     * @param  string $module
+     * @param  string $language
      * @return string
      */
     private static function get_strings_path($module, $language)
@@ -93,8 +88,7 @@ class L10n
         $strings_path .= $language . '.ini';
 
         // validate the string path
-        if (!is_readable($strings_path))
-        {
+        if (!is_readable($strings_path)) {
             Error::set(sprintf(self::ERROR_INVALID_STRINGS_PATH, $strings_path));
         }
 
@@ -105,9 +99,9 @@ class L10n
     /**
      * Retrieves and parse the language strings from the l10n string file
      * Sets the strings on cache
-     * @param string $controller
-     * @param string $method
-     * @param string $strings_path
+     * @param  string $controller
+     * @param  string $method
+     * @param  string $strings_path
      * @return array
      */
     private static function get_strings($controller, $method, $strings_path)
@@ -116,8 +110,7 @@ class L10n
 
         // get the strings data
         $strings_data = parse_ini_file($strings_path, true);
-        if ($strings_data)
-        {
+        if ($strings_data) {
             // set the global, controller and method strings
             $global_strings = self::get_section_strings($strings_data, 'global');
             $controller_strings = self::get_section_strings($strings_data, $controller);
@@ -136,8 +129,8 @@ class L10n
 
     /**
      * Gets the strings data for a section
-     * @param array $strings_data
-     * @param string $section
+     * @param  array  $strings_data
+     * @param  string $section
      * @return array
      */
     private static function get_section_strings(array $strings_data, $section)
@@ -161,8 +154,7 @@ class L10n
         $cache_key = 'l10n_strings_' . $language;
 
         // add the module if exists
-        if (!empty($module))
-        {
+        if (!empty($module)) {
             $cache_key .= '_' . $module;
         }
 

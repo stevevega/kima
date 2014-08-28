@@ -22,7 +22,7 @@ abstract class APaypal
      * @see method documentation URL
      * @param array $params
      */
-    abstract function request($params);
+    abstract public function request($params);
 
     /**
      * API endpoints
@@ -52,7 +52,7 @@ abstract class APaypal
     /**
      * Constructor
      * @param array $credentials ['username', 'password', 'signature']
-     * @param bool $use_sandbox
+     * @param bool  $use_sandbox
      */
     public function __construct($credentials, $use_sandbox = false)
     {
@@ -81,7 +81,7 @@ abstract class APaypal
 
     /**
      * Sets the Paypal user credentials
-     * @param array $credentials ['username', 'password', 'signature']
+     * @param  array  $credentials ['username', 'password', 'signature']
      * @return Paypal
      */
     public function set_credentials($credentials)
@@ -136,7 +136,7 @@ abstract class APaypal
      */
     protected function _set_last_error($error_message)
     {
-        $this->_last_error = (string)$error_message;
+        $this->_last_error = (string) $error_message;
     }
 
     /**
@@ -175,7 +175,7 @@ abstract class APaypal
     /**
      * Sends an API request
      * @param string $method
-     * @param array $params
+     * @param array  $params
      */
     public function api_request($method, $params)
     {
@@ -193,12 +193,14 @@ abstract class APaypal
         $http_response = curl_exec($ch);
         if (!$http_response) {
             $this->_set_last_error($method . ' failed: (' . curl_errno($ch) . ') ' . curl_error($ch));
+
             return false;
         }
 
         $response = $this->_format_http_response($http_response);
         if (empty($response) || !isset($response['ACK'])) {
             $this->_set_last_error('Invalid HTTP Response for POST request using ' . $api_fields);
+
             return false;
         }
 
@@ -208,7 +210,7 @@ abstract class APaypal
     /**
      * Prepare the params and adds the general paypal fields
      * for the API request
-     * @param array $params
+     * @param array  $params
      * @param string $method
      */
     private function _prepare_request_fields($params, $method)
@@ -228,8 +230,8 @@ abstract class APaypal
     /**
      * Validates a set of params to make sure
      * the required fields for an API request are there
-     * @param array $params
-     * @param array $required_fields
+     * @param array  $params
+     * @param array  $required_fields
      * @param string $method
      */
     protected function _validate_required_fields($params, $required_fields, $method)
@@ -246,6 +248,7 @@ abstract class APaypal
         if (!empty($missing_fields)) {
             Error::set(__METHOD__,
                 $method . ' failed: Missing required fields ' . implode(', ', $missing_fields));
+
             return false;
         }
 

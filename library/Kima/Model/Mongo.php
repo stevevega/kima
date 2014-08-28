@@ -5,8 +5,7 @@
  */
 namespace Kima\Model;
 
-use \Kima\Database,
-    \Kima\Model\IModel;
+use \Kima\Database;
 
 /**
  * Mongo
@@ -17,72 +16,72 @@ class Mongo implements IModel
 
     /**
      * Gets the table name format for the database
-     * @param string $table
-     * @param string $database
-     * @param string $prefix
+     * @param  string $table
+     * @param  string $database
+     * @param  string $prefix
      * @return string
      */
-    function get_table($table, $database = '', $prefix = '');
+    public function get_table($table, $database = '', $prefix = '');
 
     /**
      * Gets the join syntax for the query
-     * @param string $table
-     * @param string $key
-     * @param string $join_key
-     * @param string $database
+     * @param  string $table
+     * @param  string $key
+     * @param  string $join_key
+     * @param  string $database
      * @return string
      */
-    function get_join($table, $key, $join_key = '', $database = '');
+    public function get_join($table, $key, $join_key = '', $database = '');
 
     /**
      * Gets the order syntax for the query
-     * @param string $field
-     * @param string $order
+     * @param  string $field
+     * @param  string $order
      * @return string
      */
-    function get_order($field, $order = 'ASC');
+    public function get_order($field, $order = 'ASC');
 
     /**
      * Prepares the fields for a fetch query
-     * @param array $fields
+     * @param  array  $fields
      * @return string
      */
-    function prepare_fetch_fields(array $fields);
+    public function prepare_fetch_fields(array $fields);
 
     /**
      * Prepares the fields for a save query
-     * @param array $fields
+     * @param  array  $fields
      * @return string
      */
-    function prepare_save_fields(array $fields);
+    public function prepare_save_fields(array $fields);
 
     /**
      * Prepares query joins
-     * @param array $joins
+     * @param  array  $joins
      * @return string
      */
-    function prepare_joins(array $joins);
+    public function prepare_joins(array $joins);
 
     /**
      * Prepares query filters
-     * @param array $filters
+     * @param  array  $filters
      * @return string
      */
-    function prepare_filters(array $filters);
+    public function prepare_filters(array $filters);
 
     /**
      * Prepares query grouping
-     * @param array $group
+     * @param  array  $group
      * @return string
      */
-    function prepare_group(array $group);
+    public function prepare_group(array $group);
 
     /**
      * Prepares query order values
-     * @param array $order
+     * @param  array  $order
      * @return string
      */
-    function prepare_order(array $order);
+    public function prepare_order(array $order);
 
     /**
      * Prepares query limit
@@ -90,34 +89,34 @@ class Mongo implements IModel
      * @param $start
      * @return string
      */
-    function prepare_limit($limit = 0, $start = 0);
+    public function prepare_limit($limit = 0, $start = 0);
 
     /**
      * Gets fetch query
-     * @param array $params
+     * @param  array  $params
      * @return string
      */
-    function get_fetch_query(array $params);
+    public function get_fetch_query(array $params);
 
     /**
      * Gets update query
-     * @param array $params
+     * @param  array  $params
      * @return string
      */
-    function get_update_query(array $params);
+    public function get_update_query(array $params);
 
     /**
      * Gets insert/update query
-     * @param array $params
+     * @param  array  $params
      * @return string
      */
-    function get_put_query(array $params);
+    public function get_put_query(array $params);
 
     /**
      * Gets delete query
-     * @param array $params
+     * @param  array  $params
      * @return string
      */
-    function get_delete_query(array $params);
+    public function get_delete_query(array $params);
 
 }

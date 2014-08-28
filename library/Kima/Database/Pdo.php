@@ -5,12 +5,11 @@
  */
 namespace Kima\Database;
 
-use \Kima\Application,
-    \Kima\Database\ADatabase,
-    \Kima\Error,
-    \PDO as PdoDriver,
-    \PDOException,
-    \PDOStatement;
+use \Kima\Application;
+use \Kima\Error;
+use \PDO as PdoDriver;
+use \PDOException;
+use \PDOStatement;
 
 /**
  * PDO
@@ -61,8 +60,7 @@ class Pdo extends ADatabase
     private function __construct()
     {
         // make sure pdo is available
-        if (!extension_loaded('pdo'))
-        {
+        if (!extension_loaded('pdo')) {
             Error::set(self::ERROR_NO_PDO);
         }
 
@@ -74,12 +72,13 @@ class Pdo extends ADatabase
 
     /**
      * Gets the Database instance
-     * @param string $db_engine The database engine
+     * @param  string $db_engine The database engine
      * @return Pdo
      */
     public static function get_instance($db_engine)
     {
         isset(self::$instance) || self::$instance = new self;
+
         return self::$instance;
     }
 
@@ -91,8 +90,7 @@ class Pdo extends ADatabase
     public function get_connection()
     {
         # lets check if we already got a connection to this host
-        if (empty($this->connection))
-        {
+        if (empty($this->connection)) {
             # set the username and password
             $config = Application::get_instance()->get_config();
             $user = $config->database['mysql']['user'];
@@ -107,50 +105,45 @@ class Pdo extends ADatabase
 
     /**
      * creates a new database connection
-     * @param string $user
-     * @param string $password
+     * @param  string $user
+     * @param  string $password
      * @return PDO
      */
     public function connect($user = '', $password = '')
     {
         # make the database connection
         $dsn = 'mysql:dbname=' . $this->database .';host=' . $this->host;
-        try
-        {
+        try {
             $this->connection = new PdoDriver($dsn, $user, $password,
                 [PdoDriver::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'"]);
+
             return $this->connection;
-        }
-        catch (PDOException $e)
-        {
+        } catch (PDOException $e) {
             Error::set(sprintf(self::ERROR_PDO_CONNECTION_FAILED, $e->getMessage()));
         }
     }
 
     /**
      * Fetch results from the database
-     * @param array $options The execution options
+     * @param  array $options The execution options
      * @return mixed
      */
     public function fetch(array $options)
     {
-        if (empty($options['model']))
-        {
+        if (empty($options['model'])) {
             Error::set(self::ERROR_PDO_EMPTY_MODEL);
         }
 
         $statement = $this->execute($options);
         $objects = [];
-        while ($row = $statement->fetchObject($options['model']))
-        {
+        while ($row = $statement->fetchObject($options['model'])) {
             $objects[] = $row;
         }
         $result['objects'] = $objects;
 
         // get the count if necessary
         $count = 0;
-        if ($options['get_count'])
-        {
+        if ($options['get_count']) {
             $options['query_string'] = $options['count_query_string'];
             $statement = $this->execute($options);
             $count_result = $statement->fetchObject();
@@ -158,12 +151,13 @@ class Pdo extends ADatabase
         }
 
         $result['count'] = $count;
+
         return $result;
     }
 
     /**
      * Not implemented for PDO
-     * @param  array  $options
+     * @param array $options
      */
     public function aggregate(array $options)
     {
@@ -172,64 +166,61 @@ class Pdo extends ADatabase
 
     /**
      * Update/Inserts to the database
-     * @param array $options The execution options
+     * @param  array   $options The execution options
      * @return boolean
      */
     public function put(array $options)
     {
         $this->execute($options);
+
         return true;
     }
 
     /**
      * Deletes to the database
-     * @param array $options The execution options
+     * @param  array   $options The execution options
      * @return boolean
      */
     public function delete(array $options)
     {
         $this->execute($options);
+
         return true;
     }
 
     /**
      * Executes an operation
-     * @param array $options
+     * @param  array $options
      * @return mixed
      */
     public function execute(array $options)
     {
         // validate query
-        if (empty($options['query_string']))
-        {
+        if (empty($options['query_string'])) {
             Error::set(self::ERROR_PDO_EMPTY_QUERY);
         }
 
-        try
-        {
-            if (!empty($options['debug']))
-            {
+        try {
+            if (!empty($options['debug'])) {
                 var_dump($options);
+                exit;
             }
 
             $statement = $this->get_connection()->prepare($options['query_string']);
 
             // bind prepare statement values if necessary
-            if (!empty($options['query']['binds']))
-            {
+            if (!empty($options['query']['binds'])) {
                $this->bind_values($statement, $options['query']['binds']);
             }
             $success = $statement->execute();
 
-            if (!$success)
-            {
+            if (!$success) {
                 $error = $statement->errorInfo();
                 Error::set(sprintf(self::ERROR_PDO_QUERY_ERROR, $error[2]));
             }
+
             return $statement;
-        }
-        catch (PDOException $e)
-        {
+        } catch (PDOException $e) {
             Error::set(sprintf(self::ERROR_PDO_EXECUTE_ERROR, $e->getMessage()));
         }
     }
@@ -237,14 +228,12 @@ class Pdo extends ADatabase
     /**
      * Binds values using PDO prepare statements
      * @param PDOStatement $statement
-     * @param array $binds
+     * @param array        $binds
      */
     public function bind_values(PDOStatement &$statement, array $binds)
     {
-        foreach ($binds as $key => $bind)
-        {
-            switch (true)
-            {
+        foreach ($binds as $key => $bind) {
+            switch (true) {
                 case is_int($bind) :
                     $type = PdoDriver::PARAM_INT;
                     break;
@@ -266,20 +255,19 @@ class Pdo extends ADatabase
         }
     }
 
-
     /**
      * Escapes the string to prepare it for db queries
-     * @param string $string
+     * @param  string $string
      * @return string
      */
     public function escape($string)
     {
         // escape strings
-        if (is_string($string))
-        {
+        if (is_string($string)) {
             # get the current database connection
             $this->get_connection()->quote($string);
         }
+
         return $string;
     }
 
@@ -290,6 +278,7 @@ class Pdo extends ADatabase
     public function last_insert_id()
     {
         # get the last insert id
+
         return $this->get_connection()->lastInsertId();
     }
 
@@ -300,6 +289,7 @@ class Pdo extends ADatabase
     public function begin()
     {
         # begins transaction
+
         return $this->get_connection()->beginTransaction();
     }
 
@@ -310,6 +300,7 @@ class Pdo extends ADatabase
     public function commit()
     {
         # commits a transaction
+
         return $this->get_connection()->commit();
     }
 
@@ -320,6 +311,7 @@ class Pdo extends ADatabase
     public function rollback()
     {
         # roll backs a transaction
+
         return $this->get_connection()->rollBack();
     }
 

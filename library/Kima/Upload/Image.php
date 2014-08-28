@@ -5,8 +5,7 @@
  */
 namespace Kima\Upload;
 
-use \Kima\Image as KimaImage,
-    \Kima\Upload\File;
+use \Kima\Image as KimaImage;
 
 /**
  * Kima Image Upload library
@@ -27,6 +26,7 @@ class Image extends File
     public function save_as($format)
     {
         $this->save_as = $format;
+
         return $this;
     }
 
@@ -41,13 +41,11 @@ class Image extends File
         // set the destination path
         $path = $folder . DIRECTORY_SEPARATOR . $new_name;
 
-        if (!is_uploaded_file($temp_file))
-        {
+        if (!is_uploaded_file($temp_file)) {
             return false;
         }
 
-        if (!empty($this->save_as))
-        {
+        if (!empty($this->save_as)) {
             // change the destination file extension
             $path_parts = pathinfo($path);
             $path = $path_parts['dirname'] . DIRECTORY_SEPARATOR . $path_parts['filename'];
@@ -56,6 +54,7 @@ class Image extends File
 
         // move the file to the new location
         $image = new KimaImage($temp_file);
+
         return $image->move_uploaded_image($path, $this->save_as);
     }
 

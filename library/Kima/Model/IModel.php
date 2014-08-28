@@ -14,48 +14,48 @@ interface IModel
 
     /**
      * Prepares the fields for a fetch query
-     * @param array $fields
-     * @param string $table
+     * @param  array  $fields
+     * @param  string $table
      * @return string
      */
-    function prepare_fetch_fields(array $fields);
+    public function prepare_fetch_fields(array $fields);
 
     /**
      * Prepares the fields for a save query
-     * @param array $fields
-     * @param array $binds
+     * @param  array  $fields
+     * @param  array  $binds
      * @return string
      */
-    function prepare_save_fields(array $fields, array &$binds);
+    public function prepare_save_fields(array $fields, array &$binds);
 
     /**
      * Prepares query joins
-     * @param array $joins
+     * @param  array  $joins
      * @return string
      */
-    function prepare_joins(array $joins);
+    public function prepare_joins(array $joins);
 
     /**
      * Prepares query filters
-     * @param array $filters
-     * @param array $binds
+     * @param  array  $filters
+     * @param  array  $binds
      * @return string
      */
-    function prepare_filters(array $filters, array &$binds);
+    public function prepare_filters(array $filters, array &$binds);
 
     /**
      * Prepares query grouping
-     * @param array $group
+     * @param  array  $group
      * @return string
      */
-    function prepare_group(array $group);
+    public function prepare_group(array $group);
 
     /**
      * Prepares query order values
-     * @param array $order
+     * @param  array  $order
      * @return string
      */
-    function prepare_order(array $order);
+    public function prepare_order(array $order);
 
     /**
      * Prepares query limit
@@ -63,35 +63,35 @@ interface IModel
      * @param $start
      * @return string
      */
-    function prepare_limit($limit = 0, $start = 0);
+    public function prepare_limit($limit = 0, $start = 0);
 
     /**
      * Gets fetch query
-     * @param array $params
-     * @param boolean $is_count_query
+     * @param  array   $params
+     * @param  boolean $is_count_query
      * @return string
      */
-    function get_fetch_query(array &$params, $is_count_query = false);
+    public function get_fetch_query(array &$params, $is_count_query = false);
 
     /**
      * Gets update query
-     * @param array $params
+     * @param  array  $params
      * @return string
      */
-    function get_update_query(array &$params);
+    public function get_update_query(array &$params);
 
     /**
      * Gets insert/update query
-     * @param array $params
+     * @param  array  $params
      * @return string
      */
-    function get_put_query(array &$params);
+    public function get_put_query(array &$params);
 
     /**
      * Gets delete query
-     * @param array $params
+     * @param  array  $params
      * @return string
      */
-    function get_delete_query(array &$params);
+    public function get_delete_query(array &$params);
 
 }

@@ -5,10 +5,8 @@
  */
 namespace Kima\Model;
 
-use \Kima\Database,
-    \Kima\Error,
-    \Kima\Model\IModel,
-    \Kima\Model\TFilter;
+use \Kima\Database;
+use \Kima\Error;
 
 /**
  * Mysql
@@ -33,31 +31,30 @@ class Mysql implements IModel
 
     /**
      * Gets the table name format for the database
-     * @param string $table
-     * @param string $database
-     * @param string $prefix
+     * @param  string $table
+     * @param  string $database
+     * @param  string $prefix
      * @return string
      */
     public function get_table($table, $database = '', $prefix = '')
     {
         $table = empty($prefix) ? $table : $prefix . $table;
+
         return empty($database) ? $table : $database . '.' . $table;
     }
 
     /**
      * Gets the join syntax for the query
-     * @param array $options ['table', 'on', 'type']
+     * @param  array  $options ['table', 'on', 'type']
      * @return string
      */
     public function get_join(array $options)
     {
         // validate join
-        if (empty($options['table']) || empty($options['on']))
-        {
+        if (empty($options['table']) || empty($options['on'])) {
             Error::set(self::ERROR_INVALID_JOIN);
         }
-        if (!is_array($options['on']))
-        {
+        if (!is_array($options['on'])) {
             Error::set(self::ERROR_JOIN_ON_NOT_ARRAY);
         }
 
@@ -68,44 +65,43 @@ class Mysql implements IModel
 
         $binds = null;
         $join_query .= $this->parse_operators($options['on'], $binds);
+
         return $join_query;
     }
 
     /**
      * Prepares the fields for a fetch query
-     * @param array $fields
+     * @param  array  $fields
      * @return string
      */
     public function prepare_fetch_fields(array $fields)
     {
         # select * fields if none were added
-        if (empty($fields))
-        {
+        if (empty($fields)) {
             return '*';
         }
 
         # prepare every field
         $fields_query = [];
-        foreach ($fields as $field => $value)
-        {
+        foreach ($fields as $field => $value) {
             $field_name = is_string($field) ? $field . ' AS ' . $value : $value;
             $fields_query[] = $field_name;
         }
+
         return implode(',', $fields_query);
     }
 
     /**
      * Prepares the fields for a save query
      * @todo fix $this->{value}
-     * @param array $fields
-     * @param array $binds
+     * @param  array  $fields
+     * @param  array  $binds
      * @return string
      */
     public function prepare_save_fields(array $fields, array &$binds)
     {
         # save queries should always provide at least one field
-        if (empty($fields))
-        {
+        if (empty($fields)) {
             Error::set(self::ERROR_EMPTY_FIELDS);
         }
 
@@ -113,16 +109,12 @@ class Mysql implements IModel
         $fields_data = [];
 
         // check if the array is multidimensional
-        if (count($fields) !== count($fields, COUNT_RECURSIVE) && isset($fields[0]))
-        {
+        if (count($fields) !== count($fields, COUNT_RECURSIVE) && isset($fields[0])) {
             $fields_data['fields'] = array_keys($fields[0]);
-            foreach ($fields as $key => $field)
-            {
+            foreach ($fields as $key => $field) {
                 $fields_data['values'][] = $this->get_put_values($field, $key, $binds);
             }
-        }
-        else
-        {
+        } else {
             $fields_data['fields'] = array_keys($fields);
             $fields_data['values'][] = $this->get_put_values($fields, 0, $binds);
         }
@@ -132,23 +124,19 @@ class Mysql implements IModel
 
     /**
      * Gets the values used for a put query
-     * @param  array $fields
+     * @param  array  $fields
      * @param  string $count
      * @return array
      */
     private function get_put_values(array $fields, $count, &$binds)
     {
         $values = [];
-        foreach ($fields as $field => $value)
-        {
+        foreach ($fields as $field => $value) {
             $key = $field;
 
-            if (is_array($value) && isset($value['$raw']))
-            {
+            if (is_array($value) && isset($value['$raw'])) {
                 $result = $value['$raw'];
-            }
-            else
-            {
+            } else {
                 // format the bind key since it only allows alphanumeric and _
                 $result = ':' . str_replace('.', '_', $key)  . '_' . $count;
                 $binds[$result] = $value;
@@ -163,27 +151,26 @@ class Mysql implements IModel
 
     /**
      * Prepares query joins
-     * @param  array $joins
+     * @param  array  $joins
      * @return string
      */
     public function prepare_joins(array $joins)
     {
         $join_query = [];
-        foreach ($joins as $join)
-        {
-            if (!is_array($join))
-            {
+        foreach ($joins as $join) {
+            if (!is_array($join)) {
                 Error::set(self::ERROR_JOIN_NOT_ARRAY);
             }
             $join_query[] = $this->get_join($join);
         }
+
         return empty($join_query) ? '' : implode(' ', $join_query);
     }
 
     /**
      * Prepares query filters
-     * @param array $filters
-     * @param array $binds
+     * @param  array  $filters
+     * @param  array  $binds
      * @return string
      */
     public function prepare_filters(array $filters, array &$binds)
@@ -195,8 +182,8 @@ class Mysql implements IModel
 
     /**
      * Prepares query having
-     * @param array $having
-     * @param array $binds
+     * @param  array  $having
+     * @param  array  $binds
      * @return string
      */
     public function prepare_having(array $having, array &$binds)
@@ -208,7 +195,7 @@ class Mysql implements IModel
 
     /**
      * Prepares query grouping
-     * @param array $group
+     * @param  array  $group
      * @return string
      */
     public function prepare_group(array $group)
@@ -218,15 +205,14 @@ class Mysql implements IModel
 
     /**
      * Prepares query order values
-     * @param array $orders
+     * @param  array  $orders
      * @return string
      */
     public function prepare_order(array $orders)
     {
         $order_query = [];
 
-        foreach ($orders as $order => $asc)
-        {
+        foreach ($orders as $order => $asc) {
             $order_asc = $asc === 'DESC' ? 'DESC' : 'ASC';
             $order_query[] = $order . ' ' . $order_asc;
         }
@@ -247,8 +233,8 @@ class Mysql implements IModel
 
     /**
      * Gets fetch query
-     * @param array $params
-     * @param boolean $is_count_query
+     * @param  array   $params
+     * @param  boolean $is_count_query
      * @return string
      */
     public function get_fetch_query(array &$params, $is_count_query = false)
@@ -256,13 +242,11 @@ class Mysql implements IModel
         $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
 
         // reset filter binds if necessary
-        if (array_key_exists('i', $params))
-        {
+        if (array_key_exists('i', $params)) {
             $this->i = 1;
         }
 
-        if ($is_count_query)
-        {
+        if ($is_count_query) {
             $params['fields'] = empty($params['group']) ? ['COUNT(*)' => 'count'] : [1];
         }
 
@@ -277,8 +261,7 @@ class Mysql implements IModel
                 $this->prepare_order($params['order']) .
                 $this->prepare_limit($params['limit'], $params['start']);
 
-        if ($is_count_query && !empty($params['group']))
-        {
+        if ($is_count_query && !empty($params['group'])) {
             $query_string = 'SELECT COUNT(*) AS count FROM (' . $query_string . ') AS count';
         }
 
@@ -287,7 +270,7 @@ class Mysql implements IModel
 
     /**
      * Gets update query
-     * @param array $params
+     * @param  array  $params
      * @return string
      */
     public function get_update_query(array &$params)
@@ -296,8 +279,7 @@ class Mysql implements IModel
         $fields = $this->prepare_save_fields($params['fields'], $params['binds']);
 
         $fields_query  = [];
-        foreach ($fields['fields'] as $key => $field)
-        {
+        foreach ($fields['fields'] as $key => $field) {
             $fields_query[] = $field . '=' . $fields['values'][0][$key];
         }
         $fields_query = implode(', ', $fields_query);
@@ -316,7 +298,7 @@ class Mysql implements IModel
 
     /**
      * Gets insert/update query
-     * @param array $params
+     * @param  array  $params
      * @return string
      */
     public function get_put_query(array &$params)
@@ -329,16 +311,14 @@ class Mysql implements IModel
 
         // values
         $values_query = [];
-        foreach ($fields['values'] as $values)
-        {
+        foreach ($fields['values'] as $values) {
             $values_query[] = '(' . implode(', ', $values) . ')';
         }
         $values_query = implode(', ', $values_query);
 
         // on duplicate query
         $on_duplicate_query = [];
-        foreach ($fields['fields'] as $key => $field)
-        {
+        foreach ($fields['fields'] as $key => $field) {
             $on_duplicate_query[] = $field . '= VALUES(' . $field . ')';
         }
         $on_duplicate_query = implode(', ', $on_duplicate_query);
@@ -356,7 +336,7 @@ class Mysql implements IModel
 
     /**
      * Gets delete query
-     * @param array $params
+     * @param  array  $params
      * @return string
      */
     public function get_delete_query(array &$params)

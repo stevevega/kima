@@ -16,10 +16,10 @@ abstract class ADatabase
 
     /**
      * Gets the Database instance
-     * @param string $db_engine The database engine
+     * @param  string $db_engine The database engine
      * @return mixed
      */
-    static function get_instance($db_engine)
+    public static function get_instance($db_engine)
     {
         Error::set('Not implemented');
     }
@@ -29,50 +29,50 @@ abstract class ADatabase
      * if theres no connection creates a new one
      * @return mixed
      */
-    abstract function get_connection();
+    abstract public function get_connection();
 
     /**
      * Creates a new database connection
-     * @param string $user
-     * @param string $password
+     * @param  string $user
+     * @param  string $password
      * @return mixed
      */
-    abstract function connect($user = '', $password = '');
+    abstract public function connect($user = '', $password = '');
 
     /**
      * Fetch results from the database
-     * @param array $options The execution options
+     * @param  array $options The execution options
      * @return mixed
      */
-    abstract function fetch(array $options);
+    abstract public function fetch(array $options);
 
     /**
      * Performs an aggregate method in the database
-     * @param array $options The execution options
+     * @param  array $options The execution options
      * @return mixed
      */
-    abstract function aggregate(array $options);
+    abstract public function aggregate(array $options);
 
     /**
      * Fetch results from the database
-     * @param array $options The execution options
+     * @param  array $options The execution options
      * @return mixed
      */
-    abstract function put(array $options);
+    abstract public function put(array $options);
 
     /**
      * Fetch results from the database
-     * @param array $options The execution options
+     * @param  array $options The execution options
      * @return mixed
      */
-    abstract function delete(array $options);
+    abstract public function delete(array $options);
 
     /**
      * Executes an operation
-     * @param array $options The execution options
+     * @param  array $options The execution options
      * @return mixed
      */
-    abstract function execute(array $options);
+    abstract public function execute(array $options);
 
     /**
      * Sets the current database
@@ -82,19 +82,21 @@ abstract class ADatabase
     public function set_database($database)
     {
         // set the current database
-        $this->database = (string)$database;
+        $this->database = (string) $database;
+
         return $this;
     }
 
     /**
      * Sets the current database host
-     * @param string $host
+     * @param  string $host
      * @return mixed
      */
     public function set_host($host)
     {
         # set the current host
-        $this->host = (string)$host;
+        $this->host = (string) $host;
+
         return $this;
     }
 

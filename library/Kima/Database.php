@@ -5,7 +5,6 @@
  */
 namespace Kima;
 
-use \Kima\Error;
 use \Kima\Database\Pdo;
 use \Kima\Database\Mongo;
 
@@ -30,17 +29,16 @@ class Database
     /**
      * constructor
      */
-    private function __construct(){}
+    private function __construct() {}
 
     /**
      * Gets a Database instance
-     * @param string $db_engine The database engine
-     * @return Pdo | Mongo
+     * @param  string $db_engine The database engine
+     * @return Pdo    | Mongo
      */
     public static function get_instance($db_engine = null)
     {
-        switch ($db_engine)
-        {
+        switch ($db_engine) {
             case self::MYSQL:
                 return Pdo::get_instance($db_engine);
             case self::MONGO:

@@ -7,7 +7,6 @@ namespace Kima\Payment\Paypal;
 /**
  * Namespaces to use
  */
-use \Kima\Payment\Paypal\APaypal;
 
 /**
  * Paypal Direct Payment
@@ -52,6 +51,7 @@ class DirectPayment extends APaypal
         }
 
         $this->set_error_response($response, self::METHOD);
+
         return false;
     }
 

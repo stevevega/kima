@@ -5,14 +5,10 @@
  */
 namespace Kima;
 
-use \Kima\Error,
-    \Kima\Controller,
-    \Kima\Http\Redirector,
-    \Kima\Http\Request,
-    \Kima\Http\StatusCode,
-    \Kima\Language,
-    \Kima\Language\Directory as LanguageDirectory,
-    \Bootstrap;
+use \Kima\Http\Redirector;
+use \Kima\Http\Request;
+use \Kima\Language\Directory as LanguageDirectory;
+use \Bootstrap;
 
 /**
  * Action

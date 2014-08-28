@@ -4,9 +4,8 @@
  */
 namespace Kima\Language;
 
-use \Kima\Application,
-    \Kima\Http\Request,
-    \Kima\Language\ALanguage;
+use \Kima\Application;
+use \Kima\Http\Request;
 
 /**
  * Directory
@@ -15,7 +14,7 @@ use \Kima\Application,
 class Directory extends ALanguage
 {
 
-	/**
+    /**
      * Gets the corresponding URL for a desired language
      * @param  string $language
      * @param  string $url
@@ -43,8 +42,7 @@ class Directory extends ALanguage
 
             // remove the language if necessary
             $url_language = isset($url_path[1]) ? $url_path[1] : null;
-            if ($app->is_language_available($url_language))
-            {
+            if ($app->is_language_available($url_language)) {
                 $url_path = array_slice($url_path, 2);
             }
 
@@ -70,8 +68,7 @@ class Directory extends ALanguage
         $language = array_shift($path_values);
 
         $app = Application::get_instance();
-        if (!$app->is_language_available($language))
-        {
+        if (!$app->is_language_available($language)) {
             $language = null;
         }
 

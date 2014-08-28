@@ -5,15 +5,14 @@
  */
 namespace Kima\Database;
 
-use \Kima\Application,
-    \Kima\Database\ADatabase,
-    \Kima\Error,
-    \MongoClient,
-    \MongoCollection,
-    \MongoConnectionException,
-    \MongoCursorException,
-    \MongoException,
-    \MongoId;
+use \Kima\Application;
+use \Kima\Error;
+use \MongoClient;
+use \MongoCollection;
+use \MongoConnectionException;
+use \MongoCursorException;
+use \MongoException;
+use \MongoId;
 
 /**
  * Mongo
@@ -29,6 +28,7 @@ class Mongo extends ADatabase
      const ERROR_NO_COLLECTION = 'Mongo error: empty collection name';
      const ERROR_MONGO_QUERY = 'Mongo query error: "%s"';
      const ERROR_MONGO_AGGREGATION = 'Mongo aggregation error: "%s"';
+     const ERROR_WRONG_UPDATE_LIMIT = 'You shouldn\'t perform an update, using a limit value different than 1';
 
     /**
      * The Mongo Client connection
@@ -59,32 +59,30 @@ class Mongo extends ADatabase
      */
     private function __construct()
     {
-        if (!extension_loaded('mongo'))
-        {
+        if (!extension_loaded('mongo')) {
             Error::set(self::ERROR_NO_MONGO);
         }
 
         // set the default host and database name
         $config = Application::get_instance()->get_config();
 
-        if (!empty($config->database['mongo']['name']))
-        {
+        if (!empty($config->database['mongo']['name'])) {
             $this->set_database($config->database['mongo']['name']);
         }
-        if (!empty($config->database['mongo']['host']))
-        {
+        if (!empty($config->database['mongo']['host'])) {
             $this->set_host($config->database['mongo']['host']);
         }
     }
 
     /**
      * Gets the Database instance
-     * @param string $db_engine The database engine
+     * @param  string      $db_engine The database engine
      * @return MongoClient
      */
     public static function get_instance($db_engine)
     {
         isset(self::$instance) || self::$instance = new self;
+
         return self::$instance;
     }
 
@@ -93,11 +91,10 @@ class Mongo extends ADatabase
      * if theres no connection creates a new one
      * @return mixed
      */
-    function get_connection()
+    public function get_connection()
     {
         // check if we already got a connection to this host
-        if (empty($this->connection))
-        {
+        if (empty($this->connection)) {
             // set the username and password
             $config = Application::get_instance()->get_config();
             $user = !empty($config->database['mongo']['user'])
@@ -116,60 +113,53 @@ class Mongo extends ADatabase
 
     /**
      * Creates a new database connection
-     * @param string $user
-     * @param string $password
+     * @param  string $user
+     * @param  string $password
      * @return mixed
      */
-    function connect($user = '', $password = '')
+    public function connect($user = '', $password = '')
     {
         // make the database connection
-        try
-        {
+        try {
             $credentials = !empty($user) ? $user . ':' . $password . '@' : '';
 
             $this->connection =
                 new MongoClient('mongodb://' . $credentials . $this->host . ':27017/' . $this->database);
+
             return $this->connection;
-        }
-        catch (MongoConnectionException $e)
-        {
+        } catch (MongoConnectionException $e) {
             Error::set('Mongo Connection failed: ' . $e->getMessage());
         }
     }
 
     /**
      * Fetch results from the database
-     * @param array $options The execution options
+     * @param  array $options The execution options
      * @return mixed
      */
     public function fetch(array $options)
     {
         $collection = $this->execute($options);
 
-        try
-        {
+        try {
             $cursor = $collection->find($options['query']['filters'], $options['query']['fields']);
 
-            if (!empty($options['query']['order']))
-            {
+            if (!empty($options['query']['order'])) {
                 // make the sort compatible with mongo
                 $sort = $this->get_sort($options['query']['order']);
                 $cursor->sort($sort);
             }
 
-            if (!empty($options['query']['start']))
-            {
+            if (!empty($options['query']['start'])) {
                 $cursor->skip($options['query']['start']);
             }
 
-            if (!empty($options['query']['limit']))
-            {
+            if (!empty($options['query']['limit'])) {
                 $cursor->limit($options['query']['limit']);
             }
 
             $objects = [];
-            foreach($cursor as $row)
-            {
+            foreach ($cursor as $row) {
                 $object = new $options['model'];
                 foreach ($row as $key => $field) {
                     $object->{$key} = $field;
@@ -179,10 +169,9 @@ class Mongo extends ADatabase
 
             $result['objects'] = $objects;
             $result['count'] = !empty($options['get_count']) ? $cursor->count() : 0;
+
             return $result;
-        }
-        catch (MongoCursorException $e)
-        {
+        } catch (MongoCursorException $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
     }
@@ -190,7 +179,7 @@ class Mongo extends ADatabase
     /**
      * Applies an aggreate method to a mongo collection
      * @see    http://php.net/manual/en/mongocollection.aggregate.php
-     * @param  array  $options
+     * @param  array $options
      * @return array
      */
     public function aggregate(array $options)
@@ -199,37 +188,34 @@ class Mongo extends ADatabase
         $pipeline = [];
 
         // include the match filters
-        if (!empty($options['query']['filters']))
-        {
+        if (!empty($options['query']['filters'])) {
             $pipeline[]['$match'] = $options['query']['filters'];
         }
 
         // include the grouping
-        if (!empty($options['query']['group']))
-        {
+        if (!empty($options['query']['group'])) {
             $pipeline[]['$group'] = $options['query']['group'];
         }
 
         // include the sorting
-        if (!empty($options['query']['order']))
-        {
+        if (!empty($options['query']['order'])) {
             $pipeline[]['$sort'] = $this->get_sort($options['query']['order']);;
         }
 
         $objects = $collection->aggregate($pipeline);
 
-        if (isset($objects['errmsg']))
-        {
+        if (isset($objects['errmsg'])) {
             Error::set(sprintf(self::ERROR_MONGO_AGGREGATION, $objects['errmsg']));
         }
 
         $result['objects'] = $objects['result'];
+
         return $result;
     }
 
     /**
      * Update/Inserts to the database
-     * @param array $options The execution options
+     * @param  array $options The execution options
      * @return mixed
      */
     public function put(array $options)
@@ -244,52 +230,66 @@ class Mongo extends ADatabase
             ? $options['query']['filters']
             : ['_id' => new MongoId()];
 
-        try
-        {
+        try {
             // set whether to execute sync/async
             $async = !empty($options['query']['async'])
                 ? 0
                 : 1;
 
+            // by default, multiple update will be performed
+            $multiple = true;
+            $limit = $options['query']['limit'];
+
+            // if limit query parameter is set to 1, a single update
+            // will be performed
+            if (!empty($limit)) {
+                // if limit is set, it should have a value of 1
+                if (1 == $limit) {
+                    $multiple = false;
+                } else {
+                    // an error occurs otherwise
+                    Error::set(self::ERROR_WRONG_UPDATE_LIMIT);
+                }
+            }
+
+            $upsert = !empty($options['prevent_upsert'])
+                ? false
+                : true;
+
             return $collection->update(
                 $filters,
                 $fields,
-                ['upsert' => true, 'w' => $async]);
-        }
-        catch (MongoException $e)
-        {
+                ['upsert' => $upsert, 'w' => $async, 'multiple' => $multiple]);
+
+        } catch (MongoException $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
     }
 
     /**
      * Deletes to the database
-     * @param array $options The execution options
+     * @param  array $options The execution options
      * @return mixed
      */
     public function delete(array $options)
     {
         $collection = $this->execute($options);
 
-        try
-        {
+        try {
             return $collection->remove($options['query']['filters']);
-        }
-        catch (MongoException $e)
-        {
+        } catch (MongoException $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
     }
 
     /**
      * Executes an operation
-     * @param array $options The executions options
+     * @param  array $options The executions options
      * @return mixed
      */
     public function execute(array $options)
     {
-        if (!empty($options['debug']))
-        {
+        if (!empty($options['debug'])) {
             var_dump($options);
         }
 
@@ -300,8 +300,7 @@ class Mongo extends ADatabase
             : $this->database;
         $db = $connection->selectDB($db_name);
 
-        if (empty($options['query']['table']))
-        {
+        if (empty($options['query']['table'])) {
             Error::set(self::ERROR_NO_COLLECTION);
         }
 
@@ -321,8 +320,7 @@ class Mongo extends ADatabase
      */
     private function get_sort(array $sorts)
     {
-        foreach ($sorts as &$sort)
-        {
+        foreach ($sorts as &$sort) {
             $sort = 'DESC' === $sort ? -1 : 1;
         }
 

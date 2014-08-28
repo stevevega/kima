@@ -24,62 +24,67 @@ class Request
     /**
      * Request GET variabless
      * @param string $param
-     * @param mixed $default
+     * @param mixed  $default
      */
     public static function get($param, $default = null)
     {
         $value = isset($_GET[$param]) ? $_GET[$param] : null;
+
         return self::clean_value($value, $default);
     }
 
     /**
      * Request POST variabless
      * @param string $param
-     * @param mixed $default
+     * @param mixed  $default
      */
     public static function post($param, $default = null)
     {
         $value = isset($_POST[$param]) ? $_POST[$param] : null;
+
         return self::clean_value($value, $default);
     }
 
     /**
      * Request COOKIE variabless
      * @param string $param
-     * @param mixed $default
+     * @param mixed  $default
      */
     public static function cookie($param, $default = null)
     {
         $value = isset($_COOKIE[$param]) ? $_COOKIE[$param] : null;
+
         return self::clean_value($value, $default);
     }
 
     /**
      * Request SERVER variabless
      * @param string $param
-     * @param mixed $default
+     * @param mixed  $default
      */
     public static function server($param, $default = null)
     {
         $value = isset($_SERVER[$param]) ? $_SERVER[$param] : null;
+
         return self::clean_value($value, $default);
     }
 
     /**
      * Request ENV variabless
      * @param string $param
-     * @param mixed $default
+     * @param mixed  $default
      */
     public static function env($param, $default = null)
     {
         $value = isset($_ENV[$param]) ? $_ENV[$param] : null;
+
         return self::clean_value($value, $default);
     }
 
     /**
      * Request ENV variabless
      * @param string $param
-     * @param mixed $default
+     * @param mixed  $default
      * @param string $namespace
      */
     public static function session($param, $default = null, $namespace = null)
@@ -96,14 +101,13 @@ class Request
     /**
      * Gets a request parameter from different sources
      * @param string $param
-     * @param mixed $default
+     * @param mixed  $default
      * @param string $namespace Only affects session variables
      */
     public static function get_all($param, $default = null, $namespace = null)
     {
         // ask for the parameter
-        switch (true)
-        {
+        switch (true) {
             // GET param
             case isset($_GET[$param]):
                 return self::get($param, $default);
@@ -150,41 +154,39 @@ class Request
 
     /**
      * Gets the base url
-     * @param boolean $force_https
+     * @param  boolean $force_https
      * @return string
      */
     public static function get_base_url($force_https = false)
     {
         $protocol = $force_https ? self::PROTOCOL_HTTPS : self::get_protocol();
+
         return $protocol . Request::server('SERVER_NAME');
     }
 
-
     /**
      * Gets the current url
-     * @param boolean $force_https
+     * @param  boolean $force_https
      * @return string
      */
     public static function get_request_url($force_https = false)
     {
         $protocol = $force_https ? self::PROTOCOL_HTTPS : self::get_protocol();
+
         return $protocol . Request::server('SERVER_NAME') . Request::server('REQUEST_URI');
     }
 
     /**
      * Cleans a http value
      * @param  string $value
-     * @param  mixed $default
+     * @param  mixed  $default
      * @return mixed
      */
     private static function clean_value($value, $default)
     {
-        if (isset($value))
-        {
+        if (isset($value)) {
             $value = is_array($value) ? array_map('trim', $value) : trim($value);
-        }
-        else
-        {
+        } else {
             $value = $default;
         }
 

@@ -5,8 +5,6 @@
  */
 namespace Kima\Crypt;
 
-use \Kima\Error;
-
 /**
  * Creates hash passwords based on the bcrypt type
  * @see http://php.net/manual/en/function.crypt.php

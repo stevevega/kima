@@ -5,14 +5,12 @@
  */
 namespace Kima;
 
-use \Kima\Config,
-    \Kima\Database,
-    \Kima\Model\Mysql,
-    \Kima\Model\Mongo,
-    \Kima\Model\ResultSet,
-    \Kima\Util\String,
-    \ReflectionObject,
-    \ReflectionProperty;
+use \Kima\Model\Mysql;
+use \Kima\Model\Mongo;
+use \Kima\Model\ResultSet;
+use \Kima\Util\String;
+use \ReflectionObject;
+use \ReflectionProperty;
 
 /**
  * Model
@@ -144,6 +142,12 @@ abstract class Model
     private $async;
 
     /**
+     * Prevent Mongo upsert flag
+     * @var boolean
+     */
+    private $prevent_upsert;
+
+    /**
      * The query string created
      * @var string
      */
@@ -185,8 +189,7 @@ abstract class Model
         $this->set_model_adapter();
 
         // set a database prefix
-        if (isset($config->database[$this->db_engine]['prefix']))
-        {
+        if (isset($config->database[$this->db_engine]['prefix'])) {
             $this->set_prefix($config->database[$this->db_engine]['prefix']);
         }
     }
@@ -210,12 +213,10 @@ abstract class Model
         $objects = empty($objects) ? [$this] : $objects;
         $result = [];
 
-        foreach ($objects as $key => $object)
-        {
+        foreach ($objects as $key => $object) {
             $ref = new ReflectionObject($object);
             $properties = $ref->getProperties(ReflectionProperty::IS_PUBLIC);
-            foreach ($properties as $property)
-            {
+            foreach ($properties as $property) {
                 $result[$key][$property->getName()] = $property->getValue($object);
             }
         }
@@ -229,29 +230,26 @@ abstract class Model
      */
     private function set_default_db_engine(Config $config)
     {
-        if (!defined($this->model . '::DB_ENGINE'))
-        {
-            if (!isset($config->database['default']))
-            {
+        if (!defined($this->model . '::DB_ENGINE')) {
+            if (!isset($config->database['default'])) {
                 Error::set(self::ERROR_NO_DEFAULT_DB_ENGINE);
             }
 
             $this->set_db_engine($config->database['default']);
-        }
-        else
-        {
+        } else {
             $this->db_engine = constant($this->model . '::DB_ENGINE');
         }
     }
 
     /**
      * Sets the database engine for the model
-     * @param string $db_engine
+     * @param  string $db_engine
      * @return Model
      */
     public function set_db_engine($db_engine)
     {
-        $this->db_engine = (string)$db_engine;
+        $this->db_engine = (string) $db_engine;
+
         return $this;
     }
 
@@ -262,8 +260,7 @@ abstract class Model
     private function set_model_adapter()
     {
         // get the database model instance
-        switch ($this->db_engine)
-        {
+        switch ($this->db_engine) {
             case 'mysql':
                 $this->adapter = new Mysql();
                 break;
@@ -282,7 +279,8 @@ abstract class Model
      */
     private function set_prefix($prefix)
     {
-        $this->prefix = (string)$prefix;
+        $this->prefix = (string) $prefix;
+
         return $this;
     }
 
@@ -298,24 +296,24 @@ abstract class Model
 
     /**
      * Sets the model name and table used
-     * @param string $model
+     * @param  string $model
      * @return Model
      */
     public function set_model($model)
     {
         // set the model
-        $model = (string)$model;
+        $model = (string) $model;
         $this->model = $model;
 
         // set the table for this model
-        if (!defined($model . '::TABLE'))
-        {
+        if (!defined($model . '::TABLE')) {
             Error::set(sprintf(self::ERROR_NO_TABLE, $model));
         }
 
         $table = constant($model . '::TABLE');
 
         $this->table($table);
+
         return $this;
     }
 
@@ -325,7 +323,8 @@ abstract class Model
      */
     public function database($database)
     {
-        $this->database = (string)$database;
+        $this->database = (string) $database;
+
         return $this;
     }
 
@@ -335,7 +334,8 @@ abstract class Model
      */
     public function table($table)
     {
-        $this->table = (string)$table;
+        $this->table = (string) $table;
+
         return $this;
     }
 
@@ -346,6 +346,7 @@ abstract class Model
     public function join(array $joins)
     {
         $this->joins = array_merge($this->joins, $joins);
+
         return $this;
     }
 
@@ -356,6 +357,7 @@ abstract class Model
     public function filter(array $filters)
     {
         $this->filters = array_merge($this->filters, $filters);
+
         return $this;
     }
 
@@ -366,20 +368,21 @@ abstract class Model
     public function having(array $having)
     {
         $this->having = array_merge($this->having, $having);
+
         return $this;
     }
 
     /**
      * Set binds used for prepare statements
-     * @param array $binds
+     * @param  array       $binds
      * @return \Kima\Model
      */
     public function bind(array $binds)
     {
         $this->binds = array_merge($this->binds, $binds);
+
         return $this;
     }
-
 
     /**
      * Sets a group join
@@ -388,6 +391,7 @@ abstract class Model
     public function group(array $group)
     {
         $this->group = array_merge($this->group, $group);
+
         return $this;
     }
 
@@ -398,6 +402,7 @@ abstract class Model
     public function order($order)
     {
         $this->order = $order;
+
         return $this;
     }
 
@@ -411,8 +416,7 @@ abstract class Model
         $limit = intval($limit);
         $page = intval($page);
 
-        if ($limit > 0)
-        {
+        if ($limit > 0) {
             $this->limit = $limit;
             $this->start = $page > 0 ? $limit * ($page - 1) : 0;
         }
@@ -426,7 +430,20 @@ abstract class Model
      */
     public function async($async)
     {
-        $this->async = (boolean)$async;
+        $this->async = (boolean) $async;
+
+        return $this;
+    }
+
+    /**
+     * Prevents Mongo's upsert
+     * Can be used before a `put` invocation
+     * @param boolean $prevent_upsert
+     */
+    public function prevent_upsert($prevent_upsert = true)
+    {
+        $this->prevent_upsert = $prevent_upsert;
+
         return $this;
     }
 
@@ -436,6 +453,7 @@ abstract class Model
     public function debug()
     {
         $this->debug = true;
+
         return $this;
     }
 
@@ -446,6 +464,7 @@ abstract class Model
     private function set_fields(array $fields)
     {
         $this->fields = array_merge($fields, $this->fields);
+
         return $this->fields;
     }
 
@@ -460,7 +479,7 @@ abstract class Model
             'database' => $this->database,
             'prefix' => $this->prefix,
             'table' => $this->table,
-            'joins' => $this->joins,
+            'joins' => $this->get_joins(),
             'filters' => $this->filters,
             'having' => $this->having,
             'binds' => $this->binds,
@@ -496,7 +515,7 @@ abstract class Model
      * Fetch one result of data from the database
      * Example $fields values:
      * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
-     * @param array $fields
+     * @param array   $fields
      * @param boolean $return_as_array
      */
     public function fetch(array $fields = [], $return_as_array = false)
@@ -504,6 +523,7 @@ abstract class Model
         // make sure we limit one result
         $this->limit(1);
         $result = $this->fetch_results($fields, false, false, $return_as_array);
+
         return !empty($result[0]) ? $result[0] : null;
     }
 
@@ -511,7 +531,7 @@ abstract class Model
      * Fetch multiple results from the database
      * Example $fields values:
      * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
-     * @param array $fields
+     * @param array   $fields
      * @param boolean $get_as_result_set gets a result set with additional info as total count
      * @param boolean $return_as_array
      */
@@ -541,8 +561,7 @@ abstract class Model
             : null;
 
         $count_query_string = '';
-        if ($get_as_result_set && $this->adapter)
-        {
+        if ($get_as_result_set && $this->adapter) {
             $params['fields'] = [];
             $params['order'] = [];
             $params['start'] = 0;
@@ -566,24 +585,21 @@ abstract class Model
         // get result from the query
         $result = Database::get_instance($this->db_engine)->fetch($options);
 
-        if ($return_as_array)
-        {
+        if ($return_as_array) {
             $result['objects'] = $this->to_array($result['objects']);
         }
 
-        if ($get_as_result_set)
-        {
+        if ($get_as_result_set) {
             $result_set = new ResultSet();
             $result_set->count = $result['count'];
             $result_set->values = $result['objects'];
             $result = $result_set;
-        }
-        else
-        {
+        } else {
             $result = $result['objects'];
         }
 
         $this->clear_query_params();
+
         return $result;
     }
 
@@ -606,6 +622,7 @@ abstract class Model
         $result = Database::get_instance($this->db_engine)->aggregate($options);
 
         $this->clear_query_params();
+
         return $result['objects'];
     }
 
@@ -627,11 +644,13 @@ abstract class Model
         $options = [
             'query' => $params,
             'query_string' => $this->query_string,
-            'debug' => $this->debug
+            'debug' => $this->debug,
+            'prevent_upsert' => $this->prevent_upsert
         ];
 
         # run the query
         $this->clear_query_params();
+
         return Database::get_instance($this->db_engine)->put($options);
     }
 
@@ -642,8 +661,7 @@ abstract class Model
     public function put(array $fields = [])
     {
         $this->fields = $this->set_fields($fields);
-        if (!empty($this->filters))
-        {
+        if (!empty($this->filters) || !empty($this->prevent_upsert)) {
             return $this->update_model();
         }
 
@@ -662,6 +680,7 @@ abstract class Model
         ];
 
         $this->clear_query_params();
+
         return Database::get_instance($this->db_engine)->put($options);
     }
 
@@ -686,7 +705,26 @@ abstract class Model
         ];
 
         $this->clear_query_params();
+
         return Database::get_instance($this->db_engine)->delete($options);
+    }
+
+    /**
+     * Remove duplicate values from the joins and gets the final value
+     * @return array
+     */
+    private function get_joins()
+    {
+        $unique_joins = [];
+        foreach ($this->joins as $key => $join) {
+            if (in_array($join, $unique_joins)) {
+                unset($this->joins[$key]);
+            } else {
+                $unique_joins[] = $join;
+            }
+        }
+
+        return $this->joins;
     }
 
 }
