@@ -62,8 +62,7 @@ class Action
 
         // set the module routes if exists
         $module = $app->get_module();
-        if (!empty($module))
-        {
+        if (!empty($module)) {
             array_key_exists($module, $urls)
                 ? $urls = $urls[$module]
                 : Error::set(sprintf(self::ERROR_NO_MODULE_ROUTES, $module));
@@ -71,15 +70,13 @@ class Action
 
         // get the controller matching the routes
         $controller = $this->get_controller($urls);
-        if (empty($controller))
-        {
+        if (empty($controller)) {
             $language = isset($language) ? $language : $app->get_default_language();
             $app->set_language($language);
             $app->set_http_error(404);
         }
 
-        if (empty($language))
-        {
+        if (empty($language)) {
             $lang_source = Language::get_instance();
             $lang_url = $lang_source->get_language_url($app->get_default_language());
             Redirector::redirect($lang_url, 301);
@@ -101,24 +98,21 @@ class Action
     /**
      * Gets the url match route to follow
      * Returns the required controller to process the action
-     * @param array $urls
+     * @param  array  $urls
      * @return string
      */
     private function get_controller(array $urls)
     {
         // loop the defined urls looking for a match
-        foreach ($urls as $url => $controller)
-        {
-            if (is_string($controller))
-            {
+        foreach ($urls as $url => $controller) {
+            if (is_string($controller)) {
                 // set the match pattern
                 $pattern = str_replace('/', '\/', $url);
 
                 // set the string to search
                 $subject = '/' . implode('/', $this->url_parameters);
 
-                if (preg_match('/^' . $pattern . '$/', $subject))
-                {
+                if (preg_match('/^' . $pattern . '$/', $subject)) {
                     return $controller;
                 }
             }
@@ -129,7 +123,7 @@ class Action
 
     /**
      * Checks for possible http/https redirections
-     * @param  string $controller
+     * @param string $controller
      */
     private function check_https($controller)
     {
@@ -139,21 +133,18 @@ class Action
 
         // check if https is enforced
         $is_https_enforced = $application->is_https_enforced();
-        if ($is_https_enforced)
-        {
+        if ($is_https_enforced) {
             return $is_https ? true : Redirector::https();
         }
 
         // check if the controller is in the individual list of https request
         $https_controllers = $application->get_https_controllers();
-        if (in_array($controller, $https_controllers))
-        {
+        if (in_array($controller, $https_controllers)) {
             return $is_https ? true : Redirector::https();
         }
 
         // if we are on https but shouldn't redirect to http
-        if ($is_https && !in_array($controller, $https_controllers))
-        {
+        if ($is_https && !in_array($controller, $https_controllers)) {
             Redirector::http();
         }
     }
@@ -182,9 +173,9 @@ class Action
 
         // validate-call action
         $methods = $this->get_controller_methods($controller_class);
-        if (!in_array($method, $methods))
-        {
+        if (!in_array($method, $methods)) {
             $application->set_http_error(405);
+
             return;
         }
 
@@ -214,28 +205,26 @@ class Action
 
     /**
      * Gets the controller instance
-     * @param string $controller The controller name
-     * @param string $controller_path
+     * @param  string           $controller      The controller name
+     * @param  string           $controller_path
      * @return \Kima\Controller
      */
     private function get_controller_instance($controller, $controller_path, $default_path)
     {
         // require the controller file
-        if (is_readable($controller_path))
-        {
+        if (is_readable($controller_path)) {
             require_once $controller_path;
         }
         // look for the default controller path if the other one is not accessible
-        else if (is_readable($default_path))
-        {
+        else if (is_readable($default_path)) {
             $controller_path = $default_path;
             require_once $controller_path;
         }
         // no controller was found, error is triggered
-        else
-        {
+        else {
             Error::set(sprintf(self::ERROR_NO_CONTROLLER_FILE,
                 $controller, $controller_path, $default_path));
+
             return;
         }
 
@@ -245,8 +234,7 @@ class Action
             : Error::set(sprintf(self::ERROR_NO_CONTROLLER_CLASS, $controller, $controller_path));
 
         // validate controller is instance of Kima\Controller
-        if (!$controller_obj instanceof Controller)
-        {
+        if (!$controller_obj instanceof Controller) {
             Error::set(sprintf(self::ERROR_NO_CONTROLLER_INSTANCE, $controller));
         }
 
@@ -256,7 +244,7 @@ class Action
     /**
      * gets the controller available methods
      * removes the parent references
-     * @param string $controller
+     * @param  string $controller
      * @return array
      */
     private function get_controller_methods($controller)
@@ -290,6 +278,7 @@ class Action
 
         // set the language to the application
         $app->set_language($language);
+
         return $language;
     }
 
@@ -303,6 +292,7 @@ class Action
         $url_parameters = array_values(array_filter(explode('/', $path)));
 
         $this->url_parameters = $url_parameters;
+
         return $this;
     }
 
@@ -325,20 +315,17 @@ class Action
             . $module_path . self::BOOTSTRAP_PATH;
 
         // load the bootstrap if available
-        if (is_readable($bootstrap_path))
-        {
+        if (is_readable($bootstrap_path)) {
             // get the bootstrap and make sure the class exists
             require_once $bootstrap_path;
-            if (!class_exists('Bootstrap', false))
-            {
+            if (!class_exists('Bootstrap', false)) {
                 Error::set(self::ERROR_NO_BOOTSTRAP);
             }
 
             // get the bootstrap methods and call them
             $methods = get_class_methods('Bootstrap');
             $bootstrap = new Bootstrap();
-            foreach($methods as $method)
-            {
+            foreach ($methods as $method) {
                 $bootstrap->{$method}();
             }
         }
@@ -352,19 +339,16 @@ class Action
     {
         $predispatcher = Application::get_instance()->get_predispatcher();
 
-        if (!empty($predispatcher))
-        {
+        if (!empty($predispatcher)) {
             // get the bootstrap and make sure the class exists
-            if (!class_exists($predispatcher))
-            {
+            if (!class_exists($predispatcher)) {
                 Error::set(sprintf(self::ERROR_NO_PREDISPATCHER, $predispatcher));
             }
 
             // get the bootstrap methods and call them
             $methods = get_class_methods($predispatcher);
             $predispatcher = new $predispatcher();
-            foreach($methods as $method)
-            {
+            foreach ($methods as $method) {
                 $predispatcher->{$method}();
             }
         }
