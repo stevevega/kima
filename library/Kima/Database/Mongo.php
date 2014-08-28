@@ -242,7 +242,7 @@ class Mongo extends ADatabase
 
             // if limit query parameter is set to 1, a single update
             // will be performed
-            if (!$empty($limit)) {
+            if (!empty($limit)) {
                 // if limit is set, it should have a value of 1
                 if (1 == $limit) {
                     $multiple = false;
@@ -252,10 +252,15 @@ class Mongo extends ADatabase
                 }
             }
 
+            $upsert = !empty($options['prevent_upsert'])
+                ? false
+                : true;
+
             return $collection->update(
                 $filters,
                 $fields,
-                ['upsert' => true, 'w' => $async, 'multiple' => $multiple]);
+                ['upsert' => $upsert, 'w' => $async, 'multiple' => $multiple]);
+
         } catch (MongoException $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
