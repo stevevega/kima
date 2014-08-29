@@ -35,16 +35,19 @@ class L10n
      * @param  string $language
      * @return string
      */
-    public static function t($key, array $args = [], $language = '')
+    public static function t($key, array $args = [], $language = '', $module = null)
     {
         $app = Application::get_instance();
         // set the language
         $language = !empty($language) ? $language : $app->get_language();
 
-        // check if we do have the language strings loaded
-        if (empty(self::$strings[$language])) {
+        if (!isset($module)) {
             // get the module, controller and method from the application
             $module = $app->get_module();
+        }
+
+        // check if we do have the language strings loaded
+        if (empty(self::$strings[$module][$language])) {
             $controller = strtolower($app->get_controller());
             $method = $app->get_method();
 
@@ -60,12 +63,12 @@ class L10n
                 $strings = self::get_strings($controller, $method, $strings_path);
             }
 
-            self::$strings[$language] = $strings;
+            self::$strings[$module][$language] = $strings;
         }
 
         // sends the l10n key if exists
-        return !empty(self::$strings[$language][$key])
-            ? vsprintf(self::$strings[$language][$key], $args)
+        return !empty(self::$strings[$module][$language][$key])
+            ? vsprintf(self::$strings[$module][$language][$key], $args)
             : null;
     }
 
@@ -163,5 +166,4 @@ class L10n
 
         self::$cache_key = $cache_key;
     }
-
 }
