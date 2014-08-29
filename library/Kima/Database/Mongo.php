@@ -287,6 +287,10 @@ class Mongo extends ADatabase
                 }
             }
 
+            if (empty($options['update'])) {
+                $multiple = false;
+            }
+
             $upsert = !empty($options['prevent_upsert'])
                 ? false
                 : true;
