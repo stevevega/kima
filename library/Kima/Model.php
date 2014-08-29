@@ -675,7 +675,8 @@ abstract class Model
             'query' => $params,
             'query_string' => $this->query_string,
             'debug' => $this->debug,
-            'prevent_upsert' => $this->prevent_upsert
+            'prevent_upsert' => $this->prevent_upsert,
+            'update' => true
         ];
 
         # run the query

@@ -286,6 +286,11 @@ class Mongo extends ADatabase
                     Error::set(self::ERROR_WRONG_UPDATE_LIMIT);
                 }
             }
+            // if not in an update operation, multiple flag has no use
+            // thus it is disabled
+            if (empty($options['update'])) {
+                $multiple = false;
+            }
 
             $upsert = !empty($options['prevent_upsert'])
                 ? false
