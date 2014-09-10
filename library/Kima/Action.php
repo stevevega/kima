@@ -285,7 +285,7 @@ class Action
     {
         // get the URL path
         $path = parse_url(Request::server('REQUEST_URI'), PHP_URL_PATH);
-        $url_parameters = array_values(array_filter(explode('/', $path)));
+        $url_parameters = array_values(array_filter(explode('/', $path), array($this,"validate_filter")));
 
         $this->url_parameters = $url_parameters;
 
@@ -348,6 +348,16 @@ class Action
                 $predispatcher->{$method}();
             }
         }
+    }
+
+    /**
+     * Validate if the filter is a valid filter
+     * @param  obj  $param
+     * @return bool
+     */
+    private function validate_filter($param)
+    {
+        return (null !== $param && false !== $param && '' !== $param);
     }
 
 }
