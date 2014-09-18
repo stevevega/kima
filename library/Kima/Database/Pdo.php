@@ -145,6 +145,7 @@ class Pdo extends ADatabase
         $count = 0;
         if ($options['get_count']) {
             $options['query_string'] = $options['count_query_string'];
+            $options['query'] = $options['query_count'];
             $statement = $this->execute($options);
             $count_result = $statement->fetchObject();
             $count = $count_result->count;
@@ -210,7 +211,7 @@ class Pdo extends ADatabase
 
             // bind prepare statement values if necessary
             if (!empty($options['query']['binds'])) {
-               $this->bind_values($statement, $options['query']['binds']);
+                $this->bind_values($statement, $options['query']['binds']);
             }
             $success = $statement->execute();
 

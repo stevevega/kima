@@ -63,7 +63,7 @@ interface IModel
      * @param $start
      * @return string
      */
-    public function prepare_limit($limit = 0, $start = 0);
+    public function prepare_limit(array &$binds, $limit = 0, $start = 0);
 
     /**
      * Gets fetch query

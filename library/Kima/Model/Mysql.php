@@ -28,6 +28,12 @@ class Mysql implements IModel
      const ERROR_JOIN_NOT_ARRAY = 'Join array should contain an array with joins';
      const ERROR_JOIN_ON_NOT_ARRAY = 'Join "on" clause should be an arrray';
      const ERROR_QUERY = 'Error parsing MySQL query: %s';
+     const ERROR_LIMIT = 'Error with mysql max integer value';
+
+     /**
+      * Max integer value
+      */
+     const MAX_INTEGER_VALUE = 9223372036854775807;
 
     /**
      * Gets the table name format for the database
@@ -226,9 +232,23 @@ class Mysql implements IModel
      * @param $start
      * @return string
      */
-    public function prepare_limit($limit = 0, $start = 0)
+    public function prepare_limit(array &$binds, $limit = 0, $start = 0)
     {
-        return empty($limit) ? '' : ' LIMIT ' . $start . ', ' . $limit;
+        if ($start >= self::MAX_INTEGER_VALUE or $limit >= self::MAX_INTEGER_VALUE) {
+            Error::set(self::ERROR_LIMIT);
+        }
+
+        if (!empty($limit)) {
+            $bind_key_start = ':start';
+            $bind_key_limit = ':limit';
+
+            $binds[$bind_key_start] = $start;
+            $binds[$bind_key_limit] = $limit;
+        }
+
+        $result =  empty($limit) ? '' : ' LIMIT ' . $bind_key_start . ', ' . $bind_key_limit;
+
+        return $result;
     }
 
     /**
@@ -259,7 +279,7 @@ class Mysql implements IModel
                 $this->prepare_group($params['group']) .
                 $this->prepare_having($params['having'], $params['binds']) .
                 $this->prepare_order($params['order']) .
-                $this->prepare_limit($params['limit'], $params['start']);
+                $this->prepare_limit($params['binds'], $params['limit'], $params['start']);
 
         if ($is_count_query && !empty($params['group'])) {
             $query_string = 'SELECT COUNT(*) AS count FROM (' . $query_string . ') AS count';
@@ -291,7 +311,7 @@ class Mysql implements IModel
                 $fields_query .
                 $this->prepare_filters($params['filters'], $params['binds']) .
                 $this->prepare_order($params['order']) .
-                $this->prepare_limit($params['limit']);
+                $this->prepare_limit($params['binds'], $params['limit']);
 
         return $query_string;
     }
@@ -347,7 +367,7 @@ class Mysql implements IModel
                     ' FROM ' . $table .
                     $this->prepare_joins($params['joins']) .
                     $this->prepare_filters($params['filters'], $params['binds']) .
-                    $this->prepare_limit($params['limit']);
+                    $this->prepare_limit($params['binds'], $params['limit']);
 
         return $query_string;
     }
