@@ -553,34 +553,34 @@ abstract class Model
     {
         // make sure we have the primary key
         $this->fields = $this->set_fields($fields);
-        $params = $this->get_query_params();
+        $query_params = $this->get_query_params();
 
         // build the query using the adapter
         $this->query_string = $this->adapter
-            ? $this->adapter->get_fetch_query($params)
+            ? $this->adapter->get_fetch_query($query_params)
             : null;
 
         $count_query_string = '';
-        if ($get_as_result_set && $this->adapter) {
-            $params['fields'] = [];
-            $params['order'] = [];
-            $params['start'] = 0;
-            $params['limit'] = 0;
-            $params['i'] = 1;
-            $params['binds'] = [];
-            $count_query_string = $this->adapter->get_fetch_query($params, true);
-        }
 
         // set execution options
         $options = [
-            'query' => $params,
+            'query' => $query_params,
             'query_string' => $this->query_string,
             'get_count' => $get_as_result_set ? true : false,
-            'count_query_string' => $count_query_string,
             'model' => $this->model,
+            'count_query_string' => $count_query_string,
             'fetch_all' => $fetch_all,
-            'debug' => $this->debug
+            'debug' => $this->debug,
         ];
+
+        if ($get_as_result_set && $this->adapter) {
+            $count_query_params = $query_params;
+            $this->clear_params_array($count_query_params);
+
+            $count_query_string = $this->adapter->get_fetch_query($count_query_params, true);
+            $options['query_count'] = $count_query_params;
+            $options['count_query_string'] = $count_query_string;
+        }
 
         // get result from the query
         $result = Database::get_instance($this->db_engine)->fetch($options);
@@ -759,4 +759,16 @@ abstract class Model
         return $this->joins;
     }
 
+    /**
+     * Clears the basic query params
+     */
+    private function clear_params_array(array &$params)
+    {
+        $params['fields'] = [];
+        $params['order'] = [];
+        $params['start'] = 0;
+        $params['limit'] = 0;
+        $params['i'] = 1;
+        $params['binds'] = [];
+    }
 }
