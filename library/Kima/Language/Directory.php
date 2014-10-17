@@ -11,7 +11,7 @@ use \Kima\Http\Request;
  * Directory
  * Kima Directory class
  */
-class Directory extends ALanguage
+class Directory extends ALanguage implements ILanguage
 {
 
     /**

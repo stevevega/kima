@@ -15,20 +15,6 @@ abstract class ALanguage
 {
 
     /**
-     * Gets the corresponding URL for a desired language
-     * @param  string $language
-     * @param  string $url
-     * @return string
-     */
-    abstract public function get_language_url($language = null, $url = null);
-
-    /**
-     * Gets the language valid for the current app
-     * @return string
-     */
-    abstract public function get_app_language();
-
-    /**
      * Gets the language for the app filtering implicit language
      * @param  string $language custom language
      * @return string

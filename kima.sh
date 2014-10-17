@@ -44,7 +44,7 @@ echo "Create .gitignore File?: $create_git_ignore"
 echo "Create README.md File?: $create_readme"
 echo "-----------------------------------------------"
 
-mkdir -p ${name}/application/{config,controller,model,module,view/index}
+mkdir -p ${name}/application/{config,controller,language,model,module,view/index}
 mkdir -p ${name}/data/{cache/template,db/{model,sql},file,log}
 mkdir -p ${name}/docs
 mkdir -p ${name}/library
@@ -61,6 +61,7 @@ echo "; Application ini
 ; application
 application.folder = ROOT_FOLDER'/application'
 controller.folder = ROOT_FOLDER'/application/controller'
+language.folder = ROOT_FOLDER'/application/language'
 module.folder = ROOT_FOLDER'/application/module'
 l10n.folder = ROOT_FOLDER'/resource/l10n/'
 
@@ -121,7 +122,7 @@ use \Kima\Config;
 use \Kima\Template;
 
 // Define path to application directory
-if (!defined('ROOT_FOLDER')) 
+if (!defined('ROOT_FOLDER'))
 {
     define('ROOT_FOLDER', realpath(dirname(__FILE__) . '/..'));
 }
