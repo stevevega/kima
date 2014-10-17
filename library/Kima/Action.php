@@ -113,13 +113,22 @@ class Action
     {
         $app = Application::get_instance();
 
-        // performance
-        $app_default_lang = $app->get_default_language();
+        // known possibilities
         $app_default_lang_type = $app->get_default_language_type();
-        $url_parameters = $this->url_parameters;
-        $url_parameters_no_lang = array_slice($this->url_parameters, 1);
-        $subject = '/' . implode('/', $url_parameters);
-        $subject_no_lang = '/' . implode('/', $url_parameters_no_lang);
+        $language = (isset($this->url_parameters[0])) ? $this->url_parameters[0] : null;
+
+        // simplified detection mechanisms
+        $is_valid_language = (!is_null($language))
+                                ? ($language === $app->get_default_language() || $app->is_language_available($language))
+                                : false;
+        $is_valid_type = (!is_null($app_default_lang_type))
+                            ? (Application::LANG_DEFAULT_EXPLICIT === $app_default_lang_type && $is_valid_language
+                                || Application::LANG_DEFAULT_IMPLICIT === $app_default_lang_type)
+                            : true;
+
+        // matching options (with or without language url paramter)
+        $subject = '/' . implode('/', $this->url_parameters);
+        $subject_no_lang = '/' . implode('/', array_slice($this->url_parameters, 1));
 
         // loop the defined urls looking for a match
         foreach ($urls as $url => $definition) {
@@ -139,39 +148,10 @@ class Action
             // set the match pattern
             $pattern = str_replace('/', '\/', $url);
 
-            // no language handler provided, try to determine how language is set
-            if (is_null($lang_handler)) {
-                switch ($app_default_lang_type) {
-                    case Application::LANG_DEFAULT_EXPLICIT:
-                        // check if language was set by url
-                        if (isset($this->url_parameters[0])) {
-                            $language = $this->url_parameters[0];
-                            // check if language is valid
-                            if ($language === $app_default_lang || $app->is_language_available($language)) {
-                                $match = $subject_no_lang;
-                            } else {
-                                // not a explicit valid language, neither a custom handler
-                                // probably another kima language type
-                                $match = $subject;
-                            }
-                        } else {
-                            // language is not set by url,
-                            // probably redirect to default language appended url
-                            $match = $subject;
-                        }
-                        break;
-                    case Application::LANG_DEFAULT_IMPLICIT:
-                        // implicit language set, remove language url parameter
-                        $match = $subject_no_lang;
-                        break;
-                }
-            } else {
-                // if a custom language source is provided (assume it implements ILanguage),
-                // means that somehow it determines the language = leave url as is
-                $match = $subject;
-            }
+            // simplified language detection
+            $match = (is_null($lang_handler) && $is_valid_type) ? $subject_no_lang : $subject;
 
-            // try to check route url against the processed url (with or  without language)
+            // try to check route url against the detected url
             if (preg_match('/^' . $pattern . '$/', $match)) {
                 // if it matches without language, remove language permanently from url parameters
                 if ($match === $subject_no_lang) {
