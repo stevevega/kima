@@ -149,7 +149,7 @@ class Action
             $pattern = str_replace('/', '\/', $url);
 
             // simplified language detection
-            $match = (is_null($lang_handler) && $is_valid_type) ? $subject_no_lang : $subject;
+            $match = (is_null($lang_handler) && $is_valid_type && $is_valid_language) ? $subject_no_lang : $subject;
 
             // try to check route url against the detected url
             if (preg_match('/^' . $pattern . '$/', $match)) {
