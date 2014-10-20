@@ -8,6 +8,7 @@ use	\Kima\Error;
 use	\Kima\Language\Directory;
 use	\Kima\Language\QueryString;
 use	\Kima\Language\Subdomain;
+use	\Kima\Language\ILanguage;
 
 /**
  * Language
@@ -47,11 +48,10 @@ class Language
         }
 
         // create language source from provided handler
-        if (is_string($handler)) {
-            $class = new \ReflectionClass($handler);
-            if ($class->implementsInterface('Kima\Language\ILanguage')) {
-                $lang_source = new $handler();
-            } else {
+        if (is_string($handler) && class_exists($handler, true) ) {
+            $lang_source = new $handler();
+            if (!($lang_source instanceof ILanguage)) {
+                $lang_source = null;
                 Error::set(sprintf(self::ERROR_INVALID_LANG_HANDLER, $handler));
             }
         }

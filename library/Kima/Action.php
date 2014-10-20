@@ -24,6 +24,7 @@ class Action
     const ERROR_NO_CONTROLLER_CLASS = ' Class "%s" not declared on "%s"';
     const ERROR_NO_CONTROLLER_INSTANCE = 'Object for "%s" is not an instance of \Kima\Controller';
     const ERROR_NO_MODULE_ROUTES = 'Routes for module "%s" are not set';
+    const ERROR_INVALID_DEFINITION = 'Url "%s" definition has invalid data types';
 
     /**
      * Bootstrap path
@@ -119,12 +120,12 @@ class Action
 
         // simplified detection mechanisms
         $is_valid_language = (!is_null($language))
-                                ? ($language === $app->get_default_language() || $app->is_language_available($language))
-                                : false;
+            ? ($language === $app->get_default_language() || $app->is_language_available($language))
+            : false;
         $is_valid_type = (!is_null($app_default_lang_type))
-                            ? (Application::LANG_DEFAULT_EXPLICIT === $app_default_lang_type && $is_valid_language
-                                || Application::LANG_DEFAULT_IMPLICIT === $app_default_lang_type)
-                            : true;
+            ? (Application::LANG_DEFAULT_EXPLICIT === $app_default_lang_type && $is_valid_language
+                || Application::LANG_DEFAULT_IMPLICIT === $app_default_lang_type)
+            : true;
 
         // matching options (with or without language url paramter)
         $subject = '/' . implode('/', $this->url_parameters);
@@ -142,6 +143,11 @@ class Action
                 case is_array($definition):
                     $controller = $definition[self::CONTROLLER];
                     $lang_handler = $definition[self::LANGUAGE_HANDLER];
+                    break;
+                default:
+                    $controller = null;
+                    $lang_handler = null;
+                    Error::set(sprintf(self::ERROR_INVALID_DEFINITION, $url));
                     break;
             }
 

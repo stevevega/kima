@@ -37,7 +37,6 @@ class Application
      */
     private $application_folder;
     private $controller_folder;
-    private $language_folder;
     private $model_folder;
     private $module_folder;
     private $view_folder;
@@ -163,7 +162,7 @@ class Application
 
         // load file
         $app = self::get_instance();
-        $include_paths = [$app->library_folder, $app->language_folder, $app->model_folder, $app->kima_folder];
+        $include_paths = [$app->library_folder, $app->model_folder, $app->kima_folder];
         $app->load_class($include_paths, $filename);
 
         return true;
@@ -647,17 +646,6 @@ class Application
     }
 
     /**
-     * Gets the language_folder
-     * @return string
-     */
-    public function get_language_folder()
-    {
-        $app = self::get_instance();
-
-        return $app->language_folder;
-    }
-
-    /**
      * Gets the model_folder
      * @return string
      */
@@ -731,7 +719,6 @@ class Application
     {
         $this->application_folder = ROOT_FOLDER . '/application/';
         $this->controller_folder = $this->application_folder . 'controller/';
-        $this->language_folder = $this->application_folder . 'language/';
         $this->model_folder = $this->application_folder . 'model/';
         $this->module_folder = $this->application_folder . 'module/';
         $this->view_folder = $this->application_folder . 'view/';
