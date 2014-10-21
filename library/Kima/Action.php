@@ -7,7 +7,6 @@ namespace Kima;
 
 use \Kima\Http\Redirector;
 use \Kima\Http\Request;
-use \Kima\Language\Directory as LanguageDirectory;
 use \Bootstrap;
 
 /**
@@ -16,7 +15,6 @@ use \Bootstrap;
  */
 class Action
 {
-
     /**
      * Error messages
      */
@@ -26,11 +24,18 @@ class Action
     const ERROR_NO_CONTROLLER_CLASS = ' Class "%s" not declared on "%s"';
     const ERROR_NO_CONTROLLER_INSTANCE = 'Object for "%s" is not an instance of \Kima\Controller';
     const ERROR_NO_MODULE_ROUTES = 'Routes for module "%s" are not set';
+    const ERROR_INVALID_DEFINITION = 'Url "%s" definition has invalid data types';
 
     /**
      * Bootstrap path
      */
     const BOOTSTRAP_PATH = 'Bootstrap.php';
+
+    /**
+     * URLs definition
+     */
+    const CONTROLLER = 0;
+    const LANGUAGE_HANDLER = 1;
 
     /**
      * Url parameters
@@ -53,10 +58,8 @@ class Action
         // set the application language
         $app = Application::get_instance();
 
-        // get the app language
-        $language = $this->get_language();
-
         // set the module routes if exists
+        // reduce urls to module set
         $module = $app->get_module();
         if (!empty($module)) {
             array_key_exists($module, $urls)
@@ -64,14 +67,23 @@ class Action
                 : Error::set(sprintf(self::ERROR_NO_MODULE_ROUTES, $module));
         }
 
-        // get the controller matching the routes
-        $controller = $this->get_controller($urls);
+        // get definition
+        list($controller, $lang_handler) = $this->get_definition($urls);
+
+        // get language
+        $language = $this->get_language($lang_handler);
+
+        // set the action language
+        $app->set_language($language);
+
+        // check controller
         if (empty($controller)) {
             $language = isset($language) ? $language : $app->get_default_language();
             $app->set_language($language);
             $app->set_http_error(404);
         }
 
+        // check language
         if (empty($language)) {
             $lang_source = Language::get_instance();
             $lang_url = $lang_source->get_language_url($app->get_default_language());
@@ -92,25 +104,67 @@ class Action
     }
 
     /**
-     * Gets the url match route to follow
-     * Returns the required controller to process the action
-     * @param  array  $urls
-     * @return string
+     * Gets the action definition
+     * - Includes the required controller to process the action
+     * - Includes the language handler for detecting the action language
+     * @param  array $urls
+     * @return array
      */
-    private function get_controller(array $urls)
+    private function get_definition(array $urls)
     {
+        $app = Application::get_instance();
+
+        // known possibilities
+        $app_default_lang_type = $app->get_default_language_type();
+        $language = (isset($this->url_parameters[0])) ? $this->url_parameters[0] : null;
+
+        // simplified detection mechanisms
+        $is_valid_language = (!is_null($language))
+            ? ($language === $app->get_default_language() || $app->is_language_available($language))
+            : false;
+        $is_valid_type = (!is_null($app_default_lang_type))
+            ? (Application::LANG_DEFAULT_EXPLICIT === $app_default_lang_type && $is_valid_language
+                || Application::LANG_DEFAULT_IMPLICIT === $app_default_lang_type)
+            : true;
+
+        // matching options (with or without language url paramter)
+        $subject = '/' . implode('/', $this->url_parameters);
+        $subject_no_lang = '/' . implode('/', array_slice($this->url_parameters, 1));
+
         // loop the defined urls looking for a match
-        foreach ($urls as $url => $controller) {
-            if (is_string($controller)) {
-                // set the match pattern
-                $pattern = str_replace('/', '\/', $url);
+        foreach ($urls as $url => $definition) {
 
-                // set the string to search
-                $subject = '/' . implode('/', $this->url_parameters);
+            // set definition components
+            switch (true) {
+                case is_string($definition):
+                    $controller = $definition;
+                    $lang_handler = null;
+                    break;
+                case is_array($definition):
+                    $controller = $definition[self::CONTROLLER];
+                    $lang_handler = $definition[self::LANGUAGE_HANDLER];
+                    break;
+                default:
+                    $controller = null;
+                    $lang_handler = null;
+                    Error::set(sprintf(self::ERROR_INVALID_DEFINITION, $url));
+                    break;
+            }
 
-                if (preg_match('/^' . $pattern . '$/', $subject)) {
-                    return $controller;
+            // set the match pattern
+            $pattern = str_replace('/', '\/', $url);
+
+            // simplified language detection
+            $match = (is_null($lang_handler) && $is_valid_type && $is_valid_language) ? $subject_no_lang : $subject;
+
+            // try to check route url against the detected url
+            if (preg_match('/^' . $pattern . '$/', $match)) {
+                // if it matches without language, remove language permanently from url parameters
+                if ($match === $subject_no_lang) {
+                    array_shift($this->url_parameters);
                 }
+
+                return [$controller, $lang_handler];
             }
         }
 
@@ -238,7 +292,7 @@ class Action
     }
 
     /**
-     * gets the controller available methods
+     * Gets the controller available methods
      * removes the parent references
      * @param  string $controller
      * @return array
@@ -252,30 +306,17 @@ class Action
     }
 
     /**
-     * gets the language required for the current action
+     * Gets the language required for the current action
+     * @param string $handler
      */
-    private function get_language()
+    private function get_language($handler = null)
     {
         $app = Application::get_instance();
 
         // get the language object
-        $lang_source = Language::get_instance();
-        $language = $lang_source->get_app_language();
+        $lang_source = Language::get_instance($handler);
 
-        // for directory language we should remove the first url parameter
-        if (isset($language)
-            && $lang_source instanceof LanguageDirectory
-            && (($language !== $app->get_default_language()
-                && Application::LANG_DEFAULT_IMPLICIT === $app->get_default_language_type())
-            || Application::LANG_DEFAULT_EXPLICIT === $app->get_default_language_type()))
-        {
-            array_shift($this->url_parameters);
-        }
-
-        // set the language to the application
-        $app->set_language($language);
-
-        return $language;
+        return $lang_source->get_app_language();
     }
 
     /**

@@ -8,7 +8,7 @@ namespace Kima\Language;
  * Subdomain
  * Kima Subdomain class
  */
-class Subdomain extends ALanguage
+class Subdomain extends ALanguage implements ILanguage
 {
 
     /**

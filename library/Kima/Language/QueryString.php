@@ -8,7 +8,7 @@ namespace Kima\Language;
  * QueryString
  * Kima QueryString class
  */
-class QueryString extends ALanguage
+class QueryString extends ALanguage implements ILanguage
 {
 
     /**
