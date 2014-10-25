@@ -155,25 +155,34 @@ class Request
     /**
      * Gets the base url
      * @param  boolean $force_https
+     * @param  string  $iso         iso of the language request
      * @return string
      */
-    public static function get_base_url($force_https = false)
+    public static function get_base_url($force_https = false, $iso = null)
     {
         $protocol = $force_https ? self::PROTOCOL_HTTPS : self::get_protocol();
 
-        return $protocol . Request::server('SERVER_NAME');
+        $address = !empty($iso)
+            ? Request::server('SERVER_NAME') . '/' . $iso
+            : Request::server('SERVER_NAME');
+
+        return $protocol . $address;
     }
 
     /**
      * Gets the current url
      * @param  boolean $force_https
+     * @param  boolean $without_pararms returns the url without any get pararm
      * @return string
      */
-    public static function get_request_url($force_https = false)
+    public static function get_request_url($force_https = false, $without_pararms = false)
     {
         $protocol = $force_https ? self::PROTOCOL_HTTPS : self::get_protocol();
 
-        return $protocol . Request::server('SERVER_NAME') . Request::server('REQUEST_URI');
+        $uri = Request::server('REQUEST_URI');
+        $uri = $without_pararms ? explode('?', $uri)[0] : $uri;
+
+        return $protocol . Request::server('SERVER_NAME') . $uri;
     }
 
     /**

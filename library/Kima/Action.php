@@ -100,7 +100,8 @@ class Action
         $this->check_https($controller);
 
         // inits the controller action
-        $this->run_action($controller);
+        $controller_handler = new Controller();
+        $controller_handler->run($controller, $this->url_parameters);
     }
 
     /**
@@ -197,112 +198,6 @@ class Action
         if ($is_https && !in_array($controller, $https_controllers)) {
             Redirector::http();
         }
-    }
-
-    /**
-     * Runs an application action
-     * @param string $controller
-     */
-    private function run_action($controller)
-    {
-        // get the application values
-        $application = Application::get_instance();
-        $module = $application->get_module();
-        $method = $application->get_method();
-
-        // get the controller class
-        $controller_class = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', $controller);
-
-        // get the controller path for the module
-        $controller_path = $this->get_controller_path($controller, $module);
-        $default_path = isset($module) ? $this->get_controller_path($controller, null) : null;
-
-        // get the controller instance
-        $controller_obj = $this->get_controller_instance(
-            $controller_class, $controller_path, $default_path);
-
-        // validate-call action
-        $methods = $this->get_controller_methods($controller_class);
-        if (!in_array($method, $methods)) {
-            $application->set_http_error(405);
-
-            return;
-        }
-
-        $params = $this->url_parameters;
-        $controller_obj->$method($params);
-    }
-
-    /**
-     * Returns the controller path for a controller
-     * @param  string $controller
-     * @param  string $module
-     * @return string
-     */
-    private function get_controller_path($controller, $module = null)
-    {
-        // get the app
-        $app = Application::get_instance();
-
-        // get the controller folder
-        $controller_folder = isset($module)
-            ? $app->get_module_folder() . '/' . $module . '/controller/'
-            : $app->get_controller_folder();
-
-        // return the controller path
-        return $controller_folder . $controller . '.php';
-    }
-
-    /**
-     * Gets the controller instance
-     * @param  string           $controller      The controller name
-     * @param  string           $controller_path
-     * @return \Kima\Controller
-     */
-    private function get_controller_instance($controller, $controller_path, $default_path)
-    {
-        // require the controller file
-        if (is_readable($controller_path)) {
-            require_once $controller_path;
-        }
-        // look for the default controller path if the other one is not accessible
-        else if (is_readable($default_path)) {
-            $controller_path = $default_path;
-            require_once $controller_path;
-        }
-        // no controller was found, error is triggered
-        else {
-            Error::set(sprintf(self::ERROR_NO_CONTROLLER_FILE,
-                $controller, $controller_path, $default_path));
-
-            return;
-        }
-
-        // validate-create controller object
-        class_exists($controller, false)
-            ? $controller_obj = new $controller
-            : Error::set(sprintf(self::ERROR_NO_CONTROLLER_CLASS, $controller, $controller_path));
-
-        // validate controller is instance of Kima\Controller
-        if (!$controller_obj instanceof Controller) {
-            Error::set(sprintf(self::ERROR_NO_CONTROLLER_INSTANCE, $controller));
-        }
-
-        return $controller_obj;
-    }
-
-    /**
-     * Gets the controller available methods
-     * removes the parent references
-     * @param  string $controller
-     * @return array
-     */
-    private function get_controller_methods($controller)
-    {
-        $parent_methods = get_class_methods('Kima\Controller');
-        $controller_methods = get_class_methods($controller);
-
-        return array_diff($controller_methods, $parent_methods);
     }
 
     /**

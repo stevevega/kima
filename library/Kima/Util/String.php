@@ -29,6 +29,7 @@ class String
     public static function to_slug($string)
     {
         // convert non ascii characters to its equivalent
+        setlocale(LC_CTYPE, 'en_US.utf8');
         $string = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $string);
 
         // remove all non alphanumeric characters
