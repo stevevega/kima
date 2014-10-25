@@ -97,6 +97,8 @@ class Controller
         $application = Application::get_instance();
         $module = $application->get_module();
         $method = $application->get_method();
+        // Set the controller on the application
+        $application->set_controller($controller);
 
         // get the controller class
         $controller_class = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', $controller);
