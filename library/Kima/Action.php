@@ -36,6 +36,7 @@ class Action
      */
     const CONTROLLER = 0;
     const LANGUAGE_HANDLER = 1;
+    const LANGUAGE_HANDLER_PARAMS = 2;
 
     /**
      * Url parameters
@@ -68,10 +69,10 @@ class Action
         }
 
         // get definition
-        list($controller, $lang_handler) = $this->get_definition($urls);
+        list($controller, $lang_handler, $lang_handler_params) = $this->get_definition($urls);
 
         // get language
-        $language = $this->get_language($lang_handler);
+        $language = $this->get_language($lang_handler, $lang_handler_params);
 
         // set the action language
         $app->set_language($language);
@@ -140,14 +141,17 @@ class Action
                 case is_string($definition):
                     $controller = $definition;
                     $lang_handler = null;
+                    $lang_handler_params = array();
                     break;
                 case is_array($definition):
                     $controller = $definition[self::CONTROLLER];
                     $lang_handler = $definition[self::LANGUAGE_HANDLER];
+                    $lang_handler_params = $definition[self::LANGUAGE_HANDLER_PARAMS];
                     break;
                 default:
                     $controller = null;
                     $lang_handler = null;
+                    $lang_handler_params = array();
                     Error::set(sprintf(self::ERROR_INVALID_DEFINITION, $url));
                     break;
             }
@@ -165,7 +169,7 @@ class Action
                     array_shift($this->url_parameters);
                 }
 
-                return [$controller, $lang_handler];
+                return [$controller, $lang_handler, $lang_handler_params];
             }
         }
 
@@ -204,12 +208,12 @@ class Action
      * Gets the language required for the current action
      * @param string $handler
      */
-    private function get_language($handler = null)
+    private function get_language($handler = null, $handler_params = array())
     {
         $app = Application::get_instance();
 
         // get the language object
-        $lang_source = Language::get_instance($handler);
+        $lang_source = Language::get_instance($handler, $handler_params);
 
         return $lang_source->get_app_language();
     }

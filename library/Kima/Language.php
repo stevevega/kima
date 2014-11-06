@@ -40,7 +40,7 @@ class Language
      * Handler is only set once from kima action
      * @return mixed
      */
-    public static function get_instance($handler = null)
+    public static function get_instance($handler = null, $handler_params = array())
     {
         // check if a language source instance was previously set
         if (!is_null(self::$lang_source)) {
@@ -49,7 +49,7 @@ class Language
 
         // create language source from provided handler
         if (is_string($handler) && class_exists($handler, true) ) {
-            $lang_source = new $handler();
+            $lang_source = new $handler($handler_params);
             if (!($lang_source instanceof ILanguage)) {
                 $lang_source = null;
                 Error::set(sprintf(self::ERROR_INVALID_LANG_HANDLER, $handler));
