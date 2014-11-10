@@ -208,7 +208,7 @@ class Action
      * Gets the language required for the current action
      * @param string $handler
      */
-    private function get_language($handler = null, $handler_params = array())
+    private function get_language($handler = null, $handler_params = [])
     {
         $app = Application::get_instance();
 

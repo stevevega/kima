@@ -40,7 +40,7 @@ class Language
      * Handler is only set once from kima action
      * @return mixed
      */
-    public static function get_instance($handler = null, $handler_params = array())
+    public static function get_instance($handler = null, $handler_params = [])
     {
         // check if a language source instance was previously set
         if (!is_null(self::$lang_source)) {
