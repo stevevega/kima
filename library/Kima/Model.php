@@ -717,6 +717,33 @@ abstract class Model
     }
 
     /**
+     * Clones a row in the database using the fields requested and filters
+     * @param array $fields
+     */
+    public function copy(array $fields = [])
+    {
+        $this->set_fields($fields);
+        $params = $this->get_query_params();
+
+        // build the query using the adapter
+        $this->query_string = $this->adapter
+            ? $this->adapter->get_copy_query($params)
+            : null;
+
+        // set execution options
+        $options = [
+            'query' => $params,
+            'query_string' => $this->query_string,
+            'debug' => $this->debug
+        ];
+
+        # run the query
+        $this->clear_query_params();
+
+        return Database::get_instance($this->db_engine)->copy($options);
+    }
+
+    /**
      * Deletes data
      * @param array $fields
      */
