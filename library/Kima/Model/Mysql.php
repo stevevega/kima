@@ -110,22 +110,79 @@ class Mysql implements IModel
         if (empty($fields)) {
             Error::set(self::ERROR_EMPTY_FIELDS);
         }
+        $save_fields = [];
 
-        # prepare every field
-        $fields_data = [];
-
-        // check if the array is multidimensional
-        if (count($fields) !== count($fields, COUNT_RECURSIVE) && isset($fields[0])) {
-            $fields_data['fields'] = array_keys($fields[0]);
+        // check if the array is multidimensional array of arrays
+        if ($this->are_save_fields_multiple($fields)) {
             foreach ($fields as $key => $field) {
-                $fields_data['values'][] = $this->get_put_values($field, $key, $binds);
+                $fields_data = $this->set_save_fields($field, $key, $binds);
+                $save_fields['values'][] = $fields_data['values'];
             }
         } else {
-            $fields_data['fields'] = array_keys($fields);
-            $fields_data['values'][] = $this->get_put_values($fields, 0, $binds);
+            $fields_data = $this->set_save_fields($fields, 0, $binds);
+            $save_fields['values'][] = $fields_data['values'];
         }
 
-        return $fields_data;
+        // add the keys before 1returning the save fields data
+        $save_fields['fields'] = $fields_data['fields'];
+
+        return $save_fields;
+    }
+
+    /**
+     * Checks whether the save fields are for a multiple save request or not
+     * @param  array   $fields
+     * @return boolean
+     */
+    private function are_save_fields_multiple(array $fields)
+    {
+        foreach ($fields as $key => $value) {
+            if (!is_int($key) || !is_array($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Gets the values used for a put query
+     * @param  array  $rows
+     * @param  string $count
+     * @return array
+     */
+    private function set_save_fields(array $rows, $count, &$binds)
+    {
+        $fields = $values = [];
+        foreach ($rows as $key => $value) {
+            // support for fields format: Model::FIELD_NAME
+            // as an alias of Model::FIELD_NAME => null
+            if (is_int($key)) {
+                $key = $value;
+                $value = null;
+            }
+
+            if (!isset($value)) {
+                // null values are passed directly
+                $result = 'NULL';
+            } elseif (is_array($value) && isset($value['$raw'])) {
+                // support for raw values like: Model::FIELD_NAME => ['$raw' => '= NOW()']
+                $result = $value['$raw'];
+            } else {
+                // format the prepare statement key since it only allows alphanumeric and _
+                $result = ':' . str_replace('.', '_', $key)  . '_' . $count;
+                $binds[$result] = $value;
+            }
+
+            // add the value
+            $fields[] = $key;
+            $values[] = $result;
+        }
+
+        return [
+            'fields' => $fields,
+            'values' => $values
+        ];
     }
 
     /**
@@ -228,8 +285,8 @@ class Mysql implements IModel
 
     /**
      * Prepares query limit
-     * @param $limit
-     * @param $start
+     * @param  int    $limit
+     * @param  int    $start
      * @return string
      */
     public function prepare_limit(array &$binds, $limit = 0, $start = 0)
@@ -350,6 +407,47 @@ class Mysql implements IModel
                 $values_query .
                 ' ON DUPLICATE KEY UPDATE ' .
                 $on_duplicate_query;
+
+        return $query_string;
+    }
+
+    /**
+     * Gets clone query
+     * @param  array  $params
+     * @return string
+     */
+    public function get_copy_query(array &$params)
+    {
+        $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
+        $fields = $this->prepare_save_fields($params['fields'], $params['binds']);
+
+        // extract only the names from the fields
+        $fields_names = [];
+        foreach ($fields['fields'] as $field) {
+            $fields_names[] = false !== strpos($field, '.')
+                ? str_replace('.', '', strstr($field, '.'))
+                : $field;
+        }
+        $fields_query = '(' . implode(', ', $fields_names) . ')';
+
+        $values_query  = [];
+        foreach ($fields['fields'] as $key => $field) {
+            $values_query[] = strcmp($fields['values'][0][$key], 'NULL') !== 0
+                ? $fields['values'][0][$key]
+                : $field;
+        }
+        $values_query = implode(', ', $values_query);
+
+        $query_string =
+            'INSERT INTO ' . $table . $fields_query .
+                ' SELECT ' .
+                $values_query .
+                ' FROM ' . $table .
+                $this->prepare_joins($params['joins']) .
+                $this->prepare_filters($params['filters'], $params['binds']) .
+                $this->prepare_group($params['group']) .
+                $this->prepare_having($params['having'], $params['binds']) .
+                $this->prepare_limit($params['binds'], $params['limit'], $params['start']);
 
         return $query_string;
     }

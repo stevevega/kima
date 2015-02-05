@@ -66,6 +66,10 @@ trait TFilter
 
                     $logical_filter = [];
                     foreach ($value as $v) {
+                        if (!is_array($v)) {
+                            Error::set(sprintf(self::ERROR_QUERY,
+                                'logical operator is expecting an array for every value'));
+                        }
                         $logical_filter[] = '(' . $this->parse_operators(
                         $v, $binds, 'AND') . ')';
                         $this->i++;

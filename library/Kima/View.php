@@ -215,20 +215,15 @@ class View
             $this->set_content_type($file);
         }
 
-        // set the view path to the default if not set
-        if (!isset($view_path)) {
-            $view_path = $this->view_path;
-        }
-
         // get the blocks from cache?
-        $file_path = $view_path . DIRECTORY_SEPARATOR . $file;
+        $file_path = $this->get_view_file_path($file, $view_path);
         $cache_key = str_replace(DIRECTORY_SEPARATOR, '-', $file_path);
         $blocks = $this->cache->get_by_file($cache_key, $file_path);
 
         // do we have cached content?
         if (empty($blocks)) {
             // get the file contents
-            $template = $this->get_view_file($file, $view_path);
+            $template = $this->get_file_content($file_path);
 
             // get the blocks from the template content
             $blocks = $this->get_blocks($template, $file);
@@ -499,6 +494,31 @@ class View
     }
 
     /**
+     * Gets the view path, it may be the module view if exists
+     * otherwise it returns the global scope view path
+     * @param  string $file
+     * @param  string $view_path
+     * @return string
+     */
+    public function get_view_file_path($file, $view_path = null)
+    {
+        // set the view path if not exists
+        if (!isset($view_path)) {
+            $view_path = $this->view_path;
+        }
+
+        // set the view file path
+        $file_path = $view_path . DIRECTORY_SEPARATOR . $file;
+
+        // check if we need to use the failover path
+        if (!is_readable($file_path) && isset($this->failover_path)) {
+            $file_path = $this->failover_path . DIRECTORY_SEPARATOR . $file;
+        }
+
+        return $file_path;
+    }
+
+    /**
      * Gets a template content with the corresponding information
      * @param  string  $template
      * @param  boolean $set_headers
@@ -701,28 +721,18 @@ class View
     }
 
     /**
-     * Gets the main template file and set its contents into a string
-     * @param  string $file
-     * @param  string $view_path
+     * Validates the file_path and returns the file contents
+     * @param  string $file_path
      * @return string
      */
-    private function get_view_file($file, $view_path)
+    private function get_file_content($file_path)
     {
-        // set the view file path
-        $file_path = $view_path . DIRECTORY_SEPARATOR . $file;
-
-        // check if we need to use the failover path
-        if (!is_readable($file_path) && isset($this->failover_path)) {
-            $file_path = $this->failover_path . DIRECTORY_SEPARATOR . $file;
+        // get the template content
+        if (!is_readable($file_path)) {
+            Error::set(sprintf(self::ERROR_INVALID_VIEW_PATH, $file_path));
         }
 
-        // get the template content
-        is_readable($file_path)
-            ? $content = file_get_contents($file_path)
-            : Error::set(sprintf(self::ERROR_INVALID_VIEW_PATH, $file_path));
-
-        // return the content
-        return $content;
+        return file_get_contents($file_path);
     }
 
     /**

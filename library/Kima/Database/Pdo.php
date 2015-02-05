@@ -178,6 +178,18 @@ class Pdo extends ADatabase
     }
 
     /**
+     * Copy a database row
+     * @param  array   $options The execution options
+     * @return boolean
+     */
+    public function copy(array $options)
+    {
+        $this->execute($options);
+
+        return true;
+    }
+
+    /**
      * Deletes to the database
      * @param  array   $options The execution options
      * @return boolean
