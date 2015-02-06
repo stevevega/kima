@@ -244,6 +244,19 @@ class Mysql implements IModel
     }
 
     /**
+     * Prepares procedure params filters
+     * @param  array  $params
+     * @param  array  $binds
+     * @return string
+     */
+    public function prepare_params(array $params, array &$binds)
+    {
+        $params = $this->parse_procedure_params($params, $binds);
+
+        return '(' . implode(',', $params) . ')';
+    }
+
+    /**
      * Prepares query having
      * @param  array  $having
      * @param  array  $binds
@@ -341,6 +354,21 @@ class Mysql implements IModel
         if ($is_count_query && !empty($params['group'])) {
             $query_string = 'SELECT COUNT(*) AS count FROM (' . $query_string . ') AS count';
         }
+
+        return $query_string;
+    }
+
+    /**
+     * Gets procedure query
+     * @param  array  $params
+     * @return string
+     */
+    public function get_procedure_query(array &$params)
+    {
+        $query_string =
+            'CALL ' .
+                $params['procedure_name'] .
+                $this->prepare_params($params['params'], $params['binds']);
 
         return $query_string;
     }

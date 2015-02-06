@@ -26,7 +26,8 @@ class Mongo extends ADatabase
      */
      const ERROR_NO_MONGO = 'Mongo extension is not present on this server';
      const ERROR_NO_COLLECTION = 'Mongo error: empty collection name';
-     const ERROR_NO_COPY = 'Copy not implemented for PDO';
+     const ERROR_NO_COPY = 'Copy not implemented for Mongo';
+     const ERROR_NO_CALL = 'Call not implemented for Mongo';
      const ERROR_MONGO_QUERY = 'Mongo query error: "%s"';
      const ERROR_MONGO_AGGREGATION = 'Mongo aggregation error: "%s"';
      const ERROR_WRONG_UPDATE_LIMIT = 'You shouldn\'t perform an update, using a limit value different than 1';
@@ -314,6 +315,18 @@ class Mongo extends ADatabase
     public function copy(array $options)
     {
         Error::set(self::ERROR_NO_COPY);
+
+        return true;
+    }
+
+    /**
+     * Call a store procedure
+     * @param  array   $options The execution options
+     * @return boolean
+     */
+    public function call(array $options)
+    {
+        Error::set(self::ERROR_NO_CALL);
 
         return true;
     }

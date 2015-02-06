@@ -47,6 +47,13 @@ abstract class ADatabase
     abstract public function fetch(array $options);
 
     /**
+     * Call a store procedure
+     * @param  array $options The execution options
+     * @return mixed
+     */
+    abstract public function call(array $options);
+
+    /**
      * Performs an aggregate method in the database
      * @param  array $options The execution options
      * @return mixed

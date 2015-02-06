@@ -157,6 +157,23 @@ class Pdo extends ADatabase
     }
 
     /**
+     * Call a store procedure
+     * @param  array $options The execution options
+     * @return mixed
+     */
+    public function call(array $options)
+    {
+        $statement = $this->execute($options);
+        $objects = [];
+        while ($row = $statement->fetchObject()) {
+            $objects[] = $row;
+        }
+        $result['objects'] = $objects;
+
+        return $result;
+    }
+
+    /**
      * Not implemented for PDO
      * @param array $options
      */
