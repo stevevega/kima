@@ -101,6 +101,32 @@ trait TFilter
     }
 
     /**
+     * Parse the procedures params
+     * @param  array $params
+     * @param  array &$binds
+     * @return array
+     */
+    private function parse_procedure_params(array $params, &$binds)
+    {
+        $prepared_params = [];
+
+        foreach ($params as $param) {
+            // set the bind key
+            $bind_key = ':' . $this->i;
+
+            // set the bind
+            $binds[$bind_key] = $param;
+
+            // set the prepared_param
+            $prepared_params[] = $bind_key;
+
+            $this->i++;
+        }
+
+        return $prepared_params;
+    }
+
+    /**
      * Parse a normal key value filter
      * @param string $key
      * @param mixed  $value
