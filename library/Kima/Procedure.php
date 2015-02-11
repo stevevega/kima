@@ -256,7 +256,7 @@ abstract class Procedure
 
         $this->clear_procedure_params();
 
-        return $result;
+        return $result['objects'];
     }
 
 }
