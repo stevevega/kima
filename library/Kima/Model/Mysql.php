@@ -159,11 +159,6 @@ class Mysql implements IModel
             // as an alias of Model::FIELD_NAME => null
             if (is_int($key)) {
                 $key = $value;
-                $value = null;
-            }
-
-            if (!isset($value)) {
-                // null values are passed directly
                 $result = 'NULL';
             } elseif (is_array($value) && isset($value['$raw'])) {
                 // support for raw values like: Model::FIELD_NAME => ['$raw' => '= NOW()']
