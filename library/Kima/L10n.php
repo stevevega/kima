@@ -17,6 +17,11 @@ class L10n
     const ERROR_INVALID_STRINGS_PATH = 'Cannot access strings path "%s"';
 
     /**
+     * Common l10n library
+     */
+    const COMMON_L10N_LIBRARY = 'common';
+
+    /**
      * The strings used on this action
      * @var array
      */
@@ -51,16 +56,29 @@ class L10n
             $controller = strtolower($app->get_controller());
             $method = $app->get_method();
 
-            // get the string path and sets the cache key
+            // Get the string path for the current module and the common l10n library
             $strings_path = self::get_strings_path($module, $language);
-            self::set_cache_key($language, $module, $controller, $method);
+            $common_strings_path = self::get_strings_path(self::COMMON_L10N_LIBRARY, $language);
 
-            // get the strings from cache
+            // Get the strings from cache
+            self::set_cache_key($language, $module, $controller, $method);
             $strings = Cache::get_instance()->get_by_file(self::$cache_key, $strings_path);
 
-            // get the language strings from the application l10n file if the cache was empty
-            if (empty($strings)) {
-                $strings = self::get_strings($controller, $method, $strings_path);
+            // Get the common l10n strings from cache
+            self::set_cache_key($language, self::COMMON_L10N_LIBRARY, $controller, $method);
+            $common_strings = Cache::get_instance()->get_by_file(self::$cache_key, $common_strings_path);
+
+            // get the language strings from the application l10n file
+            // if some of the files into cache was empty
+            if (empty($strings) || empty($common_strings)) {
+                // Get common l10n
+                $strings = self::get_strings($controller, $method, $common_strings_path);
+                // Get specific l10n and merge of the both data
+                // The specific data overwrite the common data
+                $strings = array_merge($strings, self::get_strings($controller, $method, $strings_path));
+
+                // set the finalstrings in cache
+                Cache::get_instance()->set(self::$cache_key, $strings);
             }
 
             self::$strings[$module][$language] = $strings;
@@ -122,9 +140,6 @@ class L10n
             // merge the strings content
             $strings = array_merge($global_strings, $controller_strings, $method_strings);
         }
-
-        // set the strings in cache
-        Cache::get_instance()->set(self::$cache_key, $strings);
 
         // set the class strings for future references
         return $strings;
