@@ -446,8 +446,8 @@ class Mysql implements IModel
 
         // extract only the names from the fields
         $fields_names = [];
-        foreach ($fields['fields'] as $field) {
-            $fields_names[] = false !== strpos($field, '.')
+        foreach ($fields['fields'] as $key => $field) {
+            $fields_names[$key] = false !== strpos($field, '.')
                 ? str_replace('.', '', strstr($field, '.'))
                 : $field;
         }
@@ -456,7 +456,7 @@ class Mysql implements IModel
         $values_query  = [];
         foreach ($fields['fields'] as $key => $field) {
             $values_query[] = strcmp($fields['values'][0][$key], 'NULL') !== 0
-                ? $fields['values'][0][$key]
+                ? $fields['values'][0][$key] . ' AS ' . $fields_names[$key]
                 : $field;
         }
         $values_query = implode(', ', $values_query);
