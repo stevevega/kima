@@ -3,7 +3,8 @@
     "description": "Kima Framework",
     "type": "library",
     "keywords": [
-        "kima"
+        "kima",
+        "framework"
     ],
     "homepage": "https://github.com/stevevega/kima",
     "license": "BSD-3-Clause",
