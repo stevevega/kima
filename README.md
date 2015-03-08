@@ -3,8 +3,8 @@ Kima
 
 Kima PHP Framework
 
-Installation
----
-1. Run the script kima.sh and follow the instructions to create a new project (./kima.sh).
-2. Add the Kima library to the include path or copy it to the library directory of your project.
-3. Give write permissions to the data/cache and data/log folders.
+Usage
+-----
+1. Install composer (https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx)
+2. Execute "composer create-project stevevega/kima-skeleton [DESTINATION PATH]"
+3. Make your webserver point to [DESTINATION PATH]/public
