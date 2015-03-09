@@ -10,6 +10,7 @@ use \Kima\Cache\File;
 use \Kima\Cache\Memcached;
 use \Kima\Cache\Redis;
 use \Kima\Cache\Void;
+use \Kima\Prime\App;
 
 /**
  * Cache
@@ -53,7 +54,7 @@ class Cache
     public static function get_instance($type = null, array $options = [])
     {
         if (empty($options)) {
-            $options = Application::get_instance()->get_config()->cache;
+            $options = App::get_instance()->get_config()->cache;
         }
 
         // return the null object if cache is not enabled

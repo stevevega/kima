@@ -5,6 +5,8 @@
  */
 namespace Kima;
 
+use \Kima\Prime\App;
+
 /**
  * Controller
  */
@@ -57,7 +59,7 @@ class Controller
                 return $this->view[$param];
             } else {
                 // get the config and application module-controller-action
-                $app = Application::get_instance();
+                $app = App::get_instance();
                 $config = $app->get_config()->view;
                 $module = $app->get_module();
                 $controller = $app->get_controller();
@@ -94,7 +96,7 @@ class Controller
     public function run($controller, $params)
     {
         // get the application values
-        $application = Application::get_instance();
+        $application = App::get_instance();
         $module = $application->get_module();
         $method = $application->get_method();
         // Set the controller on the application
@@ -143,7 +145,7 @@ class Controller
     private function get_controller_path($controller, $module = null)
     {
         // get the app
-        $app = Application::get_instance();
+        $app = App::get_instance();
 
         // get the controller folder
         $controller_folder = isset($module)
@@ -213,7 +215,7 @@ class Controller
      */
     private function get_view_config(array $config, $module)
     {
-        $app = Application::get_instance();
+        $app = App::get_instance();
         $app_config = $app->get_config();
 
         // disable layout if not wanted

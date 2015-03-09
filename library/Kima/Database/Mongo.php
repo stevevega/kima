@@ -5,7 +5,7 @@
  */
 namespace Kima\Database;
 
-use \Kima\Application;
+use \Kima\Prime\App;
 use \Kima\Error;
 use \MongoClient;
 use \MongoCollection;
@@ -66,7 +66,7 @@ class Mongo extends ADatabase
         }
 
         // set the default host and database name
-        $config = Application::get_instance()->get_config();
+        $config = App::get_instance()->get_config();
 
         if (!empty($config->database['mongo']['name'])) {
             $this->set_database($config->database['mongo']['name']);
@@ -98,7 +98,7 @@ class Mongo extends ADatabase
         // check if we already got a connection to this host
         if (empty($this->connection)) {
             // set the username and password
-            $config = Application::get_instance()->get_config();
+            $config = App::get_instance()->get_config();
             $user = !empty($config->database['mongo']['user'])
                 ? $config->database['mongo']['user']
                 : '';

@@ -5,6 +5,7 @@
 namespace Kima;
 
 use	\Kima\Error;
+use \Kima\Prime\App;
 use	\Kima\Language\Directory;
 use	\Kima\Language\QueryString;
 use	\Kima\Language\Subdomain;
@@ -59,7 +60,7 @@ class Language
         // create language source from config
         if (!isset($lang_source) || is_null($lang_source)) {
             // get the app config
-            $config = Application::get_instance()->get_config();
+            $config = App::get_instance()->get_config();
 
             // validate the type
             if (!isset($config->language['source'])) {

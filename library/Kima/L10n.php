@@ -5,6 +5,8 @@
  */
 namespace Kima;
 
+use \Kima\Prime\App;
+
 /**
  * Kima Localization library
  */
@@ -37,7 +39,7 @@ class L10n
      */
     public static function t($key, array $args = [], $language = '', $module = null)
     {
-        $app = Application::get_instance();
+        $app = App::get_instance();
         // set the language
         $language = !empty($language) ? $language : $app->get_language();
 
@@ -81,7 +83,7 @@ class L10n
     private static function get_strings_path($module, $language)
     {
         // get the module and config
-        $app = Application::get_instance();
+        $app = App::get_instance();
 
         // set the strings path
         $strings_path = $app->get_l10n_folder();

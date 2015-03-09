@@ -5,7 +5,7 @@
  */
 namespace Kima\Database;
 
-use \Kima\Application;
+use \Kima\Prime\App;
 use \Kima\Error;
 use \PDO as PdoDriver;
 use \PDOException;
@@ -65,7 +65,7 @@ class Pdo extends ADatabase
         }
 
         // set the default host and database name
-        $config = Application::get_instance()->get_config();
+        $config = App::get_instance()->get_config();
         $this->set_database($config->database['mysql']['name'])
             ->set_host($config->database['mysql']['host']);
     }
@@ -92,7 +92,7 @@ class Pdo extends ADatabase
         # lets check if we already got a connection to this host
         if (empty($this->connection)) {
             # set the username and password
-            $config = Application::get_instance()->get_config();
+            $config = App::get_instance()->get_config();
             $user = $config->database['mysql']['user'];
             $password = $config->database['mysql']['password'];
 

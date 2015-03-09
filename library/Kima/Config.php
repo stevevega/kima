@@ -5,6 +5,8 @@
  */
 namespace Kima;
 
+use \Kima\Prime\App;
+
 /**
  * Config
  * Application config
@@ -35,7 +37,7 @@ class Config
      */
     public function __construct($path = '')
     {
-        $app_folder = Application::get_instance()->get_application_folder();
+        $app_folder = App::get_instance()->get_application_folder();
         $path = !empty($path)
             ? $path
             : $app_folder . self::DEFAULT_CONFIG_FOLDER . self::DEFAULT_CONFIG_FILE;
@@ -63,7 +65,7 @@ class Config
     private function parse_config($path)
     {
         // gets the enviroment
-        $environment = Application::get_instance()->get_environment();
+        $environment = App::get_instance()->get_environment();
 
         // parse using ini file if file exists
         is_readable($path)
@@ -119,7 +121,7 @@ class Config
     private function get_module_config($environment)
     {
         // if there is a module, lets get the custom config also
-        $app = Application::get_instance();
+        $app = App::get_instance();
         $module = $app->get_module();
         if (!empty($module)) {
             $app_path = $app->get_application_folder();

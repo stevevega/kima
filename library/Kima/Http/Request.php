@@ -5,7 +5,7 @@
  */
 namespace Kima\Http;
 
-use \Kima\Application;
+use \Kima\Prime\App;
 
 /**
  * Request
@@ -147,7 +147,7 @@ class Request
      */
     public static function get_protocol()
     {
-        return Application::get_instance()->is_https()
+        return App::get_instance()->is_https()
             ? self::PROTOCOL_HTTPS
             : self::PROTOCOL_HTTP;
     }
