@@ -7,6 +7,7 @@ namespace Kima;
 
 use \Kima\Http\Redirector;
 use \Kima\Http\Request;
+use \Kima\Prime\App;
 use \Bootstrap;
 
 /**
@@ -57,7 +58,7 @@ class Action
         $this->set_url_parameters();
 
         // set the application language
-        $app = Application::get_instance();
+        $app = App::get_instance();
 
         // set the module routes if exists
         // reduce urls to module set
@@ -114,7 +115,7 @@ class Action
      */
     private function get_definition(array $urls)
     {
-        $app = Application::get_instance();
+        $app = App::get_instance();
 
         // known possibilities
         $app_default_lang_type = $app->get_default_language_type();
@@ -125,8 +126,8 @@ class Action
             ? ($language === $app->get_default_language() || $app->is_language_available($language))
             : false;
         $is_valid_type = (!is_null($app_default_lang_type))
-            ? (Application::LANG_DEFAULT_EXPLICIT === $app_default_lang_type && $is_valid_language
-                || Application::LANG_DEFAULT_IMPLICIT === $app_default_lang_type)
+            ? (App::LANG_DEFAULT_EXPLICIT === $app_default_lang_type && $is_valid_language
+                || App::LANG_DEFAULT_IMPLICIT === $app_default_lang_type)
             : true;
 
         // matching options (with or without language url paramter)
@@ -183,7 +184,7 @@ class Action
     private function check_https($controller)
     {
         // get whether we are currently on https or not
-        $application = Application::get_instance();
+        $application = App::get_instance();
         $is_https = $application->is_https();
 
         // check if https is enforced
@@ -210,7 +211,7 @@ class Action
      */
     private function get_language($handler = null, $handler_params = [])
     {
-        $app = Application::get_instance();
+        $app = App::get_instance();
 
         // get the language object
         $lang_source = Language::get_instance($handler, $handler_params);
@@ -238,7 +239,7 @@ class Action
      */
     private function load_bootstrap()
     {
-        $app = Application::get_instance();
+        $app = App::get_instance();
 
         // set module path if exists
         $module = $app->get_module();
@@ -273,7 +274,7 @@ class Action
      */
     private function load_predispatcher()
     {
-        $predispatcher = Application::get_instance()->get_predispatcher();
+        $predispatcher = App::get_instance()->get_predispatcher();
 
         if (!empty($predispatcher)) {
             // get the bootstrap and make sure the class exists

@@ -8,6 +8,7 @@ namespace Kima;
 use \Kima\Model\Mysql;
 use \Kima\Model\Mongo;
 use \Kima\Model\ResultSet;
+use \Kima\Prime\App;
 use \Kima\Util\String;
 use \ReflectionObject;
 use \ReflectionProperty;
@@ -177,7 +178,7 @@ abstract class Model
     public function __construct()
     {
         // get the application config
-        $config = Application::get_instance()->get_config();
+        $config = App::get_instance()->get_config();
 
         // set the default model
         $this->set_default_model();

@@ -4,7 +4,7 @@
  */
 namespace Kima\Language;
 
-use \Kima\Application;
+use \Kima\Prime\App;
 use \Kima\Http\Request;
 
 /**
@@ -28,15 +28,15 @@ class Directory extends ALanguage implements ILanguage
         $url_path = $url_parts['path'];
 
         // get the required application values
-        $app = Application::get_instance();
+        $app = App::get_instance();
         $app_language = $app->get_language();
         $default_language = $app->get_default_language();
 
         // format the URL language
         if (!empty($app_language) &&
             (($default_language !== $app_language
-                && Application::LANG_DEFAULT_IMPLICIT === $app->get_default_language_type())
-            || Application::LANG_DEFAULT_EXPLICIT === $app->get_default_language_type()))
+                && App::LANG_DEFAULT_IMPLICIT === $app->get_default_language_type())
+            || App::LANG_DEFAULT_EXPLICIT === $app->get_default_language_type()))
         {
             $url_path = explode('/', $url_path);
 
@@ -67,7 +67,7 @@ class Directory extends ALanguage implements ILanguage
         $path_values = array_values(array_filter(explode('/', $path)));
         $language = array_shift($path_values);
 
-        $app = Application::get_instance();
+        $app = App::get_instance();
         if (!$app->is_language_available($language)) {
             $language = null;
         }

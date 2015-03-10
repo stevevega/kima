@@ -1,27 +1,34 @@
-Kima
-====
+# Kima
 
 Kima PHP Framework
 
-Installation
----
-1. Run the script kima.sh and follow the instructions to create a new project (./kima.sh).
-2. Add the Kima library to the include path or copy it to the library directory of your project.
-3. Give write permissions to the data/cache and data/log folders.
+## Usage
+1. [Install composer](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx)
+2. Execute "composer create-project stevevega/kima-skeleton [DESTINATION PATH]"
+3. Make your webserver point to [DESTINATION PATH]/public
 
-License
----
-Copyright (c) 2013, Steve Vega
-All rights reserved.
+### Example nginx server config
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+```
+server {
+    listen 80;
+    server_name [YOUR_DOMAIN];
 
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-3. All advertising materials mentioning features or use of this software must display the following acknowledgement: This product includes software developed by the <organization>.
-4. Neither the name of the <organization> nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+    root [DESTINATION_PATH]/public;
+    index index.html index.htm index.php;
 
-THIS SOFTWARE IS PROVIDED BY <COPYRIGHT HOLDER> ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    location / {
+        # This is cool because no php is touched for static content
+        try_files $uri $uri/ /index.php?$args;
+    }
 
----
+    location ~ \.php$ {
+        # Filter out arbitrary code execution
+        location ~ \..*/.*\.php$ {return 404;}
+
+        include fastcgi_params;
+        fastcgi_param SERVER_NAME $http_host;
+        fastcgi_pass unix:/tmp/php.socket;
+    }
+}
+```

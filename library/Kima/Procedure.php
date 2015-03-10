@@ -6,6 +6,7 @@
 namespace Kima;
 
 use \Kima\Model\Mysql;
+use \Kima\Prime\App;
 
 /**
  * Model
@@ -85,7 +86,7 @@ abstract class Procedure
     public function __construct()
     {
         // get the application config
-        $config = Application::get_instance()->get_config();
+        $config = App::get_instance()->get_config();
 
         // set the default db engine
         $this->set_default_db_engine($config);

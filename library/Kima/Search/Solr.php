@@ -5,7 +5,7 @@
  */
 namespace Kima\Search;
 
-use \Kima\Application;
+use \Kima\Prime\App;
 use \Kima\Error;
 use \SolrClient;
 use \SolrClientException;
@@ -143,7 +143,7 @@ class Solr
     {
         if (empty($this->connection)) {
             // get the config values to connect
-            $config = Application::get_instance()->get_config();
+            $config = App::get_instance()->get_config();
 
             if (empty($config->search['solr'][$this->core])) {
                 Error::set(self::ERROR_NO_CONFIG);
@@ -458,7 +458,7 @@ class Solr
      */
     private function commit()
     {
-        $config = Application::get_instance()->get_config();
+        $config = App::get_instance()->get_config();
         $response = false;
         if (empty($config->search['solr'][$this->core])) {
             Error:set(self::ERROR_NO_CONFIG);

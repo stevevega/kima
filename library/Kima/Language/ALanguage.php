@@ -4,7 +4,7 @@
  */
 namespace Kima\Language;
 
-use \Kima\Application;
+use \Kima\Prime\App;
 use	\Kima\Http\Request;
 
 /**
@@ -21,7 +21,7 @@ abstract class ALanguage
      */
     protected function get_implicit_language($language)
     {
-        $app = Application::get_instance();
+        $app = App::get_instance();
 
         // get the default language if the current one is invalid
         if (!$app->is_language_available($language)) {
