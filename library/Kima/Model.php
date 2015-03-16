@@ -9,6 +9,7 @@ use \Kima\Model\Mysql;
 use \Kima\Model\Mongo;
 use \Kima\Model\ResultSet;
 use \Kima\Prime\App;
+use \Kima\Prime\Config;
 use \Kima\Util\String;
 use \ReflectionObject;
 use \ReflectionProperty;
@@ -227,7 +228,7 @@ abstract class Model
 
     /**
      * Sets the default database engine for the model
-     * @param \Kima\Config
+     * @param Config
      */
     private function set_default_db_engine(Config $config)
     {

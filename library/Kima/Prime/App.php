@@ -1,18 +1,14 @@
 <?php
-/**
- * Kima Application
- * @author Steve Vega
- */
 namespace Kima\Prime;
 
 use \Kima\Action;
-use \Kima\Config;
 use \Kima\Error;
 use \Kima\Http\Request;
 
 /**
- * Application
- * Kima Prime Application class
+ * Kima Prime App
+ * Entry point for apps using Kima with the front controller pattern
+ * Example: App::get_instance()->run(['/' => 'Index']);
  */
 class App
 {
@@ -52,12 +48,6 @@ class App
      * @var array
      */
     private $config;
-
-    /**
-     * Application environment
-     * @var string
-     */
-    private $environment;
 
     /**
      * module
@@ -174,9 +164,10 @@ class App
 
     /**
      * Setup the basic application config
+     * @param  string $custom_config a custom config file
      * @return App
      */
-    public function setup()
+    public function setup($custom_config)
     {
         // get the module and HTTP method
         switch (true) {
@@ -197,18 +188,19 @@ class App
         $this->set_is_https();
 
         // set the config
-        return $this->set_config();
+        return $this->set_config($custom_config);
     }
 
     /**
      * Run the application
      * @param  array  $urls
+     * @param  string $custom_config a custom config file
      * @return Action
      */
-    public function run(array $urls)
+    public function run(array $urls, $custom_config = null)
     {
         // setup the application
-        $this->setup();
+        $this->setup($custom_config);
 
         // run the action
         return new Action($urls);
@@ -225,39 +217,14 @@ class App
 
     /**
      * Set the config
-     * @param  string $path
+     * @param  string $custom_config
      * @return App
      */
-    public function set_config($path = '')
+    public function set_config($custom_config = null)
     {
-        $this->config = new Config($path);
+        $this->config = new Config($custom_config);
 
         return $this;
-    }
-
-    /**
-     * Gets the app environment
-     * @return string
-     */
-    public function get_environment()
-    {
-        if (isset($this->environment)) {
-            return $this->environment;
-        }
-
-        // get the environment
-        switch (true) {
-            case getenv('ENVIRONMENT'):
-                $this->environment = getenv('ENVIRONMENT');
-                break;
-            case !empty($_SERVER['ENVIRONMENT']):
-                $this->environment = $_SERVER['ENVIRONMENT'];
-                break;
-            default:
-                $this->environment = 'default';
-        }
-
-        return $this->environment;
     }
 
     /**

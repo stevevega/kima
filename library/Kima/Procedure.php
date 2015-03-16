@@ -7,6 +7,7 @@ namespace Kima;
 
 use \Kima\Model\Mysql;
 use \Kima\Prime\App;
+use \Kima\Prime\Config;
 
 /**
  * Model
@@ -102,7 +103,7 @@ abstract class Procedure
 
     /**
      * Sets the default database engine for the model
-     * @param \Kima\Config
+     * @param Config
      */
     private function set_default_db_engine(Config $config)
     {
