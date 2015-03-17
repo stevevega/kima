@@ -167,7 +167,7 @@ class App
      * @param  string $custom_config a custom config file
      * @return App
      */
-    public function setup($custom_config)
+    public function setup($custom_config = null)
     {
         // get the module and HTTP method
         switch (true) {
