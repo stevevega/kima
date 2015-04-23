@@ -1,6 +1,8 @@
 <?php
 namespace Kima\Prime;
 
+use \Kima\Error;
+
 /**
  * Kima Config Handler
  * Handles the app configuration
@@ -64,13 +66,22 @@ class Config
      * @param  string $key
      * @return string
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
-        if (!isset($this->config[$key])) {
-            Error::set(sprintf(self::ERROR_NO_KEY, $key));
-        }
+        return isset($this->config[$key]) ? $this->config[$key] : $default;
+    }
 
-        return isset($this->config[$key]) ? $this->config[$key] : null;
+    /**
+     * Sets a custom config value
+     * @param  string $key
+     * @param  mixed  $value
+     * @return $this
+     */
+    public function set($key, $value)
+    {
+        $this->config = array_merge_recursive($this->config, $this->parse_keys($key, $value));
+
+        return $this;
     }
 
     /**

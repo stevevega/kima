@@ -169,7 +169,7 @@ class Controller
             require_once $controller_path;
         }
         // look for the default controller path if the other one is not accessible
-        else if (is_readable($default_path)) {
+        elseif (is_readable($default_path)) {
             $controller_path = $default_path;
             require_once $controller_path;
         }

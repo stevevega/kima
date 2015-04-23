@@ -14,18 +14,6 @@ class App
 {
 
     /**
-     * Error messages
-     */
-    const ERROR_NO_DEFAULT_LANGUAGE = 'Default language has not been set';
-    const ERROR_NO_DEFAULT_LANGUAGE_TYPE = 'Default language type has not been set';
-
-    /**
-     * Application default language type
-     */
-    const LANG_DEFAULT_EXPLICIT = 'explicit';
-    const LANG_DEFAULT_IMPLICIT = 'implicit';
-
-    /**
      * instance
      * @var \Kima\Base\App
      */
@@ -74,24 +62,6 @@ class App
     private $language;
 
     /**
-     * The default application language
-     * @var string
-     */
-    private $default_language;
-
-    /**
-     * The default application language type
-     * @var string
-     */
-    private $default_language_type;
-
-    /**
-     * All the available languages in the application
-     * @var array
-     */
-    private $available_languages = [];
-
-    /**
      * Default time zone
      * @var string
      */
@@ -120,6 +90,12 @@ class App
      * @var array
      */
     private $https_controllers = [];
+
+    /**
+     * Sets the base position for the url routes
+     * @var integer
+     */
+    private $url_base_pos = 0;
 
     /**
      * Construct
@@ -188,7 +164,15 @@ class App
         $this->set_is_https();
 
         // set the config
-        return $this->set_config($custom_config);
+        $this->set_config($custom_config);
+
+        // set the default language
+        $lang_config = $this->get_config()->get('language');
+        if (isset($lang_config) && isset($lang_config['default'])) {
+            $this->set_language($lang_config['default']);
+        }
+
+        return $this;
     }
 
     /**
@@ -291,26 +275,33 @@ class App
     }
 
     /**
-     * Return whether a language is available or not
-     * @param  string  $language
-     * @return boolean
+     * Returns the url base position for routing
+     * @return int
      */
-    public function is_language_available($language)
+    public function get_url_base_pos()
     {
-        return in_array($language, $this->get_available_languages());
+        return $this->url_base_pos;
+    }
+
+    /**
+     * Sets the url routes starting position
+     * @param  int $url_base_pos
+     * @return App
+     */
+    public function set_url_base_pos($url_base_pos)
+    {
+        $this->url_base_pos = (string) $url_base_pos;
+
+        return $this;
     }
 
     /**
      * Return the application language
      * @return string
      */
-    public function get_language($include_implicit = true)
+    public function get_language()
     {
-        return (self::LANG_DEFAULT_IMPLICIT === $this->default_language_type
-                && !$include_implicit
-                && $this->language === $this->default_language)
-            ? null
-            : $this->language;
+        return $this->language;
     }
 
     /**
@@ -323,96 +314,6 @@ class App
         $this->language = (string) $language;
 
         return $this;
-    }
-
-    /**
-     * Sets the default language
-     * @param  string $language
-     * @return App
-     */
-    public function set_default_language($language)
-    {
-        $this->default_language = (string) $language;
-
-        return $this;
-    }
-
-    /**
-     * Gets the application default language
-     * @return string
-     */
-    public function get_default_language()
-    {
-        // set the default language type if not set already
-        if (empty($this->default_language_type)) {
-            $this->set_default_language_type();
-        }
-
-        // check if the default language was already set
-        if (!empty($this->default_language)) {
-            return $this->default_language;
-        }
-
-        $config = $this->get_config()->language;
-        switch (true) {
-            case Request::env('LANGUAGE_DEFAULT'):
-                $this->default_language = Request::env('LANGUAGE_DEFAULT');
-                break;
-            case Request::server('LANGUAGE_DEFAULT'):
-                $this->default_language = Request::server('LANGUAGE_DEFAULT');
-                break;
-            case !empty($config['default'])
-                && !empty($config['default']['value']):
-                $this->default_language = $config['default']['value'];
-                break;
-            default:
-                Error::set(self::ERROR_NO_DEFAULT_LANGUAGE);
-        }
-
-        return $this->default_language;
-    }
-
-    /**
-     * Sets all the available languages in the application
-     * @param  array $languages
-     * @return App
-     */
-    public function set_available_languages(array $languages)
-    {
-        $this->available_languages = $languages;
-
-        return $this;
-    }
-
-    /**
-     * Gets all the available languages in the application
-     * @return array
-     */
-    public function get_available_languages()
-    {
-        if (!empty($this->available_languages)) {
-            return $this->available_languages;
-        }
-
-        $config = $this->get_config()->language;
-
-        switch (true) {
-            case Request::env('LANGUAGES_AVAILABLE'):
-                $languages = Request::env('LANGUAGES_AVAILABLE');
-                break;
-            case Request::server('LANGUAGES_AVAILABLE'):
-                $languages = Request::server('LANGUAGES_AVAILABLE');
-                break;
-            case !empty($config['available']):
-                $languages = $config['available'];
-                break;
-            default:
-                $languages = '';
-        }
-
-        $this->available_languages = explode(',', $languages);
-
-        return $this->available_languages;
     }
 
     /**
@@ -526,15 +427,6 @@ class App
         $controller_obj = new \Error();
         $controller_obj->get();
         exit;
-    }
-
-    /**
-     * Gets the application default language type
-     * @return string
-     */
-    public function get_default_language_type()
-    {
-        return $this->default_language_type;
     }
 
     /**
@@ -671,27 +563,4 @@ class App
         // try the php include paths
         return false;
     }
-
-    /**
-     * Sets the language default type
-     */
-    private function set_default_language_type()
-    {
-        $config = $this->get_config()->language;
-        if (empty($config['default']) || empty($config['default']['type'])) {
-            Error::set(self::ERROR_NO_DEFAULT_LANGUAGE_TYPE);
-        }
-
-        // set the language type and valid types
-        $type = $config['default']['type'];
-        $types = [self::LANG_DEFAULT_IMPLICIT, self::LANG_DEFAULT_EXPLICIT];
-
-        // validate the type set
-        if (!in_array($type, $types)) {
-            Error::set(sprintf(self::ERROR_INVALID_DEFAULT_LANGUAGE_TYPE, $type));
-        }
-
-        $this->default_language_type = $type;
-    }
-
 }

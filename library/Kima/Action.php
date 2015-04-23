@@ -53,12 +53,10 @@ class Action
     {
         // load the bootstrap
         $this->load_bootstrap();
+        $app = App::get_instance();
 
         // set the url parameters
-        $this->set_url_parameters();
-
-        // set the application language
-        $app = App::get_instance();
+        $this->set_url_parameters($app->get_url_base_pos());
 
         // set the module routes if exists
         // reduce urls to module set
@@ -69,34 +67,14 @@ class Action
                 : Error::set(sprintf(self::ERROR_NO_MODULE_ROUTES, $module));
         }
 
-        // get definition
-        list($controller, $lang_handler, $lang_handler_params) = $this->get_definition($urls);
-
-        // get language
-        $language = $this->get_language($lang_handler, $lang_handler_params);
-
-        // set the action language
-        $app->set_language($language);
-
-        // check controller
+        // gets the controller
+        $controller = $this->get_controller($urls);
         if (empty($controller)) {
-            $language = isset($language) ? $language : $app->get_default_language();
-            $app->set_language($language);
             $app->set_http_error(404);
-        }
-
-        // check language
-        if (empty($language)) {
-            $lang_source = Language::get_instance();
-            $lang_url = $lang_source->get_language_url($app->get_default_language());
-            Redirector::redirect($lang_url, 301);
         }
 
         // set the action controller
         $app->set_controller($controller);
-
-        // run the predispatcher
-        $this->load_predispatcher();
 
         // check for https/http redirections
         $this->check_https($controller);
@@ -113,64 +91,18 @@ class Action
      * @param  array $urls
      * @return array
      */
-    private function get_definition(array $urls)
+    private function get_controller(array $urls)
     {
-        $app = App::get_instance();
-
-        // known possibilities
-        $app_default_lang_type = $app->get_default_language_type();
-        $language = (isset($this->url_parameters[0])) ? $this->url_parameters[0] : null;
-
-        // simplified detection mechanisms
-        $is_valid_language = (!is_null($language))
-            ? ($language === $app->get_default_language() || $app->is_language_available($language))
-            : false;
-        $is_valid_type = (!is_null($app_default_lang_type))
-            ? (App::LANG_DEFAULT_EXPLICIT === $app_default_lang_type && $is_valid_language
-                || App::LANG_DEFAULT_IMPLICIT === $app_default_lang_type)
-            : true;
-
-        // matching options (with or without language url paramter)
-        $subject = '/' . implode('/', $this->url_parameters);
-        $subject_no_lang = '/' . implode('/', array_slice($this->url_parameters, 1));
-
         // loop the defined urls looking for a match
-        foreach ($urls as $url => $definition) {
-
-            // set definition components
-            switch (true) {
-                case is_string($definition):
-                    $controller = $definition;
-                    $lang_handler = null;
-                    $lang_handler_params = array();
-                    break;
-                case is_array($definition):
-                    $controller = $definition[self::CONTROLLER];
-                    $lang_handler = $definition[self::LANGUAGE_HANDLER];
-                    $lang_handler_params = $definition[self::LANGUAGE_HANDLER_PARAMS];
-                    break;
-                default:
-                    $controller = null;
-                    $lang_handler = null;
-                    $lang_handler_params = array();
-                    Error::set(sprintf(self::ERROR_INVALID_DEFINITION, $url));
-                    break;
-            }
-
-            // set the match pattern
-            $pattern = str_replace('/', '\/', $url);
-
-            // simplified language detection
-            $match = (is_null($lang_handler) && $is_valid_type && $is_valid_language) ? $subject_no_lang : $subject;
-
-            // try to check route url against the detected url
-            if (preg_match('/^' . $pattern . '$/', $match)) {
-                // if it matches without language, remove language permanently from url parameters
-                if ($match === $subject_no_lang) {
-                    array_shift($this->url_parameters);
+        foreach ($urls as $url => $controller) {
+            if (is_string($controller)) {
+                // set the match pattern
+                $pattern = str_replace('/', '\/', $url);
+                // set the string to search
+                $subject = '/' . implode('/', $this->url_parameters);
+                if (preg_match('/^' . $pattern . '$/', $subject)) {
+                    return $controller;
                 }
-
-                return [$controller, $lang_handler, $lang_handler_params];
             }
         }
 
@@ -206,29 +138,18 @@ class Action
     }
 
     /**
-     * Gets the language required for the current action
-     * @param string $handler
-     */
-    private function get_language($handler = null, $handler_params = [])
-    {
-        $app = App::get_instance();
-
-        // get the language object
-        $lang_source = Language::get_instance($handler, $handler_params);
-
-        return $lang_source->get_app_language();
-    }
-
-    /**
      * Sets the url parameters
+     * @param int $base_pos What position to start looking for a match
      */
-    private function set_url_parameters()
+    private function set_url_parameters($base_pos = 0)
     {
         // get the URL path
         $path = parse_url(Request::server('REQUEST_URI'), PHP_URL_PATH);
         $url_parameters = array_values(array_filter(explode('/', $path), array($this,"validate_filter")));
 
-        $this->url_parameters = $url_parameters;
+        $this->url_parameters = $base_pos > 0
+            ? array_slice($url_parameters, $base_pos)
+            : $url_parameters;
 
         return $this;
     }
@@ -264,29 +185,6 @@ class Action
             $bootstrap = new Bootstrap();
             foreach ($methods as $method) {
                 $bootstrap->{$method}();
-            }
-        }
-    }
-
-    /**
-     * Loads predispatcher class
-     * This will run just before the controller action is fired
-     */
-    private function load_predispatcher()
-    {
-        $predispatcher = App::get_instance()->get_predispatcher();
-
-        if (!empty($predispatcher)) {
-            // get the bootstrap and make sure the class exists
-            if (!class_exists($predispatcher)) {
-                Error::set(sprintf(self::ERROR_NO_PREDISPATCHER, $predispatcher));
-            }
-
-            // get the bootstrap methods and call them
-            $methods = get_class_methods($predispatcher);
-            $predispatcher = new $predispatcher();
-            foreach ($methods as $method) {
-                $predispatcher->{$method}();
             }
         }
     }
