@@ -163,8 +163,8 @@ class Request
         $protocol = $force_https ? self::PROTOCOL_HTTPS : self::get_protocol();
 
         $address = !empty($iso)
-            ? Request::server('SERVER_NAME') . '/' . $iso
-            : Request::server('SERVER_NAME');
+            ? Request::server('HTTP_HOST') . '/' . $iso
+            : Request::server('HTTP_HOST');
 
         return $protocol . $address;
     }
@@ -182,7 +182,7 @@ class Request
         $uri = Request::server('REQUEST_URI');
         $uri = $without_pararms ? explode('?', $uri)[0] : $uri;
 
-        return $protocol . Request::server('SERVER_NAME') . $uri;
+        return $protocol . Request::server('HTTP_HOST') . $uri;
     }
 
     /**
