@@ -523,7 +523,7 @@ abstract class Model
     public function fetch(array $fields = [], $return_as_array = false)
     {
         // make sure we limit one result
-        $this->limit(1);
+        $this->limit(1, $this->start + 1);
         $result = $this->fetch_results($fields, false, false, $return_as_array);
 
         return !empty($result[0]) ? $result[0] : null;
