@@ -24,7 +24,6 @@ class App
      */
     private $application_folder;
     private $controller_folder;
-    private $model_folder;
     private $module_folder;
     private $view_folder;
     private $l10n_folder;
@@ -132,7 +131,11 @@ class App
 
         // load file
         $app = self::get_instance();
-        $include_paths = [$app->library_folder, $app->model_folder, $app->kima_folder];
+        $include_paths = [
+            $app->application_folder,
+            $app->library_folder,
+            $app->kima_folder
+        ];
         $app->load_class($include_paths, $filename);
 
         return true;
@@ -469,15 +472,6 @@ class App
     }
 
     /**
-     * Gets the model_folder
-     * @return string
-     */
-    public function get_model_folder()
-    {
-        return $this->model_folder;
-    }
-
-    /**
      * Gets the module_folder
      * @return string
      */
@@ -530,7 +524,6 @@ class App
     {
         $this->application_folder = ROOT_FOLDER . '/application/';
         $this->controller_folder = $this->application_folder . 'controller/';
-        $this->model_folder = $this->application_folder . 'model/';
         $this->module_folder = $this->application_folder . 'module/';
         $this->view_folder = $this->application_folder . 'view/';
         $this->l10n_folder = ROOT_FOLDER . '/resource/l10n/';
