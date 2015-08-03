@@ -27,8 +27,6 @@ class App
     private $module_folder;
     private $view_folder;
     private $l10n_folder;
-    private $library_folder;
-    private $kima_folder;
 
     /**
      * config
@@ -102,9 +100,6 @@ class App
     private function __construct()
     {
         $this->set_application_folders();
-
-        // register the auto load function
-        spl_autoload_register(array('self', 'autoload'));
     }
 
     /**
@@ -116,29 +111,6 @@ class App
         isset(self::$instance) || self::$instance = new self;
 
         return self::$instance;
-    }
-
-    /**
-     * auto load function
-     * @param  string $class
-     * @see    http://php.net/manual/en/language.oop5.autoload.php
-     * @return bool
-     */
-    protected static function autoload($class)
-    {
-        // get the required file
-        $filename = str_replace('\\', '/', $class) . '.php';
-
-        // load file
-        $app = self::get_instance();
-        $include_paths = [
-            $app->application_folder,
-            $app->library_folder,
-            $app->kima_folder
-        ];
-        $app->load_class($include_paths, $filename);
-
-        return true;
     }
 
     /**
@@ -499,24 +471,6 @@ class App
     }
 
     /**
-     * Gets the library_folder
-     * @return string
-     */
-    public function get_library_folder()
-    {
-        return $this->library_folder;
-    }
-
-    /**
-     * Gets the kima_folder
-     * @return string
-     */
-    public function get_kima_folder()
-    {
-        return $this->kima_folder;
-    }
-
-    /**
      * Sets the application folders
      * @return Application
      */
@@ -527,33 +481,7 @@ class App
         $this->module_folder = $this->application_folder . 'module/';
         $this->view_folder = $this->application_folder . 'view/';
         $this->l10n_folder = ROOT_FOLDER . '/resource/l10n/';
-        $this->library_folder = ROOT_FOLDER . '/library/';
-        $this->kima_folder = realpath(dirname(__FILE__) . '/..') . '/';
 
         return $this;
-    }
-
-    /**
-     * Try loading a class from a list of include paths
-     * It makes sure the file exists to avoid throwing errors
-     * so other auto_loaders can be registered
-     * @param  array   $include_paths
-     * @param  string  $filename
-     * @return boolean
-     */
-    private function load_class(array $include_paths, $filename)
-    {
-        // try the include paths
-        foreach ($include_paths as $include_path) {
-            $filepath = $include_path . $filename;
-            if (file_exists($filepath)) {
-                require_once $filepath;
-
-                return true;
-            }
-        }
-
-        // try the php include paths
-        return false;
     }
 }
