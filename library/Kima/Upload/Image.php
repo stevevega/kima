@@ -31,6 +31,24 @@ class Image extends File
     }
 
     /**
+     * Applies custom modifications to the file been uploaded.
+     * For images, we need to read the rotation info from the
+     * EXIF file and fix the rotation of the image.
+     */
+    protected function apply_custom_modifications($temp_file = '')
+    {
+        if (!is_uploaded_file($temp_file)) {
+            return false;
+        }
+
+        // Rotate the image
+        $image = new KimaImage($temp_file);
+        $all_succeed = $image->fix_exif_rotation();
+
+        return $all_succeed;
+    }
+
+    /**
      * Transfer the uploaded file to its new destination
      * @param string $temp_file
      * @param string $folder
