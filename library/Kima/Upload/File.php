@@ -132,6 +132,8 @@ class File
                     $new_name = $file['name'];
                 }
 
+                $this->apply_custom_modifications($file['tmp_name']);
+
                 // try to move the uploaded file to its destination
                 if (!$this->transfer($file['tmp_name'], $folder, $new_name)) {
                     $this->set_error_message(self::ERROR_CODE_UNABLE_TO_MOVE);
@@ -443,5 +445,10 @@ class File
 
         return false;
     }
+
+    /**
+     * Applies custom modifications to the file been uploaded.
+     */
+    protected function apply_custom_modifications($temp_file = '') {}
 
 }
