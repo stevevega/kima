@@ -5,14 +5,14 @@
  */
 namespace Kima;
 
-use \Kima\Model\Mysql;
-use \Kima\Model\Mongo;
-use \Kima\Model\ResultSet;
-use \Kima\Prime\App;
-use \Kima\Prime\Config;
-use \Kima\Util\String;
-use \ReflectionObject;
-use \ReflectionProperty;
+use Kima\Model\Mysql;
+use Kima\Model\Mongo;
+use Kima\Model\ResultSet;
+use Kima\Prime\App;
+use Kima\Prime\Config;
+use Kima\Util\String;
+use ReflectionObject;
+use ReflectionProperty;
 
 /**
  * Model

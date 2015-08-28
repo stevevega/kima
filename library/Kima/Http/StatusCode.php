@@ -5,7 +5,7 @@
  */
 namespace Kima\Http;
 
-use \Kima\Error;
+use Kima\Error;
 
 /**
  * Status Code

@@ -5,7 +5,7 @@
  */
 namespace Kima\Database;
 
-use \Kima\Error;
+use Kima\Error;
 
 /**
  * Abstract Database

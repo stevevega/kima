@@ -7,8 +7,8 @@ namespace Kima\Util;
 /**
  * Namespaces to use
  */
-use \DOMDocument;
-use \DOMXPath;
+use DOMDocument;
+use DOMXPath;
 
 /**
  * Html

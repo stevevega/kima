@@ -5,7 +5,7 @@
  */
 namespace Kima\Upload;
 
-use \Kima\Image as KimaImage;
+use Kima\Image as KimaImage;
 
 /**
  * Kima Image Upload library

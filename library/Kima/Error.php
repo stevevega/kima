@@ -5,8 +5,8 @@
  */
 namespace Kima;
 
-use \Kima\Prime\App;
-use \Exception;
+use Kima\Prime\App;
+use Exception;
 
 /**
  * Handles user trigger errors in the application

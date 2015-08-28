@@ -5,8 +5,8 @@
  */
 namespace Kima\Cache;
 
-use \Kima\Error;
-use \Redis as PhpRedis;
+use Kima\Error;
+use Redis as PhpRedis;
 
 /**
  * Redis Adapter for Kima Cache

@@ -5,7 +5,7 @@
  */
 namespace Kima;
 
-use \Imagick;
+use Imagick;
 
 /**
  * Kima Image library

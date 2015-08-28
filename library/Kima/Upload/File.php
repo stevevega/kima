@@ -5,9 +5,9 @@
  */
 namespace Kima\Upload;
 
-use \Kima\Error;
-use \Kima\Http\Request;
-use \finfo;
+use Kima\Error;
+use Kima\Http\Request;
+use finfo;
 
 /**
  * Kima File Upload library

@@ -5,7 +5,7 @@
  */
 namespace Kima;
 
-use \Kima\Prime\App;
+use Kima\Prime\App;
 
 /**
  * Kima Localization library

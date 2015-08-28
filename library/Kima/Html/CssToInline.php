@@ -9,9 +9,9 @@
  */
 namespace Kima\Html;
 
-use \Kima\Error;
-use \DOMDocument;
-use \DOMXPath;
+use Kima\Error;
+use DOMDocument;
+use DOMXPath;
 
 /**
  * HTML CSS to Inline library

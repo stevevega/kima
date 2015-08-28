@@ -5,9 +5,9 @@
  */
 namespace Kima;
 
-use \Kima\Model\Mysql;
-use \Kima\Prime\App;
-use \Kima\Prime\Config;
+use Kima\Model\Mysql;
+use Kima\Prime\App;
+use Kima\Prime\Config;
 
 /**
  * Model

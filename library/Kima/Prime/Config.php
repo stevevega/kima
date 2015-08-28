@@ -1,7 +1,7 @@
 <?php
 namespace Kima\Prime;
 
-use \Kima\Error;
+use Kima\Error;
 
 /**
  * Kima Config Handler

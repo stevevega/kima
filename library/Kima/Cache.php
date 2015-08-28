@@ -5,12 +5,12 @@
  */
 namespace Kima;
 
-use \Kima\Cache\Apc;
-use \Kima\Cache\File;
-use \Kima\Cache\Memcached;
-use \Kima\Cache\Redis;
-use \Kima\Cache\Void;
-use \Kima\Prime\App;
+use Kima\Cache\Apc;
+use Kima\Cache\File;
+use Kima\Cache\Memcached;
+use Kima\Cache\Redis;
+use Kima\Cache\Void;
+use Kima\Prime\App;
 
 /**
  * Cache

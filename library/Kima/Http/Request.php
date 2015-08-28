@@ -5,7 +5,7 @@
  */
 namespace Kima\Http;
 
-use \Kima\Prime\App;
+use Kima\Prime\App;
 
 /**
  * Request

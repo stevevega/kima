@@ -1,9 +1,9 @@
 <?php
 namespace Kima\Prime;
 
-use \Kima\Action;
-use \Kima\Error;
-use \Kima\Http\Request;
+use Kima\Action;
+use Kima\Error;
+use Kima\Http\Request;
 
 /**
  * Kima Prime App

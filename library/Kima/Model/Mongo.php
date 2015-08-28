@@ -5,7 +5,7 @@
  */
 namespace Kima\Model;
 
-use \Kima\Database;
+use Kima\Database;
 
 /**
  * Mongo

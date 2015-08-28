@@ -5,7 +5,7 @@
  */
 namespace Kima\Cache;
 
-use \Memcached as PhpMemcached;
+use Memcached as PhpMemcached;
 
 /**
  * Memcached Adapter for Kima Cache

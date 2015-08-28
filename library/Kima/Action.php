@@ -5,10 +5,10 @@
  */
 namespace Kima;
 
-use \Kima\Http\Redirector;
-use \Kima\Http\Request;
-use \Kima\Prime\App;
-use \Bootstrap;
+use Kima\Http\Redirector;
+use Kima\Http\Request;
+use Kima\Prime\App;
+use Bootstrap;
 
 /**
  * Action

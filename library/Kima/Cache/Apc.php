@@ -5,7 +5,7 @@
  */
 namespace Kima\Cache;
 
-use \Kima\Error;
+use Kima\Error;
 
 /**
  * APC Adapter for Kima Cache
