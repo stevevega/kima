@@ -1,7 +1,6 @@
 <?php
 namespace Kima\Prime;
 
-use Kima\Action;
 use Kima\Error;
 use Kima\Http\Request;
 
@@ -158,11 +157,9 @@ class App
      */
     public function run(array $urls, $custom_config = null)
     {
-        // setup the application
         $this->setup($custom_config);
 
-        // run the action
-        return new Action($urls);
+        return (new Action($urls))->run();
     }
 
     /**
@@ -389,18 +386,16 @@ class App
         // set the status code
         http_response_code($status_code);
 
+        $error_path = 'Controller\\Error';
+
         $module = $this->get_module();
+        if (isset($module)) {
+            $error_path = 'Module\\' . ucfirst(strtolower($module)) . '\\' . $error_path;
+        }
 
-        //  the controller path
-        $controller_folder = $module
-            ? $this->module_folder . '/' . $module . '/controller/'
-            : $this->controller_folder;
-
-        $this->controller = 'Error';
-        require_once $controller_folder . $this->controller . '.php';
-
-        $controller_obj = new \Error();
-        $controller_obj->get();
+        $this->set_controller('Error')->set_method('GET');
+        $controller = new $error_path();
+        $controller->get();
         exit;
     }
 

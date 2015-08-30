@@ -3,11 +3,11 @@
  * Kima Action
  * @author Steve Vega
  */
-namespace Kima;
+namespace Kima\Prime;
 
+use Kima\Error;
 use Kima\Http\Redirector;
 use Kima\Http\Request;
-use Kima\Prime\App;
 use Bootstrap;
 
 /**
@@ -20,12 +20,9 @@ class Action
      * Error messages
      */
     const ERROR_NO_BOOTSTRAP = 'Class Boostrap not defined in Bootstrap.php';
-    const ERROR_NO_PREDISPATCHER = 'Registered Predispatcher class %s is not accesible';
-    const ERROR_NO_CONTROLLER_FILE = 'Class file for "%s" is not accesible on "%s" or %s';
-    const ERROR_NO_CONTROLLER_CLASS = ' Class "%s" not declared on "%s"';
-    const ERROR_NO_CONTROLLER_INSTANCE = 'Object for "%s" is not an instance of \Kima\Controller';
+    const ERROR_NO_CONTROLLER_FILE = 'Class file for "%s" is not accesible on "%s"';
+    const ERROR_NO_CONTROLLER_INSTANCE = 'Object for "%s" is not an instance of \Kima\Prime\Controller';
     const ERROR_NO_MODULE_ROUTES = 'Routes for module "%s" are not set';
-    const ERROR_INVALID_DEFINITION = 'Url "%s" definition has invalid data types';
 
     /**
      * Bootstrap path
@@ -38,6 +35,12 @@ class Action
     const CONTROLLER = 0;
     const LANGUAGE_HANDLER = 1;
     const LANGUAGE_HANDLER_PARAMS = 2;
+
+    /**
+     * Controller class name
+     * @var string
+     */
+    private $controller;
 
     /**
      * Url parameters
@@ -55,33 +58,37 @@ class Action
         $this->load_bootstrap();
         $app = App::get_instance();
 
-        // set the url parameters
-        $this->set_url_parameters($app->get_url_base_pos());
+        $this->set_url_parameters($app->get_url_base_pos())
+            ->set_controller($urls);
 
-        // set the module routes if exists
-        // reduce urls to module set
-        $module = $app->get_module();
-        if (!empty($module)) {
-            array_key_exists($module, $urls)
-                ? $urls = $urls[$module]
-                : Error::set(sprintf(self::ERROR_NO_MODULE_ROUTES, $module));
-        }
-
-        // gets the controller
-        $controller = $this->get_controller($urls);
-        if (empty($controller)) {
+        if (empty($this->controller)) {
             $app->set_http_error(404);
         }
 
-        // set the action controller
-        $app->set_controller($controller);
+        $this->check_https();
+    }
 
-        // check for https/http redirections
-        $this->check_https($controller);
+    /**
+     * Creates a controller instances and runs the request method
+     */
+    public function run()
+    {
+        $app = App::get_instance();
+        $method = $app->get_method();
 
-        // inits the controller action
-        $controller_handler = new Controller();
-        $controller_handler->run($controller, $this->url_parameters);
+        $controller = $this->get_controller_instance();
+
+        // validate controller is instance of Controller
+        if (!$controller instanceof Controller) {
+            Error::set(sprintf(self::ERROR_NO_CONTROLLER_INSTANCE, $this->controller));
+        }
+
+        // validate the required http method is implemented in controller
+        if (!in_array($method, get_class_methods($controller))) {
+            return $app->set_http_error(405);
+        }
+
+        return $controller->$method($this->url_parameters);
     }
 
     /**
@@ -89,10 +96,19 @@ class Action
      * - Includes the required controller to process the action
      * - Includes the language handler for detecting the action language
      * @param  array $urls
-     * @return array
+     * @return Action
      */
-    private function get_controller(array $urls)
+    private function set_controller(array $urls)
     {
+        // reduce urls to module set if exists
+        $app = App::get_instance();
+        $module = $app->get_module();
+        if (!empty($module)) {
+            array_key_exists($module, $urls)
+                ? $urls = $urls[$module]
+                : Error::set(sprintf(self::ERROR_NO_MODULE_ROUTES, $module));
+        }
+
         // loop the defined urls looking for a match
         foreach ($urls as $url => $controller) {
             if (is_string($controller)) {
@@ -101,39 +117,38 @@ class Action
                 // set the string to search
                 $subject = '/' . implode('/', $this->url_parameters);
                 if (preg_match('/^' . $pattern . '$/', $subject)) {
-                    return $controller;
+                    $this->controller = $controller;
+                    $app->set_controller($controller);
+                    return $this;
                 }
             }
         }
 
-        return null;
+        return $this;
     }
 
     /**
      * Checks for possible http/https redirections
-     * @param string $controller
      */
-    private function check_https($controller)
+    private function check_https()
     {
-        // get whether we are currently on https or not
-        $application = App::get_instance();
-        $is_https = $application->is_https();
+        $app = App::get_instance();
+        $is_https = $app->is_https();
 
         // check if https is enforced
-        $is_https_enforced = $application->is_https_enforced();
-        if ($is_https_enforced) {
+        if ($app->is_https_enforced()) {
             return $is_https ? true : Redirector::https();
         }
 
         // check if the controller is in the individual list of https request
-        $https_controllers = $application->get_https_controllers();
-        if (in_array($controller, $https_controllers)) {
+        $https_controllers = $app->get_https_controllers();
+        if (in_array($this->controller, $https_controllers)) {
             return $is_https ? true : Redirector::https();
         }
 
         // if we are on https but shouldn't redirect to http
-        if ($is_https && !in_array($controller, $https_controllers)) {
-            Redirector::http();
+        if ($is_https && !in_array($this->controller, $https_controllers)) {
+            return Redirector::http();
         }
     }
 
@@ -199,4 +214,26 @@ class Action
         return (null !== $param && false !== $param && '' !== $param);
     }
 
+    /**
+     * Gets the controller instance
+     * @return Controller
+     */
+    private function get_controller_instance()
+    {
+        $default_path = 'Controller\\' . str_replace(DIRECTORY_SEPARATOR, '\\', $this->controller);
+
+        $module = App::get_instance()->get_module();
+        if (isset($module)) {
+            $module_path = 'Module\\' . ucfirst(strtolower($module)) . '\\' . $default_path;
+            if (class_exists($module_path)) {
+                return new $module_path();
+            }
+        }
+
+        if (!class_exists($default_path)) {
+            Error::set(sprintf(self::ERROR_NO_CONTROLLER_FILE, $this->controller, $default_path));
+        }
+
+        return new $default_path();
+    }
 }
