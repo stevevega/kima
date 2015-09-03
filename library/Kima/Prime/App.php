@@ -393,7 +393,7 @@ class App
             $error_path = 'Module\\' . ucfirst(strtolower($module)) . '\\' . $error_path;
         }
 
-        $this->set_controller('Error')->set_method('GET');
+        $this->set_controller('Error')->set_method('get');
         $controller = new $error_path();
         $controller->get();
         exit;
