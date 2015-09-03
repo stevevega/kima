@@ -244,9 +244,10 @@ class Solr
     /**
      * Puts one or many documents to the Solr index
      * @param array | object
+     * @param bool   $asynch make an asynchronous solr put operation
      * @return SolrUpdateResponse
      */
-    public function put($documents)
+    public function put($documents, $asynch = true)
     {
         $docs = [];
 
@@ -271,7 +272,7 @@ class Solr
         try {
             $connection->addDocuments($docs);
             // $response = $connection->commit();
-            $response = $this->commit();
+            $response = $this->commit($asynch);
         } catch (SolrClientException $e) {
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
         } catch (SolrIllegalArgumentException $e) {
@@ -349,13 +350,13 @@ class Solr
 
         // use reflection to set the document values
         foreach (get_object_vars($document) as $prop => $value) {
-           if (is_array($value)) {
-               foreach ($value as $v) {
-                   $solr_doc->addField($prop, $v);
-               }
-           } else {
-               $solr_doc->addField($prop, $value);
-           }
+            if (is_array($value)) {
+                foreach ($value as $v) {
+                    $solr_doc->addField($prop, $v);
+                }
+            } else {
+                $solr_doc->addField($prop, $value);
+            }
         }
 
         return $solr_doc;
@@ -454,9 +455,10 @@ class Solr
     /**
      * Alternative commit function while the bug 'waiteflush' is fixed
      * @See https://bugs.php.net/bug.php?id=62332
+     * @param  bool $asynch asynchronous solr commit
      * @return
      */
-    private function commit()
+    private function commit($asynch = true)
     {
         $config = App::get_instance()->get_config();
         $response = false;
@@ -474,7 +476,9 @@ class Solr
 
             // timeout after 10 ms, tried with 100 ms but it seems some of the
             // calls were not correctly routed
-            curl_setopt($ch, CURLOPT_TIMEOUT_MS, 10);
+            if ($asynch) {
+                curl_setopt($ch, CURLOPT_TIMEOUT_MS, 10);
+            }
 
             // this allows curl to ignore the signals and correctly timeout on MS
             // "If libcurl is built to use the standard system name resolver, that
