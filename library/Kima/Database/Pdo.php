@@ -5,11 +5,11 @@
  */
 namespace Kima\Database;
 
-use \Kima\Prime\App;
-use \Kima\Error;
-use \PDO as PdoDriver;
-use \PDOException;
-use \PDOStatement;
+use Kima\Prime\App;
+use Kima\Error;
+use PDO as PdoDriver;
+use PDOException;
+use PDOStatement;
 
 /**
  * PDO

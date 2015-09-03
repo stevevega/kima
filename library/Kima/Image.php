@@ -5,7 +5,7 @@
  */
 namespace Kima;
 
-use \Imagick;
+use Imagick;
 
 /**
  * Kima Image library
@@ -186,6 +186,35 @@ class Image extends Imagick
         }
 
         return $image->writeImage($destination);
+    }
+
+    /**
+     * Reads the EXIF information and rotates the images accordingly
+     * so that it is normalized.
+     * @return boolean
+     */
+    public function fix_exif_rotation()
+    {
+        $orientation = $this->getImageOrientation();
+
+        switch ($orientation) {
+            case Imagick::ORIENTATION_BOTTOMRIGHT:
+                $this->rotateimage("#000", 180); // rotate 180 degrees
+            break;
+
+            case Imagick::ORIENTATION_RIGHTTOP:
+                $this->rotateimage("#000", 90); // rotate 90 degrees
+            break;
+
+            case Imagick::ORIENTATION_LEFTBOTTOM:
+                $this->rotateimage("#000", -90); // rotate 90 degrees
+            break;
+        }
+
+        $this->setImageOrientation(Imagick::ORIENTATION_TOPLEFT);
+
+        $this->save_image($this, $this->image_file);
+
     }
 
 }

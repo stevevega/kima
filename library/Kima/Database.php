@@ -5,8 +5,8 @@
  */
 namespace Kima;
 
-use \Kima\Database\Pdo;
-use \Kima\Database\Mongo;
+use Kima\Database\Pdo;
+use Kima\Database\Mongo;
 
 /**
  * Database

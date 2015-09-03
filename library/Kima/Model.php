@@ -5,13 +5,14 @@
  */
 namespace Kima;
 
-use \Kima\Model\Mysql;
-use \Kima\Model\Mongo;
-use \Kima\Model\ResultSet;
-use \Kima\Prime\App;
-use \Kima\Util\String;
-use \ReflectionObject;
-use \ReflectionProperty;
+use Kima\Model\Mysql;
+use Kima\Model\Mongo;
+use Kima\Model\ResultSet;
+use Kima\Prime\App;
+use Kima\Prime\Config;
+use Kima\Util\String;
+use ReflectionObject;
+use ReflectionProperty;
 
 /**
  * Model
@@ -227,7 +228,7 @@ abstract class Model
 
     /**
      * Sets the default database engine for the model
-     * @param \Kima\Config
+     * @param Config
      */
     private function set_default_db_engine(Config $config)
     {
@@ -522,7 +523,7 @@ abstract class Model
     public function fetch(array $fields = [], $return_as_array = false)
     {
         // make sure we limit one result
-        $this->limit(1);
+        $this->limit(1, $this->start + 1);
         $result = $this->fetch_results($fields, false, false, $return_as_array);
 
         return !empty($result[0]) ? $result[0] : null;

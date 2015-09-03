@@ -5,7 +5,7 @@
  */
 namespace Kima\Cache;
 
-use \Kima\Error;
+use Kima\Error;
 
 /**
  * File Adapter for Kima Cache

@@ -5,13 +5,13 @@
  */
 namespace Kima\Search;
 
-use \Kima\Prime\App;
-use \Kima\Error;
-use \SolrClient;
-use \SolrClientException;
-use \SolrIllegalArgumentException;
-use \SolrInputDocument;
-use \SolrQuery;
+use Kima\Prime\App;
+use Kima\Error;
+use SolrClient;
+use SolrClientException;
+use SolrIllegalArgumentException;
+use SolrInputDocument;
+use SolrQuery;
 
 /**
  * Solr

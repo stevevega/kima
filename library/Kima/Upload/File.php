@@ -5,9 +5,9 @@
  */
 namespace Kima\Upload;
 
-use \Kima\Error;
-use \Kima\Http\Request;
-use \finfo;
+use Kima\Error;
+use Kima\Http\Request;
+use finfo;
 
 /**
  * Kima File Upload library
@@ -131,6 +131,8 @@ class File
                 } else {
                     $new_name = $file['name'];
                 }
+
+                $this->apply_custom_modifications($file['tmp_name']);
 
                 // try to move the uploaded file to its destination
                 if (!$this->transfer($file['tmp_name'], $folder, $new_name)) {
@@ -443,5 +445,10 @@ class File
 
         return false;
     }
+
+    /**
+     * Applies custom modifications to the file been uploaded.
+     */
+    protected function apply_custom_modifications($temp_file = '') {}
 
 }

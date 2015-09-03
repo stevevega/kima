@@ -5,14 +5,14 @@
  */
 namespace Kima\Database;
 
-use \Kima\Prime\App;
-use \Kima\Error;
-use \MongoClient;
-use \MongoCollection;
-use \MongoConnectionException;
-use \MongoCursorException;
-use \MongoException;
-use \MongoId;
+use Kima\Prime\App;
+use Kima\Error;
+use MongoClient;
+use MongoCollection;
+use MongoConnectionException;
+use MongoCursorException;
+use MongoException;
+use MongoId;
 
 /**
  * Mongo

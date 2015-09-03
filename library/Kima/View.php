@@ -5,7 +5,7 @@
  */
 namespace Kima;
 
-use \Kima\Html\CssToInline;
+use Kima\Html\CssToInline;
 
 /**
  * View

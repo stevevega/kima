@@ -5,7 +5,7 @@
  */
 namespace Kima\Crypt;
 
-use \Kima\Error;
+use Kima\Error;
 
 /**
  * Creates hash passwords based on the bcrypt type

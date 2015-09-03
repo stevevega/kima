@@ -5,7 +5,7 @@
  */
 namespace Kima\Model;
 
-use \Kima\Error;
+use Kima\Error;
 
 /**
  * Kima Model Filter
