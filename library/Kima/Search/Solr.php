@@ -285,17 +285,18 @@ class Solr
 
     /**
      * Deletes all documents matching the given query
-     * @param  string             $query The query; example "*:*" (This will erase the entire index)
+     * @param  string $query The query; example "*:*" (This will erase the entire index)
+     * @param  bool   $asynch make an asynchronous solr delete operation
      * @return SolrUpdateResponse on success and throws a SolrClientException on failure
      */
-    public function delete_by_query($query_string)
+    public function delete_by_query($query_string, $asynch = true)
     {
         $connection = $this->get_connection();
 
         try {
             $response = $connection->deleteByQuery($query_string);
             // $response = $connection->commit();
-            $response = $this->commit();
+            $response = $this->commit($asynch);
         } catch (SolrClientException $e) {
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
         }
