@@ -146,10 +146,7 @@ class Action
             return $is_https ? true : Redirector::https();
         }
 
-        // if we are on https but shouldn't redirect to http
-        if ($is_https && !in_array($this->controller, $https_controllers)) {
-            return Redirector::http();
-        }
+        return false;
     }
 
     /**
