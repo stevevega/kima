@@ -72,6 +72,18 @@ class Memcached extends PhpMemcached implements ICache
     }
 
     /**
+     * Gets the timestamp of a cache key
+     * @param  string $key the cache key
+     * @return mixed
+     */
+    public function get_timestamp($key)
+    {
+        $item = parent::get($key);
+
+        return $item ? $item['timestamp'] : null;
+    }
+
+    /**
      * Sets the cache key
      * @param string $key        the cache key
      * @param mixed  $value
