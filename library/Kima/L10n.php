@@ -103,7 +103,7 @@ class L10n
         $cache_timestamp = Cache::get_instance()->get_timestamp(self::$cache_key);
 
         foreach ($strings_paths as $strings_path) {
-            if (filemtime($file_path) > $cache_timestamp) {
+            if (filemtime($strings_path) > $cache_timestamp) {
                 return false;
             }
         }
