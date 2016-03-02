@@ -31,6 +31,12 @@ class L10n
     protected static $cache_key;
 
     /**
+     * The prefix of the cache key
+     * @var string
+     */
+    protected static $cache_key_prefix;
+
+    /**
      * Array with the paths of the l10n resources.
      * @var array
      */
@@ -43,6 +49,15 @@ class L10n
     public static function set_l10n_paths(array $paths)
     {
         self::$l10n_paths = $paths;
+    }
+
+    /**
+     * Sets the value of cache key prefix
+     * @param string $prefix
+     */
+    public static function set_cache_key_prefix($prefix)
+    {
+        self::$cache_key_prefix = (string) $prefix;
     }
 
     /**
@@ -76,6 +91,8 @@ class L10n
                 // get the strings from cache
                 $strings = Cache::get_instance()->get(self::$cache_key);
             }
+
+
 
             // get the language strings from the application l10n file if the cache was empty
             // or some file was modified
@@ -204,7 +221,7 @@ class L10n
      */
     private static function set_cache_key($language, $controller, $method)
     {
-        $cache_key = 'l10n_strings_' . $language;
+        $cache_key = self::$cache_key_prefix . 'l10n_strings_' . $language;
 
         $controller = str_replace('/', '_', $controller);
         $cache_key .= '_' . $controller . '_' . $method;
