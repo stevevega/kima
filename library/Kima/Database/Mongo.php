@@ -8,12 +8,12 @@ namespace Kima\Database;
 
 use Kima\Error;
 use Kima\Prime\App;
-use MongoCollection;
-use MongoConnectionException;
-use MongoCursorException;
+use MongoDB\BSON\ObjectID;
 use MongoDB\Client;
-use MongoException;
-use MongoId;
+use MongoDB\Collection;
+use MongoDB\Driver\Exception\Exception as DriverException;
+use MongoDB\Exception;
+use MongoDB\Exception\UnexpectedValueException;
 
 /**
  * Mongo
@@ -139,7 +139,7 @@ class Mongo extends ADatabase
                 new Client('mongodb://' . $credentials . $this->host . ':27017/' . $this->database);
 
             return $this->connection;
-        } catch (MongoConnectionException $e) {
+        } catch (DriverException $e) {
             Error::set('Mongo Connection failed: ' . $e->getMessage());
         }
     }
@@ -156,21 +156,24 @@ class Mongo extends ADatabase
         $collection = $this->execute($options);
 
         try {
-            $cursor = $collection->find($options['query']['filters'], $options['query']['fields']);
+            $find_options = ['projection' => $options['query']['fields']];
+
+            if (!empty($options['query']['limit'])) {
+                $find_options['limit'] = $options['query']['limit'];
+            }
 
             if (!empty($options['query']['order'])) {
-                // make the sort compatible with mongo
-                $sort = $this->get_sort($options['query']['order']);
-                $cursor->sort($sort);
+                $find_options['sort'] = $this->get_sort($options['query']['order']);
             }
 
             if (!empty($options['query']['start'])) {
-                $cursor->skip($options['query']['start']);
+                $find_options['skip'] = $this->get_sort($options['query']['start']);
             }
 
-            if (!empty($options['query']['limit'])) {
-                $cursor->limit($options['query']['limit']);
-            }
+            $cursor = $collection->find(
+                $options['query']['filters'],
+                $find_options
+            );
 
             $objects = [];
 
@@ -186,7 +189,7 @@ class Mongo extends ADatabase
             $result['count'] = !empty($options['get_count']) ? $cursor->count() : 0;
 
             return $result;
-        } catch (MongoCursorException $e) {
+        } catch (DriverException $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
     }
@@ -224,15 +227,13 @@ class Mongo extends ADatabase
             $pipeline[]['$limit'] = $options['query']['limit'];
         }
 
-        $objects = $collection->aggregate($pipeline);
+        try {
+            $result['objects'] = $collection->aggregate($pipeline);
 
-        if (isset($objects['errmsg'])) {
-            Error::set(sprintf(self::ERROR_MONGO_AGGREGATION, $objects['errmsg']));
+            return $result;
+        } catch (UnexpectedValueException $e) {
+            Error::set(sprintf(self::ERROR_MONGO_AGGREGATION, $e->getMessage()));
         }
-
-        $result['objects'] = $objects['result'];
-
-        return $result;
     }
 
     /**
@@ -263,7 +264,7 @@ class Mongo extends ADatabase
             $result['objects'] = $objects;
 
             return $result;
-        } catch (MongoCursorException $e) {
+        } catch (DriverException $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
     }
@@ -285,7 +286,7 @@ class Mongo extends ADatabase
         // if filters is empty, we are trying to insert a new value
         $filters = !empty($options['query']['filters'])
             ? $options['query']['filters']
-            : ['_id' => new MongoId()];
+            : ['_id' => new ObjectID()];
 
         try {
             // set whether to execute sync/async
@@ -318,12 +319,12 @@ class Mongo extends ADatabase
                 ? false
                 : true;
 
-            return $collection->update(
+            return $collection->updateMany(
                 $filters,
                 $fields,
                 ['upsert' => $upsert, 'w' => $async, 'multiple' => $multiple]
             );
-        } catch (MongoException $e) {
+        } catch (Exception $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
     }
@@ -369,7 +370,7 @@ class Mongo extends ADatabase
 
         try {
             return $collection->remove($options['query']['filters']);
-        } catch (MongoException $e) {
+        } catch (Exception $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
     }
@@ -392,7 +393,6 @@ class Mongo extends ADatabase
         $db_name = !empty($options['query']['database'])
             ? $options['query']['database']
             : $this->database;
-        $db = $connection->selectDB($db_name);
 
         if (empty($options['query']['table'])) {
             Error::set(self::ERROR_NO_COLLECTION);
@@ -402,7 +402,7 @@ class Mongo extends ADatabase
             ? $options['query']['prefix'] . $options['query']['table']
             : $options['query']['table'];
 
-        $collection = new MongoCollection($db, $collection_name);
+        $collection = $connection->$db_name->$collection_name;
 
         return $collection;
     }
