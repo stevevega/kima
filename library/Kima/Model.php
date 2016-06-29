@@ -1,16 +1,16 @@
 <?php
 /**
  * Kima Model
+ *
  * @author Steve Vega
  */
 namespace Kima;
 
-use Kima\Model\Mysql;
 use Kima\Model\Mongo;
+use Kima\Model\Mysql;
 use Kima\Model\ResultSet;
 use Kima\Prime\App;
 use Kima\Prime\Config;
-use Kima\Util\String;
 use ReflectionObject;
 use ReflectionProperty;
 
@@ -24,152 +24,172 @@ abstract class Model
     /**
      * Error messages
      */
-     const ERROR_NO_DEFAULT_DB_ENGINE = 'Default database engine is not present in the app config';
-     const ERROR_INVALID_DB_MODEL = 'Invalid database engine: "%s"';
-     const ERROR_NO_TABLE = 'Required constant "TABLE" not present in model "%s"';
-     const ERROR_NO_JOIN_TABLE = 'Required join table field is empty';
-     const ERROR_INVALID_FUNCTION = 'Function "%s" is not available for %s models';
+    const ERROR_NO_DEFAULT_DB_ENGINE = 'Default database engine is not present in the app config';
+    const ERROR_INVALID_DB_MODEL = 'Invalid database engine: "%s"';
+    const ERROR_NO_TABLE = 'Required constant "TABLE" not present in model "%s"';
+    const ERROR_NO_JOIN_TABLE = 'Required join table field is empty';
+    const ERROR_INVALID_FUNCTION = 'Function "%s" is not available for %s models';
 
      /**
       * Join constants
       */
      const JOIN_TABLE = 'table';
-     const JOIN_TYPE = 'type';
-     const JOIN_LEFT = 'left';
-     const JOIN_INNER = 'inner';
-     const JOIN_RIGHT = 'right';
-     const JOIN_ON = 'on';
+    const JOIN_TYPE = 'type';
+    const JOIN_LEFT = 'left';
+    const JOIN_INNER = 'inner';
+    const JOIN_RIGHT = 'right';
+    const JOIN_ON = 'on';
 
      /**
       * Order constants
       */
      const ORDER_ASC = 'ASC';
-     const ORDER_DESC = 'DESC';
+    const ORDER_DESC = 'DESC';
 
     /**
       * Common formats
       */
      const FORMAT_UNIXTIME = 'UNIX_TIMESTAMP(%s)';
-     const FORMAT_MAX = 'MAX(%s)';
-     const GROUP_CONCAT_DISTINCT = 'GROUP_CONCAT(DISTINCT(%s) SEPARATOR "%s")';
+    const FORMAT_MAX = 'MAX(%s)';
+    const GROUP_CONCAT_DISTINCT = 'GROUP_CONCAT(DISTINCT(%s) SEPARATOR "%s")';
 
     /**
      * The model name
+     *
      * @var string
      */
     private $model;
 
     /**
      * The model adapter
+     *
      * @var string
      */
     private $adapter;
 
     /**
      * The model database
+     *
      * @var string
      */
     private $database;
 
     /**
      * The model prefix
+     *
      * @var string
      */
     private $prefix;
 
     /**
      * The database table name
+     *
      * @var string
      */
     private $table;
 
     /**
      * Query fields
+     *
      * @var array
      */
     private $fields = [];
 
     /**
      * Query joins
+     *
      * @var array
      */
     private $joins = [];
 
     /**
      * Query filters/conditions
+     *
      * @var array
      */
     private $filters = [];
 
     /**
      * Query group by having
+     *
      * @var array
      */
     private $having = [];
 
     /**
      * Query binds for prepare statements
+     *
      * @var array
      */
     private $binds = [];
 
     /**
      * The query limit
+     *
      * @var string
      */
     private $limit = 0;
 
     /**
      * Query start value for pagination
+     *
      * @var string
      */
     private $start = 0;
 
     /**
      * Query grouping field
+     *
      * @var string
      */
     private $group = [];
 
     /**
      * Query order
+     *
      * @var string
      */
     private $order = [];
 
     /**
      * Async/sync execution
-     * @var boolean
+     *
+     * @var bool
      */
     private $async;
 
     /**
      * Prevent Mongo upsert flag
-     * @var boolean
+     *
+     * @var bool
      */
     private $prevent_upsert;
 
     /**
      * The query string created
+     *
      * @var string
      */
     private $query_string;
 
     /**
      * The db engine
+     *
      * @var string
      */
     private $db_engine;
 
     /**
      * Fetch query total count
+     *
      * @var int
      */
     private $total_count;
 
     /**
      * Sets debug mode
-     * @var boolean
+     *
+     * @var bool
      */
     private $debug = false;
 
@@ -198,6 +218,7 @@ abstract class Model
 
     /**
      * Gets the total count for a query
+     *
      * @return int
      */
     public function get_total_count()
@@ -207,7 +228,9 @@ abstract class Model
 
     /**
      * Returns the current object converted to array
-     * @param  array $objects
+     *
+     * @param array $objects
+     *
      * @return array
      */
     public function to_array(array $objects = [])
@@ -228,6 +251,7 @@ abstract class Model
 
     /**
      * Sets the default database engine for the model
+     *
      * @param Config
      */
     private function set_default_db_engine(Config $config)
@@ -245,7 +269,9 @@ abstract class Model
 
     /**
      * Sets the database engine for the model
-     * @param  string $db_engine
+     *
+     * @param string $db_engine
+     *
      * @return Model
      */
     public function set_db_engine($db_engine)
@@ -257,6 +283,7 @@ abstract class Model
 
     /**
      * Set the model adapter
+     *
      * @return mixed
      */
     private function set_model_adapter()
@@ -277,6 +304,7 @@ abstract class Model
 
     /**
      * Sets the model table/collection default prefix
+     *
      * @param string $prefix
      */
     private function set_prefix($prefix)
@@ -298,7 +326,9 @@ abstract class Model
 
     /**
      * Sets the model name and table used
-     * @param  string $model
+     *
+     * @param string $model
+     *
      * @return Model
      */
     public function set_model($model)
@@ -321,6 +351,7 @@ abstract class Model
 
     /**
      * Set the database to use
+     *
      * @param string $database
      */
     public function database($database)
@@ -332,6 +363,7 @@ abstract class Model
 
     /**
      * Sets the database table which should be used for insertion
+     *
      * @param string $table
      */
     public function table($table)
@@ -343,6 +375,7 @@ abstract class Model
 
     /**
      * Sets a join with another table(s) for a query
+     *
      * @param array $joins
      */
     public function join(array $joins)
@@ -354,6 +387,7 @@ abstract class Model
 
     /**
      * Sets the query filters
+     *
      * @param array $filter
      */
     public function filter(array $filters)
@@ -365,6 +399,7 @@ abstract class Model
 
     /**
      * Sets the query having
+     *
      * @param array $having
      */
     public function having(array $having)
@@ -376,7 +411,9 @@ abstract class Model
 
     /**
      * Set binds used for prepare statements
-     * @param  array       $binds
+     *
+     * @param array $binds
+     *
      * @return \Kima\Model
      */
     public function bind(array $binds)
@@ -388,6 +425,7 @@ abstract class Model
 
     /**
      * Sets a group join
+     *
      * @param array group
      */
     public function group(array $group)
@@ -399,6 +437,7 @@ abstract class Model
 
     /**
      * Sets a response order
+     *
      * @param array $options
      */
     public function order($order)
@@ -410,6 +449,7 @@ abstract class Model
 
     /**
      * Sets a query limit and start pagination value if necessary
+     *
      * @param int $limit
      * @param int $page
      */
@@ -428,7 +468,8 @@ abstract class Model
 
     /**
      * Sets the whether the call is made sync/async
-     * @param boolean $async
+     *
+     * @param bool $async
      */
     public function async($async)
     {
@@ -440,7 +481,8 @@ abstract class Model
     /**
      * Prevents Mongo's upsert
      * Can be used before a `put` invocation
-     * @param boolean $prevent_upsert
+     *
+     * @param bool $prevent_upsert
      */
     public function prevent_upsert($prevent_upsert = true)
     {
@@ -461,6 +503,7 @@ abstract class Model
 
     /**
      * Sets the query fields to fetch/insert
+     *
      * @param array $fields
      */
     private function set_fields(array $fields)
@@ -472,6 +515,7 @@ abstract class Model
 
     /**
      * Get the query parameters
+     *
      * @return array
      */
     private function get_query_params()
@@ -517,8 +561,9 @@ abstract class Model
      * Fetch one result of data from the database
      * Example $fields values:
      * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
-     * @param array   $fields
-     * @param boolean $return_as_array
+     *
+     * @param array $fields
+     * @param bool  $return_as_array
      */
     public function fetch(array $fields = [], $return_as_array = false)
     {
@@ -533,9 +578,10 @@ abstract class Model
      * Fetch multiple results from the database
      * Example $fields values:
      * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
-     * @param array   $fields
-     * @param boolean $get_as_result_set gets a result set with additional info as total count
-     * @param boolean $return_as_array
+     *
+     * @param array $fields
+     * @param bool  $get_as_result_set gets a result set with additional info as total count
+     * @param bool  $return_as_array
      */
     public function fetch_all(
         array $fields = [], $get_as_result_set = false, $return_as_array = false)
@@ -546,9 +592,10 @@ abstract class Model
 
     /**
      * Fetch query results
-     * @param boolean $fetch_all
-     * @param boolean $get_as_result_set gets a result set with additional info as total count
-     * @param boolean $return_as_array
+     *
+     * @param bool $fetch_all
+     * @param bool $get_as_result_set gets a result set with additional info as total count
+     * @param bool $return_as_array
      */
     private function fetch_results(
         array $fields, $fetch_all, $get_as_result_set, $return_as_array)
@@ -607,6 +654,7 @@ abstract class Model
 
     /**
      * Aggregate method for models
+     *
      * @return array
      */
     public function aggregate()
@@ -630,6 +678,7 @@ abstract class Model
 
     /**
      * Distinct method for model
+     *
      * @param string $field
      */
     public function distinct($field)
@@ -661,6 +710,7 @@ abstract class Model
     /**
      * Updates data
      * Use this method for batch or custom updates
+     *
      * @param array $fields
      */
     public function update_model()
@@ -689,6 +739,7 @@ abstract class Model
 
     /**
      * Inserts/updates data one at a time
+     *
      * @param array $fields
      */
     public function put(array $fields = [])
@@ -720,6 +771,7 @@ abstract class Model
 
     /**
      * Clones a row in the database using the fields requested and filters
+     *
      * @param array $fields
      */
     public function copy(array $fields = [])
@@ -747,6 +799,7 @@ abstract class Model
 
     /**
      * Deletes data
+     *
      * @param array $fields
      */
     public function delete()
@@ -772,6 +825,7 @@ abstract class Model
 
     /**
      * Remove duplicate values from the joins and gets the final value
+     *
      * @return array
      */
     private function get_joins()

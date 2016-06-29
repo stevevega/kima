@@ -1,22 +1,23 @@
 <?php
 /**
  * Kima Database Mongo
+ *
  * @author Steve Vega
  */
 namespace Kima\Database;
 
-use Kima\Prime\App;
 use Kima\Error;
-use MongoClient;
+use Kima\Prime\App;
 use MongoCollection;
 use MongoConnectionException;
 use MongoCursorException;
+use MongoDB\Client;
 use MongoException;
 use MongoId;
 
 /**
  * Mongo
- * Mongo database hanlder
+ * Mongo database handler
  */
 class Mongo extends ADatabase
 {
@@ -24,34 +25,38 @@ class Mongo extends ADatabase
     /**
      * Error messages
      */
-     const ERROR_NO_MONGO = 'Mongo extension is not present on this server';
-     const ERROR_NO_COLLECTION = 'Mongo error: empty collection name';
-     const ERROR_NO_COPY = 'Copy not implemented for Mongo';
-     const ERROR_NO_CALL = 'Call not implemented for Mongo';
-     const ERROR_MONGO_QUERY = 'Mongo query error: "%s"';
-     const ERROR_MONGO_AGGREGATION = 'Mongo aggregation error: "%s"';
-     const ERROR_WRONG_UPDATE_LIMIT = 'You shouldn\'t perform an update, using a limit value different than 1';
+    const ERROR_NO_MONGO = 'Mongo extension is not present on this server';
+    const ERROR_NO_COLLECTION = 'Mongo error: empty collection name';
+    const ERROR_NO_COPY = 'Copy not implemented for Mongo';
+    const ERROR_NO_CALL = 'Call not implemented for Mongo';
+    const ERROR_MONGO_QUERY = 'Mongo query error: "%s"';
+    const ERROR_MONGO_AGGREGATION = 'Mongo aggregation error: "%s"';
+    const ERROR_WRONG_UPDATE_LIMIT = 'You shouldn\'t perform an update, using a limit value different than 1';
 
     /**
      * The Mongo Client connection
-     * @var MongoClient $connection
+     *
+     * @var Client $connection
      */
     private $connection;
 
     /**
      * The current database
+     *
      * @var string $database
      */
     protected $database;
 
     /**
      * The current host
+     *
      * @var string $host
      */
     protected $host;
 
     /**
      * The Mongo intance
+     *
      * @var Mongo $instance
      */
     private static $instance;
@@ -61,7 +66,7 @@ class Mongo extends ADatabase
      */
     private function __construct()
     {
-        if (!extension_loaded('mongo')) {
+        if (!extension_loaded('mongodb')) {
             Error::set(self::ERROR_NO_MONGO);
         }
 
@@ -78,12 +83,14 @@ class Mongo extends ADatabase
 
     /**
      * Gets the Database instance
-     * @param  string      $db_engine The database engine
-     * @return MongoClient
+     *
+     * @param string $db_engine The database engine
+     *
+     * @return Client
      */
     public static function get_instance($db_engine)
     {
-        isset(self::$instance) || self::$instance = new self;
+        isset(self::$instance) || self::$instance = new self();
 
         return self::$instance;
     }
@@ -91,6 +98,7 @@ class Mongo extends ADatabase
     /**
      * Checks database connection status
      * if theres no connection creates a new one
+     *
      * @return mixed
      */
     public function get_connection()
@@ -115,8 +123,10 @@ class Mongo extends ADatabase
 
     /**
      * Creates a new database connection
-     * @param  string $user
-     * @param  string $password
+     *
+     * @param string $user
+     * @param string $password
+     *
      * @return mixed
      */
     public function connect($user = '', $password = '')
@@ -126,7 +136,7 @@ class Mongo extends ADatabase
             $credentials = !empty($user) ? $user . ':' . $password . '@' : '';
 
             $this->connection =
-                new MongoClient('mongodb://' . $credentials . $this->host . ':27017/' . $this->database);
+                new Client('mongodb://' . $credentials . $this->host . ':27017/' . $this->database);
 
             return $this->connection;
         } catch (MongoConnectionException $e) {
@@ -136,7 +146,9 @@ class Mongo extends ADatabase
 
     /**
      * Fetch results from the database
-     * @param  array $options The execution options
+     *
+     * @param array $options The execution options
+     *
      * @return mixed
      */
     public function fetch(array $options)
@@ -163,7 +175,7 @@ class Mongo extends ADatabase
             $objects = [];
 
             foreach ($cursor as $row) {
-                $object = new $options['model'];
+                $object = new $options['model']();
                 foreach ($row as $key => $field) {
                     $object->{$key} = $field;
                 }
@@ -181,8 +193,11 @@ class Mongo extends ADatabase
 
     /**
      * Applies an aggreate method to a mongo collection
+     *
      * @see    http://php.net/manual/en/mongocollection.aggregate.php
-     * @param  array $options
+     *
+     * @param array $options
+     *
      * @return array
      */
     public function aggregate(array $options)
@@ -222,8 +237,11 @@ class Mongo extends ADatabase
 
     /**
      * Applies a distinct method to a mongo collection
+     *
      * @see    http://php.net/manual/en/mongocollection.distinct.php
-     * @param  array $options
+     *
+     * @param array $options
+     *
      * @return array
      */
     public function distinct(array $options)
@@ -237,7 +255,7 @@ class Mongo extends ADatabase
 
             $objects = [];
             foreach ($cursor as $row) {
-                $object = new $options['model'];
+                $object = new $options['model']();
                 $object->{$field} = $row;
                 $objects[] = $object;
             }
@@ -252,7 +270,9 @@ class Mongo extends ADatabase
 
     /**
      * Update/Inserts to the database
-     * @param  array $options The execution options
+     *
+     * @param array $options The execution options
+     *
      * @return mixed
      */
     public function put(array $options)
@@ -301,7 +321,8 @@ class Mongo extends ADatabase
             return $collection->update(
                 $filters,
                 $fields,
-                ['upsert' => $upsert, 'w' => $async, 'multiple' => $multiple]);
+                ['upsert' => $upsert, 'w' => $async, 'multiple' => $multiple]
+            );
         } catch (MongoException $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
@@ -309,8 +330,10 @@ class Mongo extends ADatabase
 
     /**
      * Copy a database row
-     * @param  array   $options The execution options
-     * @return boolean
+     *
+     * @param array $options The execution options
+     *
+     * @return bool
      */
     public function copy(array $options)
     {
@@ -321,8 +344,10 @@ class Mongo extends ADatabase
 
     /**
      * Call a store procedure
-     * @param  array   $options The execution options
-     * @return boolean
+     *
+     * @param array $options The execution options
+     *
+     * @return bool
      */
     public function call(array $options)
     {
@@ -333,7 +358,9 @@ class Mongo extends ADatabase
 
     /**
      * Deletes to the database
-     * @param  array $options The execution options
+     *
+     * @param array $options The execution options
+     *
      * @return mixed
      */
     public function delete(array $options)
@@ -349,7 +376,9 @@ class Mongo extends ADatabase
 
     /**
      * Executes an operation
-     * @param  array $options The executions options
+     *
+     * @param array $options The executions options
+     *
      * @return mixed
      */
     public function execute(array $options)
@@ -380,7 +409,9 @@ class Mongo extends ADatabase
 
     /**
      * Gets the sort value formatted for mongo queries
-     * @param  array $sorts
+     *
+     * @param array $sorts
+     *
      * @return int
      */
     private function get_sort(array $sorts)
@@ -391,5 +422,4 @@ class Mongo extends ADatabase
 
         return $sorts;
     }
-
 }
