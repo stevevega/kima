@@ -12,6 +12,7 @@ use MongoDB\BSON\ObjectID;
 use MongoDB\Client;
 use MongoDB\Collection;
 use MongoDB\Driver\Exception\Exception as DriverException;
+use MongoDB\Driver\WriteConcern;
 use MongoDB\Exception;
 use MongoDB\Exception\UnexpectedValueException;
 
@@ -319,11 +320,18 @@ class Mongo extends ADatabase
                 ? false
                 : true;
 
-            return $collection->updateMany(
-                $filters,
-                $fields,
-                ['upsert' => $upsert, 'w' => $async, 'multiple' => $multiple]
-            );
+            $params = [$filters, $fields, [
+                'upsert' => $upsert,
+                'writeConcern' => new WriteConcern($async)
+            ]];
+
+            if ($multiple) {
+                // @see http://mongodb.github.io/mongo-php-library/classes/collection/#updatemany
+                return $collection->updateMany(...$params);
+            } else {
+                // @see http://mongodb.github.io/mongo-php-library/classes/collection/#replaceone
+                return $collection->replaceOne(...$params);
+            }
         } catch (Exception $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
