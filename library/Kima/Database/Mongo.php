@@ -330,7 +330,7 @@ class Mongo extends ADatabase
                 return $collection->updateMany(...$params);
             } else {
                 // @see http://mongodb.github.io/mongo-php-library/classes/collection/#replaceone
-                return $collection->replaceOne(...$params);
+                return $collection->updateOne(...$params);
             }
         } catch (Exception $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
