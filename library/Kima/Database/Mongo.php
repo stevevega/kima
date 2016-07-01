@@ -328,9 +328,12 @@ class Mongo extends ADatabase
             if ($multiple) {
                 // @see http://mongodb.github.io/mongo-php-library/classes/collection/#updatemany
                 return $collection->updateMany(...$params);
+            } elseif ($this->is_update_op($filters)) {
+                // @see http://mongodb.github.io/mongo-php-library/classes/collection/#updateone
+                return $collection->updateOne(...$params);
             } else {
                 // @see http://mongodb.github.io/mongo-php-library/classes/collection/#replaceone
-                return $collection->updateOne(...$params);
+                return $collection->replaceOne(...$params);
             }
         } catch (Exception $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
@@ -429,5 +432,31 @@ class Mongo extends ADatabase
         }
 
         return $sorts;
+    }
+
+    /**
+     * Checks whether the operation is a set or replace operation, the main
+     * difference is that the replace op will change the whole document while
+     * the update op can change only part of the document. The only thing to
+     * check to determine the king of operation is the array key of the first
+     * element in the array, if the key begins with a $ symbol then it is an
+     * update operation, otherwise, it is a replace operation.
+     *
+     * @see https://github.com/mongodb/specifications/blob/master/source/crud/crud.rst#update-vs-replace-validation
+     *
+     * @param array $filters document fields to update.
+     *
+     * @return bool
+     */
+    private function is_update_op(array $filters): bool
+    {
+        if (empty($filters)) {
+            return false;
+        }
+
+        // retrieve and check the first element key
+        $key = array_keys($filters)[0];
+
+        return is_string($key) && isset($key[0]) && $key[0] === '$';
     }
 }
