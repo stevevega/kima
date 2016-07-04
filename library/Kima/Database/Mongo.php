@@ -328,7 +328,7 @@ class Mongo extends ADatabase
             if ($multiple) {
                 // @see http://mongodb.github.io/mongo-php-library/classes/collection/#updatemany
                 return $collection->updateMany(...$params);
-            } elseif ($this->is_update_op($filters)) {
+            } elseif ($this->is_update_op($fields)) {
                 // @see http://mongodb.github.io/mongo-php-library/classes/collection/#updateone
                 return $collection->updateOne(...$params);
             } else {
@@ -444,18 +444,18 @@ class Mongo extends ADatabase
      *
      * @see https://github.com/mongodb/specifications/blob/master/source/crud/crud.rst#update-vs-replace-validation
      *
-     * @param array $filters document fields to update.
+     * @param array $fields document fields to update.
      *
      * @return bool
      */
-    private function is_update_op(array $filters): bool
+    private function is_update_op(array $fields): bool
     {
-        if (empty($filters)) {
+        if (empty($fields)) {
             return false;
         }
 
         // retrieve and check the first element key
-        $key = array_keys($filters)[0];
+        $key = array_keys($fields)[0];
 
         return is_string($key) && isset($key[0]) && $key[0] === '$';
     }
