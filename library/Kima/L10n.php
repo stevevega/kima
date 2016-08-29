@@ -43,6 +43,21 @@ class L10n
     protected static $l10n_paths = [];
 
     /**
+     * Flag that indicates if store the keys
+     * @var boolean
+     */
+    protected static $store_keys = true;
+
+    /**
+     * Sets the value of store_keys
+     * @param bool $store_keys
+     */
+    public static function set_store_keys($store_keys)
+    {
+        self::$store_keys = (bool) $store_keys;
+    }
+
+    /**
      * Sets the value of l10n_paths
      * @param array $paths
      */
@@ -75,7 +90,7 @@ class L10n
         $language = !empty($language) ? $language : $app->get_language();
 
         // check if we do have the language strings loaded
-        if (empty(self::$strings[$language])) {
+        if (empty(self::$strings[$language]) || !self::$store_keys) {
             $controller = strtolower($app->get_controller());
             $method = $app->get_method();
 
@@ -87,12 +102,10 @@ class L10n
             $strings = [];
 
             // validate whether there is any change in the files after of stored in cache.
-            if (self::is_valid_strings_paths_timestamp($strings_paths)) {
+            if (self::is_valid_strings_paths_timestamp($strings_paths) && self::$store_keys) {
                 // get the strings from cache
                 $strings = Cache::get_instance()->get(self::$cache_key);
             }
-
-
 
             // get the language strings from the application l10n file if the cache was empty
             // or some file was modified
