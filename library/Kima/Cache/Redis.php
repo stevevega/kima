@@ -53,6 +53,12 @@ class Redis extends PhpRedis implements ICache
     private $connection_types = [self::NON_PERSISTENT, self::PERSISTENT];
 
     /**
+     * Default prefix key
+     * @var string
+     */
+    private $prefix_key = '';
+
+    /**
      * List of available serializers
      * @var array
      */
@@ -88,6 +94,11 @@ class Redis extends PhpRedis implements ICache
         if (isset($options['redis']['serializer'])) {
             $this->set_serializer($options['redis']['serializer']);
         }
+
+        // set prefix key value
+        if (isset($options['redis']['prefix_key'])) {
+            $this->prefix_key = (string) $options['redis']['prefix_key']);
+        }
     }
 
     /**
@@ -97,7 +108,7 @@ class Redis extends PhpRedis implements ICache
      */
     public function get($key)
     {
-        $item = parent::get($key);
+        $item = parent::get($this->prepare_key($key));
 
         return $item ? $item['value'] : null;
     }
@@ -116,7 +127,7 @@ class Redis extends PhpRedis implements ICache
             return null;
         }
 
-        $item = parent::get($key);
+        $item = parent::get($this->prepare_key($key));
 
         return (filemtime($file_path) <= $item['timestamp']) ? $item['value'] : null;
     }
@@ -128,7 +139,7 @@ class Redis extends PhpRedis implements ICache
      */
     public function get_timestamp($key)
     {
-        $item = parent::get($key);
+        $item = parent::get($this->prepare_key($key));
 
         return $item ? $item['timestamp'] : null;
     }
@@ -148,7 +159,7 @@ class Redis extends PhpRedis implements ICache
             $expiration = null;
         }
 
-        parent::set($key, $value, $expiration);
+        parent::set($this->prepare_key($key), $value, $expiration);
     }
 
     /**
@@ -196,6 +207,16 @@ class Redis extends PhpRedis implements ICache
         $this->setOption(Redis::OPT_SERIALIZER, $this->serializers[$serializer]);
 
         return $this;
+    }
+
+    /**
+     * Prepares the key with a prefix if it exists
+     * @param  string $key
+     * @return string
+     */
+    private function prepare_key($key)
+    {
+        return empty($this->prefix_key) ? $key : sprintf('%s_%s', $this->prefix_key, $key);
     }
 
 }
