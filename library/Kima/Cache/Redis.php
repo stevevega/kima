@@ -97,7 +97,7 @@ class Redis extends PhpRedis implements ICache
 
         // set prefix key value
         if (isset($options['redis']['prefix_key'])) {
-            $this->prefix_key = (string) $options['redis']['prefix_key']);
+            $this->prefix_key = (string) $options['redis']['prefix_key'];
         }
     }
 
