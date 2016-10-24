@@ -1,6 +1,7 @@
 <?php
 /**
  * Kima Util String
+ *
  * @author Steve Vega
  */
 namespace Kima\Util;
@@ -8,12 +9,14 @@ namespace Kima\Util;
 /**
  * A class with a number of string utilities static methods
  */
-class String
+class KString
 {
 
     /**
      * Transforms camel case to underscore
+     *
      * @param string
+     *
      * @return string
      */
     public static function camel_case_to_underscore($string)
@@ -23,7 +26,9 @@ class String
 
     /**
      * Converts a string into a slug for url
-     * @param  string $string the string to convert
+     *
+     * @param string $string the string to convert
+     *
      * @return string
      */
     public static function to_slug($string)
@@ -41,5 +46,4 @@ class String
         // return lowercase string
         return strtolower($string);
     }
-
 }

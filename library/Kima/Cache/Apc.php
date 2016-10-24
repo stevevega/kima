@@ -67,6 +67,18 @@ class Apc implements ICache
     }
 
     /**
+     * Gets the timestamp of a cache key
+     * @param  string $key the cache key
+     * @return mixed
+     */
+    public function get_timestamp($key)
+    {
+        $item = apc_fetch($key);
+
+        return $item ? $item['timestamp'] : null;
+    }
+
+    /**
      * Sets the cache key
      * @param  string  $key        the cache key
      * @param  mixed   $value

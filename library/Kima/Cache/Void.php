@@ -34,6 +34,13 @@ class Void implements ICache
     public function get_by_file($key, $file_path) {}
 
     /**
+     * Gets the timestamp of a cache key
+     * @param  string $key the cache key
+     * @return mixed
+     */
+    public function get_timestamp($key) {}
+
+    /**
      * Sets the cache key
      * @param  string  $key        the cache key
      * @param  mixed   $value

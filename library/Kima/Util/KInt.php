@@ -1,6 +1,7 @@
 <?php
 /**
  * Kima Util Int
+ *
  * @author Steve Vega
  */
 namespace Kima\Util;
@@ -8,12 +9,14 @@ namespace Kima\Util;
 /**
  * A class with a number of integer utilities static methods
  */
-class Int
+class KInt
 {
 
     /**
      * Gets the integer value if is numeric, otherwise returns null
-     * @param  mixed    $value
+     *
+     * @param mixed $value
+     *
      * @return int|null
      */
     public static function cast($value)
@@ -22,5 +25,4 @@ class Int
 
         return is_numeric($value) ? (int) $value : null;
     }
-
 }

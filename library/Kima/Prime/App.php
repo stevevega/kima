@@ -389,7 +389,7 @@ class App
         $error_path = 'Controller\\Error';
 
         $module = $this->get_module();
-        if (isset($module)) {
+        if (!empty($module)) {
             $error_path = 'Module\\' . ucfirst(strtolower($module)) . '\\' . $error_path;
         }
 

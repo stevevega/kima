@@ -31,104 +31,183 @@ class L10n
     protected static $cache_key;
 
     /**
+     * The prefix of the cache key
+     * @var string
+     */
+    protected static $cache_key_prefix;
+
+    /**
+     * Array with the paths of the l10n resources.
+     * @var array
+     */
+    protected static $l10n_paths = [];
+
+    /**
+     * Flag that indicates if store the keys
+     * @var boolean
+     */
+    protected static $store_keys = true;
+
+    /**
+     * Sets the value of store_keys
+     * @param bool $store_keys
+     */
+    public static function set_store_keys($store_keys)
+    {
+        self::$store_keys = (bool) $store_keys;
+    }
+
+    /**
+     * Sets the value of l10n_paths
+     * @param array $paths
+     */
+    public static function set_l10n_paths(array $paths)
+    {
+        self::$l10n_paths = $paths;
+    }
+
+    /**
+     * Sets the value of cache key prefix
+     * @param string $prefix
+     */
+    public static function set_cache_key_prefix($prefix)
+    {
+        self::$cache_key_prefix = (string) $prefix;
+    }
+
+    /**
      * Gets the key wanted for translation
      * @param  string $key
      * @param  array  $args
      * @param  string $language
      * @return string
      */
-    public static function t($key, array $args = [], $language = '', $module = null)
+    public static function t($key, array $args = [], $language = '')
     {
         $app = App::get_instance();
+
         // set the language
         $language = !empty($language) ? $language : $app->get_language();
 
-        if (!isset($module)) {
-            // get the module, controller and method from the application
-            $module = $app->get_module();
-        }
-
         // check if we do have the language strings loaded
-        if (empty(self::$strings[$module][$language])) {
+        if (empty(self::$strings[$language]) || !self::$store_keys) {
             $controller = strtolower($app->get_controller());
             $method = $app->get_method();
 
             // get the string path and sets the cache key
-            $strings_path = self::get_strings_path($module, $language);
-            self::set_cache_key($language, $module, $controller, $method);
+            $strings_paths = self::get_strings_paths($language);
 
-            // get the strings from cache
-            $strings = Cache::get_instance()->get_by_file(self::$cache_key, $strings_path);
+            self::set_cache_key($language, $controller, $method);
 
-            // get the language strings from the application l10n file if the cache was empty
-            if (empty($strings)) {
-                $strings = self::get_strings($controller, $method, $strings_path);
+            $strings = [];
+
+            // validate whether there is any change in the files after of stored in cache.
+            if (self::is_valid_strings_paths_timestamp($strings_paths) && self::$store_keys) {
+                // get the strings from cache
+                $strings = Cache::get_instance()->get(self::$cache_key);
             }
 
-            self::$strings[$module][$language] = $strings;
+            // get the language strings from the application l10n file if the cache was empty
+            // or some file was modified
+            if (empty($strings)) {
+                $strings = self::get_strings($controller, $method, $strings_paths);
+            }
+
+            self::$strings[$language] = $strings;
         }
 
         // sends the l10n key if exists
-        return !empty(self::$strings[$module][$language][$key])
-            ? vsprintf(self::$strings[$module][$language][$key], $args)
+        return !empty(self::$strings[$language][$key])
+            ? vsprintf(self::$strings[$language][$key], $args)
             : null;
     }
 
     /**
-     * Gets the strings path for the current module/language
-     * @param  string $module
-     * @param  string $language
-     * @return string
+     * Validates whether there is any change in data of the files stored cached.
+     * Using the timestamp of the file and cache.
+     * @param  array   $strings_paths
+     * @return boolean
      */
-    private static function get_strings_path($module, $language)
+    private static function is_valid_strings_paths_timestamp(array $strings_paths)
     {
-        // get the module and config
-        $app = App::get_instance();
+        $cache_timestamp = Cache::get_instance()->get_timestamp(self::$cache_key);
 
-        // set the strings path
-        $strings_path = $app->get_l10n_folder();
-
-        // add the module and file name to the string path
-        $strings_path .= !empty($module) ? $module . DIRECTORY_SEPARATOR : '';
-        $strings_path .= $language . '.ini';
-
-        // validate the string path
-        if (!is_readable($strings_path)) {
-            Error::set(sprintf(self::ERROR_INVALID_STRINGS_PATH, $strings_path));
+        foreach ($strings_paths as $strings_path) {
+            if (filemtime($strings_path) > $cache_timestamp) {
+                return false;
+            }
         }
 
-        // get the string data
-        return $strings_path;
+        return true;
     }
 
     /**
-     * Retrieves and parse the language strings from the l10n string file
+     * Gets the strings paths for the current language
+     * @param  string $language
+     * @return array
+     */
+    private static function get_strings_paths($language)
+    {
+        // set the strings paths using if exists the array of l10n paths else the default application path
+        $strings_paths = empty(self::$l10n_paths)
+            ? [App::get_instance()->get_l10n_folder()]
+            : self::$l10n_paths;
+
+        foreach ($strings_paths as &$strings_path) {
+            // add file name to the string path
+            $strings_path .= $language . '.ini';
+
+            // validate the string path
+            if (!is_readable($strings_path)) {
+                Error::set(sprintf(self::ERROR_INVALID_STRINGS_PATH, $strings_path));
+            }
+        }
+
+        return $strings_paths;
+    }
+
+    /**
+     * Retrieves and parse the language strings from the l10n string files
      * Sets the strings on cache
      * @param  string $controller
      * @param  string $method
-     * @param  string $strings_path
+     * @param  array  $strings_paths
      * @return array
      */
-    private static function get_strings($controller, $method, $strings_path)
+    private static function get_strings($controller, $method, array $strings_paths)
     {
-        $strings = [];
+        $global_strings = [];
+        $controller_strings = [];
+        $method_strings = [];
 
-        // get the strings data
-        $strings_data = parse_ini_file($strings_path, true);
-        if ($strings_data) {
-            // set the global, controller and method strings
-            $global_strings = self::get_section_strings($strings_data, 'global');
-            $controller_strings = self::get_section_strings($strings_data, $controller);
-            $method_strings = self::get_section_strings($strings_data, $controller . '-'. $method);
+        foreach ($strings_paths as $strings_path) {
+            // get the strings data
+            $strings_data = parse_ini_file($strings_path, true);
 
-            // merge the strings content
-            $strings = array_merge($global_strings, $controller_strings, $method_strings);
+            if ($strings_data) {
+                // set the global, controller and method strings
+                $global_strings = array_merge(
+                    $global_strings,
+                    self::get_section_strings($strings_data, 'global')
+                );
+
+                $controller_strings = array_merge(
+                    $controller_strings,
+                    self::get_section_strings($strings_data, $controller)
+                );
+
+                $method_strings = array_merge(
+                    $method_strings,
+                    self::get_section_strings($strings_data, $controller . '-'. $method)
+                );
+            }
         }
+        // merge the strings content
+        $strings = array_merge($global_strings, $controller_strings, $method_strings);
 
         // set the strings in cache
         Cache::get_instance()->set(self::$cache_key, $strings);
 
-        // set the class strings for future references
         return $strings;
     }
 
@@ -150,18 +229,12 @@ class L10n
     /**
      * Sets the cache key for the strings
      * @param string $language
-     * @param string $module
      * @param string $controller
      * @param string $method
      */
-    private static function set_cache_key($language, $module, $controller, $method)
+    private static function set_cache_key($language, $controller, $method)
     {
-        $cache_key = 'l10n_strings_' . $language;
-
-        // add the module if exists
-        if (!empty($module)) {
-            $cache_key .= '_' . $module;
-        }
+        $cache_key = self::$cache_key_prefix . 'l10n_strings_' . $language;
 
         $controller = str_replace('/', '_', $controller);
         $cache_key .= '_' . $controller . '_' . $method;

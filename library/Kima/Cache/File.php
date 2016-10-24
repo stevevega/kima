@@ -85,6 +85,22 @@ class File implements ICache
     }
 
     /**
+     * Gets the timestamp of a cache key
+     * @param  string $key the cache key
+     * @return mixed
+     */
+    public function get_timestamp($key)
+    {
+        $cache_path = $this->folder_path . DIRECTORY_SEPARATOR . $key . self::FILE_EXTENSION;
+
+        if (!is_readable($cache_path)) {
+            return null;
+        }
+
+        return filemtime($cache_path);
+    }
+
+    /**
      * Sets the cache key
      * @param string $key        the cache key
      * @param mixed  $value

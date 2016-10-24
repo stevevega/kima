@@ -193,10 +193,16 @@ class Request
      */
     private static function clean_value($value, $default)
     {
-        if (isset($value)) {
-            $value = is_array($value) ? array_map('trim', $value) : trim($value);
+        if (!isset($value)) {
+            return $default;
+        }
+
+        if (is_array($value)) {
+            array_walk_recursive($value, function (&$val, $key) {
+                $val = trim($val);
+            });
         } else {
-            $value = $default;
+            $value = trim($value);
         }
 
         return $value;
