@@ -1,6 +1,7 @@
 <?php
 /**
  * Kima Cache Redis
+ *
  * @author Steve Vega
  */
 namespace Kima\Cache;
@@ -13,7 +14,6 @@ use Redis as PhpRedis;
  */
 class Redis extends PhpRedis implements ICache
 {
-
     /**
      * Error messages
      */
@@ -25,6 +25,11 @@ class Redis extends PhpRedis implements ICache
      */
     const NON_PERSISTENT = 0;
     const PERSISTENT = 1;
+
+    /**
+     * Default database where the cache keys will be saved
+     */
+    const DEFAULT_DATABASE = 0;
 
     /**
      * Data serializer
@@ -42,24 +47,28 @@ class Redis extends PhpRedis implements ICache
 
     /**
      * Connection type
+     *
      * @var int
      */
     private $connection_type = self::PERSISTENT;
 
     /**
      * Connection types
+     *
      * @var array
      */
     private $connection_types = [self::NON_PERSISTENT, self::PERSISTENT];
 
     /**
      * Default prefix key
+     *
      * @var string
      */
     private $prefix_key = '';
 
     /**
      * List of available serializers
+     *
      * @var array
      */
     private $serializers = [
@@ -70,6 +79,7 @@ class Redis extends PhpRedis implements ICache
 
     /**
      * Construct
+     *
      * @param array $options the config options
      */
     public function __construct(array $options = [])
@@ -88,7 +98,12 @@ class Redis extends PhpRedis implements ICache
         $weight = isset($options['redis']['timeout'])
             ? $options['redis']['timeout']
             : self::DEFAULT_TIMEOUT;
-        $this->connect($host, $port, $weight);
+
+        $database = isset($options['redis']['database'])
+            ? $options['redis']['database']
+            : self::DEFAULT_DATABASE;
+
+        $this->connect($host, $port, $weight, $database);
 
         // set data serializer after connection
         if (isset($options['redis']['serializer'])) {
@@ -103,7 +118,9 @@ class Redis extends PhpRedis implements ICache
 
     /**
      * Gets a cache key
-     * @param  string $key the cache key
+     *
+     * @param string $key the cache key
+     *
      * @return mixed
      */
     public function get($key)
@@ -116,15 +133,17 @@ class Redis extends PhpRedis implements ICache
     /**
      * Gets a cache key using the file last mofication
      * as reference instead of the cache expiration
-     * @param  string $key       the cache key
-     * @param  string $file_path the file path
+     *
+     * @param string $key       the cache key
+     * @param string $file_path the file path
+     *
      * @return mixed
      */
     public function get_by_file($key, $file_path)
     {
         // can we access the original file?
         if (!is_readable($file_path)) {
-            return null;
+            return;
         }
 
         $item = parent::get($this->prepare_key($key));
@@ -134,7 +153,9 @@ class Redis extends PhpRedis implements ICache
 
     /**
      * Gets the timestamp of a cache key
-     * @param  string $key the cache key
+     *
+     * @param string $key the cache key
+     *
      * @return mixed
      */
     public function get_timestamp($key)
@@ -146,6 +167,7 @@ class Redis extends PhpRedis implements ICache
 
     /**
      * Sets the cache key
+     *
      * @param string $key        the cache key
      * @param mixed  $value
      * @param time   $expiration
@@ -164,23 +186,30 @@ class Redis extends PhpRedis implements ICache
 
     /**
      * Connects to a redis server
-     * @param  string  $host
-     * @param  string  $port
-     * @param  string  $timeout
-     * @return boolean
+     *
+     * @param string $host
+     * @param string $port
+     * @param string $timeout
+     * @param string $database
+     *
+     * @return bool
      */
-    public function connect($host, $port, $timeout)
+    public function connect($host, $port, $timeout, $database)
     {
         $this->connection_type === self::PERSISTENT
             ? parent::pconnect($host, $port, $timeout)
             : parent::connect($host, $port, $timeout);
+
+        $this->select($database);
 
         return $this;
     }
 
     /**
      * Sets the connection type
-     * @param  int    $connection_type
+     *
+     * @param int $connection_type
+     *
      * @return ICache
      */
     private function set_connection_type($connection_type)
@@ -196,6 +225,7 @@ class Redis extends PhpRedis implements ICache
 
     /**
      * Sets the redis data serializer
+     *
      * @param int $serializer
      */
     private function set_serializer($serializer)
@@ -211,12 +241,13 @@ class Redis extends PhpRedis implements ICache
 
     /**
      * Prepares the key with a prefix if it exists
-     * @param  string $key
+     *
+     * @param string $key
+     *
      * @return string
      */
     private function prepare_key($key)
     {
         return empty($this->prefix_key) ? $key : sprintf('%s_%s', $this->prefix_key, $key);
     }
-
 }
