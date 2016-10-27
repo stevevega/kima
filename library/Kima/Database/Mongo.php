@@ -22,7 +22,6 @@ use MongoDB\Exception\UnexpectedValueException;
  */
 class Mongo extends ADatabase
 {
-
     /**
      * Error messages
      */
@@ -33,13 +32,6 @@ class Mongo extends ADatabase
     const ERROR_MONGO_QUERY = 'Mongo query error: "%s"';
     const ERROR_MONGO_AGGREGATION = 'Mongo aggregation error: "%s"';
     const ERROR_WRONG_UPDATE_LIMIT = 'You shouldn\'t perform an update, using a limit value different than 1';
-
-    /**
-     * The Mongo Client connection
-     *
-     * @var Client $connection
-     */
-    private $connection;
 
     /**
      * The current database
@@ -54,6 +46,13 @@ class Mongo extends ADatabase
      * @var string $host
      */
     protected $host;
+
+    /**
+     * The Mongo Client connection
+     *
+     * @var Client $connection
+     */
+    private $connection;
 
     /**
      * The Mongo intance
@@ -168,7 +167,7 @@ class Mongo extends ADatabase
             }
 
             if (!empty($options['query']['start'])) {
-                $find_options['skip'] = $this->get_sort($options['query']['start']);
+                $find_options['skip'] = $options['query']['start'];
             }
 
             $cursor = $collection->find(
