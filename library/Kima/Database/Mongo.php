@@ -379,7 +379,7 @@ class Mongo extends ADatabase
         $collection = $this->execute($options);
 
         try {
-            return $collection->remove($options['query']['filters']);
+            return $collection->deleteMany($options['query']['filters']);
         } catch (Exception $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
