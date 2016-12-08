@@ -1,6 +1,6 @@
 <?php
 /**
- * Kima Cache Void
+ * Kima Cache NullObject
  * @author Steve Vega
  */
 namespace Kima\Cache;
@@ -8,9 +8,8 @@ namespace Kima\Cache;
 /**
  * Implementation of Null Object design pattern for Kima Cache
  */
-class Void implements ICache
+class NullObject implements ICache
 {
-
     /**
      * Construct
      * @param array $options the config options
@@ -48,5 +47,4 @@ class Void implements ICache
      * @return boolean
      */
     public function set($key, $value, $expiration = 0) {}
-
 }
