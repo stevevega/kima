@@ -9,7 +9,7 @@ use Kima\Cache\Apc;
 use Kima\Cache\File;
 use Kima\Cache\Memcached;
 use Kima\Cache\Redis;
-use Kima\Cache\Void;
+use Kima\Cache\NullObject;
 use Kima\Prime\App;
 
 /**
@@ -32,7 +32,7 @@ class Cache
     const FILE = 'file';
     const MEMCACHED = 'memcached';
     const REDIS = 'redis';
-    const VOID = 'void';
+    const NULL_OBJECT = 'null-object';
 
     /**
      * Options cache key
@@ -59,7 +59,7 @@ class Cache
 
         // return the null object if cache is not enabled
         if (empty($options[self::ENABLED])) {
-            return new Void($options);
+            return new NullObject($options);
         }
 
         switch ($type) {
@@ -84,8 +84,8 @@ class Cache
             case self::REDIS:
                 return new Redis($options);
                 break;
-            case self::VOID:
-                return new Void($options);
+            case self::NULL_OBJECT:
+                return new NullObject($options);
                 break;
             default:
                 Error::set(sprintf(self::ERROR_INVALID_CACHE_SYSTEM, $type));
