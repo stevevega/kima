@@ -11,15 +11,15 @@ namespace Kima\Util;
  */
 class KString
 {
-
     /**
      * Transforms camel case to underscore
      *
      * @param string
+     * @param mixed $string
      *
      * @return string
      */
-    public static function camel_case_to_underscore($string)
+    public function camel_case_to_underscore($string)
     {
         return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', (string) $string));
     }
@@ -31,7 +31,7 @@ class KString
      *
      * @return string
      */
-    public static function to_slug($string)
+    public function to_slug($string)
     {
         // convert non ascii characters to its equivalent
         setlocale(LC_CTYPE, 'en_US.utf8');
@@ -45,5 +45,51 @@ class KString
 
         // return lowercase string
         return strtolower($string);
+    }
+
+    /**
+     * Builds a comma separated list with an special separator for the last item
+     *
+     * @param array  $data
+     * @param string $last_item_separator a separator to use with grammatical meaning
+     *
+     * @return string
+     */
+    public function build_comma_list($data, $last_item_separator = ' and ')
+    {
+        $count = count($data);
+        $list = [];
+
+        if ($count > 1) {
+            for ($i = 0; $i < $count; $i++) {
+                array_unshift($list, array_pop($data));
+                if ($i === 0) {
+                    array_unshift($list, $last_item_separator);
+                } elseif (isset($data[0])) {
+                    array_unshift($list, ', ');
+                }
+            }
+        } else {
+            $list = $data;
+        }
+
+        return implode($list);
+    }
+
+    /**
+     * Get a random string from a determinate size
+     *
+     * @param int $size
+     *
+     * @return string random string of the value size
+     */
+    public function rand($size)
+    {
+        // Convert the number to negative
+        // The idea is to get the rand string backwards so the uniqueness is better
+        $size *= -1;
+
+        // Adding  additional entropy
+        return substr(uniqid('', true), $size);
     }
 }
