@@ -271,7 +271,6 @@ class Solr
 
         try {
             $connection->addDocuments($docs);
-            // $response = $connection->commit();
             $response = $this->commit($asynch);
         } catch (SolrClientException $e) {
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
@@ -279,7 +278,6 @@ class Solr
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
         }
 
-        // return $response->getResponse();
         return $response;
     }
 
@@ -295,13 +293,11 @@ class Solr
 
         try {
             $response = $connection->deleteByQuery($query_string);
-            // $response = $connection->commit();
             $response = $this->commit($asynch);
         } catch (SolrClientException $e) {
             Error::set(sprintf(self::ERROR_SOLR_CLIENT, $e->getMessage()));
         }
 
-        // return $response->getResponse();
         return $response;
     }
 
@@ -475,10 +471,9 @@ class Solr
 
             curl_setopt($ch, CURLOPT_URL, $url);
 
-            // timeout after 10 ms, tried with 100 ms but it seems some of the
-            // calls were not correctly routed
+            // timeout after 2000 ms
             if ($asynch) {
-                curl_setopt($ch, CURLOPT_TIMEOUT_MS, 10);
+                curl_setopt($ch, CURLOPT_TIMEOUT_MS, 2000);
             }
 
             // this allows curl to ignore the signals and correctly timeout on MS
