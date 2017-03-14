@@ -20,7 +20,6 @@ use ReflectionProperty;
  */
 abstract class Model
 {
-
     /**
      * Error messages
      */
@@ -33,7 +32,7 @@ abstract class Model
      /**
       * Join constants
       */
-     const JOIN_TABLE = 'table';
+    const JOIN_TABLE = 'table';
     const JOIN_TYPE = 'type';
     const JOIN_LEFT = 'left';
     const JOIN_INNER = 'inner';
@@ -250,24 +249,6 @@ abstract class Model
     }
 
     /**
-     * Sets the default database engine for the model
-     *
-     * @param Config
-     */
-    private function set_default_db_engine(Config $config)
-    {
-        if (!defined($this->model . '::DB_ENGINE')) {
-            if (!isset($config->database['default'])) {
-                Error::set(self::ERROR_NO_DEFAULT_DB_ENGINE);
-            }
-
-            $this->set_db_engine($config->database['default']);
-        } else {
-            $this->db_engine = constant($this->model . '::DB_ENGINE');
-        }
-    }
-
-    /**
      * Sets the database engine for the model
      *
      * @param string $db_engine
@@ -279,49 +260,6 @@ abstract class Model
         $this->db_engine = (string) $db_engine;
 
         return $this;
-    }
-
-    /**
-     * Set the model adapter
-     *
-     * @return mixed
-     */
-    private function set_model_adapter()
-    {
-        // get the database model instance
-        switch ($this->db_engine) {
-            case 'mysql':
-                $this->adapter = new Mysql();
-                break;
-            case 'mongo':
-                $this->adapter = null;
-                break;
-            default:
-                Error::set(sprintf(self::ERROR_INVALID_DB_MODEL, $this->db_engine));
-                break;
-        }
-    }
-
-    /**
-     * Sets the model table/collection default prefix
-     *
-     * @param string $prefix
-     */
-    private function set_prefix($prefix)
-    {
-        $this->prefix = (string) $prefix;
-
-        return $this;
-    }
-
-    /**
-     * Set the default model
-     */
-    private function set_default_model()
-    {
-        // set the model
-        $model = get_called_class();
-        $this->set_model($model);
     }
 
     /**
@@ -389,6 +327,7 @@ abstract class Model
      * Sets the query filters
      *
      * @param array $filter
+     * @param array $filters
      */
     public function filter(array $filters)
     {
@@ -427,6 +366,7 @@ abstract class Model
      * Sets a group join
      *
      * @param array group
+     * @param array $group
      */
     public function group(array $group)
     {
@@ -439,6 +379,7 @@ abstract class Model
      * Sets a response order
      *
      * @param array $options
+     * @param mixed $order
      */
     public function order($order)
     {
@@ -452,8 +393,9 @@ abstract class Model
      *
      * @param int $limit
      * @param int $page
+     * @param int $offset
      */
-    public function limit($limit, $page = 0)
+    public function limit($limit, $page = 0, $offset = 0)
     {
         $limit = intval($limit);
         $page = intval($page);
@@ -461,6 +403,7 @@ abstract class Model
         if ($limit > 0) {
             $this->limit = $limit;
             $this->start = $page > 0 ? $limit * ($page - 1) : 0;
+            $this->start += $offset;
         }
 
         return $this;
@@ -473,7 +416,7 @@ abstract class Model
      */
     public function async($async)
     {
-        $this->async = (boolean) $async;
+        $this->async = (bool) $async;
 
         return $this;
     }
@@ -499,62 +442,6 @@ abstract class Model
         $this->debug = true;
 
         return $this;
-    }
-
-    /**
-     * Sets the query fields to fetch/insert
-     *
-     * @param array $fields
-     */
-    private function set_fields(array $fields)
-    {
-        $this->fields = array_merge($fields, $this->fields);
-
-        return $this->fields;
-    }
-
-    /**
-     * Get the query parameters
-     *
-     * @return array
-     */
-    private function get_query_params()
-    {
-        return [
-            'fields' => $this->fields,
-            'database' => $this->database,
-            'prefix' => $this->prefix,
-            'table' => $this->table,
-            'joins' => $this->get_joins(),
-            'filters' => $this->filters,
-            'having' => $this->having,
-            'binds' => $this->binds,
-            'group' => $this->group,
-            'order' => $this->order,
-            'limit' => $this->limit,
-            'start' => $this->start,
-            'async' => $this->async
-        ];
-    }
-
-    /**
-     * Clears the query params
-     */
-    private function clear_query_params()
-    {
-        $this->fields = [];
-        $this->database = '';
-        $this->prefix = '';
-        $this->table = constant($this->model . '::TABLE');
-        $this->joins = [];
-        $this->filters = [];
-        $this->having = [];
-        $this->binds = [];
-        $this->group = [];
-        $this->order = [];
-        $this->limit = 0;
-        $this->start = 0;
-        $this->async = null;
     }
 
     /**
@@ -588,68 +475,6 @@ abstract class Model
     {
         return $this->fetch_results(
             $fields, true, $get_as_result_set, $return_as_array);
-    }
-
-    /**
-     * Fetch query results
-     *
-     * @param bool $fetch_all
-     * @param bool $get_as_result_set gets a result set with additional info as total count
-     * @param bool $return_as_array
-     */
-    private function fetch_results(
-        array $fields, $fetch_all, $get_as_result_set, $return_as_array)
-    {
-        // make sure we have the primary key
-        $this->fields = $this->set_fields($fields);
-        $query_params = $this->get_query_params();
-
-        // build the query using the adapter
-        $this->query_string = $this->adapter
-            ? $this->adapter->get_fetch_query($query_params)
-            : null;
-
-        $count_query_string = '';
-
-        // set execution options
-        $options = [
-            'query' => $query_params,
-            'query_string' => $this->query_string,
-            'get_count' => $get_as_result_set ? true : false,
-            'model' => $this->model,
-            'count_query_string' => $count_query_string,
-            'fetch_all' => $fetch_all,
-            'debug' => $this->debug,
-        ];
-
-        if ($get_as_result_set && $this->adapter) {
-            $count_query_params = $query_params;
-            $this->clear_params_array($count_query_params);
-
-            $count_query_string = $this->adapter->get_fetch_query($count_query_params, true);
-            $options['query_count'] = $count_query_params;
-            $options['count_query_string'] = $count_query_string;
-        }
-
-        // get result from the query
-        $result = Database::get_instance($this->db_engine)->fetch($options);
-
-        if ($return_as_array) {
-            $result['objects'] = $this->to_array($result['objects']);
-        }
-
-        if ($get_as_result_set) {
-            $result_set = new ResultSet();
-            $result_set->count = $result['count'];
-            $result_set->values = $result['objects'];
-            $result = $result_set;
-        } else {
-            $result = $result['objects'];
-        }
-
-        $this->clear_query_params();
-
-        return $result;
     }
 
     /**
@@ -731,7 +556,7 @@ abstract class Model
             'update' => true
         ];
 
-        # run the query
+        // run the query
         $this->clear_query_params();
 
         return Database::get_instance($this->db_engine)->put($options);
@@ -791,7 +616,7 @@ abstract class Model
             'debug' => $this->debug
         ];
 
-        # run the query
+        // run the query
         $this->clear_query_params();
 
         return Database::get_instance($this->db_engine)->copy($options);
@@ -824,6 +649,187 @@ abstract class Model
     }
 
     /**
+     * Sets the default database engine for the model
+     *
+     * @param Config
+     * @param Config $config
+     */
+    private function set_default_db_engine(Config $config)
+    {
+        if (!defined($this->model . '::DB_ENGINE')) {
+            if (!isset($config->database['default'])) {
+                Error::set(self::ERROR_NO_DEFAULT_DB_ENGINE);
+            }
+
+            $this->set_db_engine($config->database['default']);
+        } else {
+            $this->db_engine = constant($this->model . '::DB_ENGINE');
+        }
+    }
+
+    /**
+     * Set the model adapter
+     *
+     * @return mixed
+     */
+    private function set_model_adapter()
+    {
+        // get the database model instance
+        switch ($this->db_engine) {
+            case 'mysql':
+                $this->adapter = new Mysql();
+                break;
+            case 'mongo':
+                $this->adapter = null;
+                break;
+            default:
+                Error::set(sprintf(self::ERROR_INVALID_DB_MODEL, $this->db_engine));
+                break;
+        }
+    }
+
+    /**
+     * Sets the model table/collection default prefix
+     *
+     * @param string $prefix
+     */
+    private function set_prefix($prefix)
+    {
+        $this->prefix = (string) $prefix;
+
+        return $this;
+    }
+
+    /**
+     * Set the default model
+     */
+    private function set_default_model()
+    {
+        // set the model
+        $model = get_called_class();
+        $this->set_model($model);
+    }
+
+    /**
+     * Sets the query fields to fetch/insert
+     *
+     * @param array $fields
+     */
+    private function set_fields(array $fields)
+    {
+        $this->fields = array_merge($fields, $this->fields);
+
+        return $this->fields;
+    }
+
+    /**
+     * Get the query parameters
+     *
+     * @return array
+     */
+    private function get_query_params()
+    {
+        return [
+            'fields' => $this->fields,
+            'database' => $this->database,
+            'prefix' => $this->prefix,
+            'table' => $this->table,
+            'joins' => $this->get_joins(),
+            'filters' => $this->filters,
+            'having' => $this->having,
+            'binds' => $this->binds,
+            'group' => $this->group,
+            'order' => $this->order,
+            'limit' => $this->limit,
+            'start' => $this->start,
+            'async' => $this->async
+        ];
+    }
+
+    /**
+     * Clears the query params
+     */
+    private function clear_query_params()
+    {
+        $this->fields = [];
+        $this->database = '';
+        $this->prefix = '';
+        $this->table = constant($this->model . '::TABLE');
+        $this->joins = [];
+        $this->filters = [];
+        $this->having = [];
+        $this->binds = [];
+        $this->group = [];
+        $this->order = [];
+        $this->limit = 0;
+        $this->start = 0;
+        $this->async = null;
+    }
+
+    /**
+     * Fetch query results
+     *
+     * @param bool  $fetch_all
+     * @param bool  $get_as_result_set gets a result set with additional info as total count
+     * @param bool  $return_as_array
+     * @param array $fields
+     */
+    private function fetch_results(
+        array $fields, $fetch_all, $get_as_result_set, $return_as_array)
+    {
+        // make sure we have the primary key
+        $this->fields = $this->set_fields($fields);
+        $query_params = $this->get_query_params();
+
+        // build the query using the adapter
+        $this->query_string = $this->adapter
+            ? $this->adapter->get_fetch_query($query_params)
+            : null;
+
+        $count_query_string = '';
+
+        // set execution options
+        $options = [
+            'query' => $query_params,
+            'query_string' => $this->query_string,
+            'get_count' => $get_as_result_set ? true : false,
+            'model' => $this->model,
+            'count_query_string' => $count_query_string,
+            'fetch_all' => $fetch_all,
+            'debug' => $this->debug,
+        ];
+
+        if ($get_as_result_set && $this->adapter) {
+            $count_query_params = $query_params;
+            $this->clear_params_array($count_query_params);
+
+            $count_query_string = $this->adapter->get_fetch_query($count_query_params, true);
+            $options['query_count'] = $count_query_params;
+            $options['count_query_string'] = $count_query_string;
+        }
+
+        // get result from the query
+        $result = Database::get_instance($this->db_engine)->fetch($options);
+
+        if ($return_as_array) {
+            $result['objects'] = $this->to_array($result['objects']);
+        }
+
+        if ($get_as_result_set) {
+            $result_set = new ResultSet();
+            $result_set->count = $result['count'];
+            $result_set->values = $result['objects'];
+            $result = $result_set;
+        } else {
+            $result = $result['objects'];
+        }
+
+        $this->clear_query_params();
+
+        return $result;
+    }
+
+    /**
      * Remove duplicate values from the joins and gets the final value
      *
      * @return array
@@ -844,6 +850,7 @@ abstract class Model
 
     /**
      * Clears the basic query params
+     * @param array& $params
      */
     private function clear_params_array(array &$params)
     {
