@@ -442,6 +442,9 @@ class Mysql implements IModel
     public function get_copy_query(array &$params)
     {
         $table = $this->get_table($params['table'], $params['database'], $params['prefix']);
+        $source_table = !empty($params['source'])
+            ? $this->get_table($params['source'], $params['database'], $params['prefix'])
+            : $table;
         $fields = $this->prepare_save_fields($params['fields'], $params['binds']);
 
         // extract only the names from the fields
@@ -465,7 +468,7 @@ class Mysql implements IModel
             'INSERT INTO ' . $table . $fields_query .
                 ' SELECT ' .
                 $values_query .
-                ' FROM ' . $table .
+                ' FROM ' . $source_table .
                 $this->prepare_joins($params['joins']) .
                 $this->prepare_filters($params['filters'], $params['binds']) .
                 $this->prepare_group($params['group']) .

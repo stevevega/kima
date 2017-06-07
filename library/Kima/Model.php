@@ -598,11 +598,14 @@ abstract class Model
      * Clones a row in the database using the fields requested and filters
      *
      * @param array $fields
+     * @param string $source to be used in the select
      */
-    public function copy(array $fields = [])
+    public function copy(array $fields = [], string $source = '')
     {
         $this->set_fields($fields);
         $params = $this->get_query_params();
+
+        $params['source'] = $source;
 
         // build the query using the adapter
         $this->query_string = $this->adapter
