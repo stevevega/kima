@@ -20,17 +20,8 @@ use MongoDB\Exception\UnexpectedValueException;
  * Mongo
  * Mongo database handler
  */
-final class Mongo implements IDatabase
+final class Mongo implements IMongo
 {
-    /**
-     * Error messages
-     */
-    private const ERROR_NO_MONGO = 'Mongo extension is not present on this server';
-    private const ERROR_NO_COLLECTION = 'Mongo error: empty collection name';
-    private const ERROR_MONGO_QUERY = 'Mongo query error: "%s"';
-    private const ERROR_MONGO_AGGREGATION = 'Mongo aggregation error: "%s"';
-    private const ERROR_WRONG_UPDATE_LIMIT = 'You shouldn\'t perform an update, using a limit value different than 1';
-
     /**
      * The Mongo intance
      *
@@ -80,11 +71,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Gets the Database instance
-     *
-     * @param string $db_engine The database engine
-     *
-     * @return IDatabase
+     * inheritDoc
      */
     public static function get_instance(string $db_engine): IDatabase
     {
@@ -94,10 +81,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Checks database connection status
-     * if theres no connection creates a new one
-     *
-     * @return mixed
+     * inheritDoc
      */
     public function get_connection()
     {
@@ -120,10 +104,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Creates a new database connection
-     *
-     * @param string $user
-     * @param string $password
+     * inheritDoc
      */
     public function connect(string $user = '', string $password = ''): void
     {
@@ -139,11 +120,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Fetch results from the database
-     *
-     * @param array $options The execution options
-     *
-     * @return mixed
+     * inheritDoc
      */
     public function fetch(array $options)
     {
@@ -189,13 +166,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Applies an aggreate method to a mongo collection
-     *
-     * @see    http://php.net/manual/en/mongocollection.aggregate.php
-     *
-     * @param array $options
-     *
-     * @return array
+     * inheritDoc
      */
     public function aggregate(array $options): array
     {
@@ -231,13 +202,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Applies a distinct method to a mongo collection
-     *
-     * @see http://php.net/manual/en/mongocollection.distinct.php
-     *
-     * @param array $options
-     *
-     * @return array
+     * inheritDoc
      */
     public function distinct(array $options): array
     {
@@ -264,11 +229,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Update/Inserts to the database
-     *
-     * @param array $options The execution options
-     *
-     * @return mixed
+     * inheritDoc
      */
     public function put(array $options)
     {
@@ -333,11 +294,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Deletes to the database
-     *
-     * @param array $options The execution options
-     *
-     * @return mixed
+     * inheritDoc
      */
     public function delete(array $options)
     {
@@ -351,11 +308,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Executes an operation
-     *
-     * @param array $options The executions options
-     *
-     * @return mixed
+     * inheritDoc
      */
     public function execute(array $options)
     {
@@ -383,12 +336,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Sets the current database
-     *
-     * @param $string $database
-     * @param string $database
-     *
-     * @return IDatabase
+     * inheritDoc
      */
     public function set_database(string $database): IDatabase
     {
@@ -398,11 +346,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Sets the current database host
-     *
-     * @param string $host
-     *
-     * @return IDatabase
+     * inheritDoc
      */
     public function set_host(string $host): IDatabase
     {
@@ -412,11 +356,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Gets the sort value formatted for mongo queries
-     *
-     * @param array $sorts
-     *
-     * @return int
+     * inheritDoc
      */
     private function get_sort(array $sorts): int
     {
@@ -428,18 +368,7 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * Checks whether the operation is a set or replace operation, the main
-     * difference is that the replace op will change the whole document while
-     * the update op can change only part of the document. The only thing to
-     * check to determine the king of operation is the array key of the first
-     * element in the array, if the key begins with a $ symbol then it is an
-     * update operation, otherwise, it is a replace operation.
-     *
-     * @see https://github.com/mongodb/specifications/blob/master/source/crud/crud.rst#update-vs-replace-validation
-     *
-     * @param array $fields document fields to update.
-     *
-     * @return bool
+     * inheritDoc
      */
     private function is_update_op(array $fields): bool
     {

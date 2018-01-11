@@ -20,17 +20,6 @@ use PDOStatement;
 final class Pdo implements IDatabase
 {
     /**
-     * Error messages
-     */
-    private const ERROR_PDO_EMPTY_QUERY = 'PDO query error: Query is empty';
-    private const ERROR_PDO_EMPTY_MODEL = 'PDO query error: Model is empty';
-    private const ERROR_PDO_QUERY_ERROR = 'PDO query error: "%s"';
-    private const ERROR_PDO_EXECUTE_ERROR = 'PDO execute error: "%s"';
-    private const ERROR_INVALID_BIND_VALUE = 'PDO invalid bind value "%s"';
-    private const ERROR_PDO_CONNECTION_FAILED = 'PDO Connection failed: "%s"';
-    private const ERROR_NO_PDO = 'PDO extension is not present on this server';
-
-    /**
      * instance
      *
      * @var Pdo
@@ -75,11 +64,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Gets the Database instance
-     *
-     * @param string $db_engine The database engine
-     *
-     * @return Pdo
+     * inheritDoc
      */
     public static function get_instance(string $db_engine): IDatabase
     {
@@ -89,10 +74,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * checks database connection status
-     * if theres no connection creates a new one
-     *
-     * @return PDO
+     * inheritDoc
      */
     public function get_connection()
     {
@@ -111,10 +93,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Creates a new database connection
-     *
-     * @param string $user
-     * @param string $password
+     * inheritDoc
      */
     public function connect(string $user = '', string $password = ''): void
     {
@@ -129,11 +108,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Fetch results from the database
-     *
-     * @param array $options The execution options
-     *
-     * @return array
+     * inheritDoc
      */
     public function fetch(array $options): array
     {
@@ -164,11 +139,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Call a store procedure
-     *
-     * @param array $options The execution options
-     *
-     * @return array
+     * inheritDoc
      */
     public function call(array $options): array
     {
@@ -183,11 +154,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Update/Inserts to the database
-     *
-     * @param array $options The execution options
-     *
-     * @return bool
+     * inheritDoc
      */
     public function put(array $options)
     {
@@ -197,13 +164,9 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Copy a database row
-     *
-     * @param array $options The execution options
-     *
-     * @return bool
+     * inheritDoc
      */
-    public function copy(array $options)
+    public function copy(array $options): bool
     {
         $this->execute($options);
 
@@ -211,11 +174,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Deletes to the database
-     *
-     * @param array $options The execution options
-     *
-     * @return bool
+     * inheritDoc
      */
     public function delete(array $options)
     {
@@ -225,11 +184,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Executes an operation
-     *
-     * @param array $options
-     *
-     * @return PDOStatement
+     * inheritDoc
      */
     public function execute(array $options): PDOStatement
     {
@@ -264,10 +219,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Binds values using PDO prepare statements
-     *
-     * @param PDOStatement $statement
-     * @param array        $binds
+     * inheritDoc
      */
     public function bind_values(PDOStatement &$statement, array $binds): void
     {
@@ -295,11 +247,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Escapes the string to prepare it for db queries
-     *
-     * @param string $string
-     *
-     * @return string
+     * inheritDoc
      */
     public function escape($string)
     {
@@ -313,9 +261,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Gets the last inserted id
-     *
-     * @return string
+     * inheritDoc
      */
     public function last_insert_id(): string
     {
@@ -323,9 +269,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Begins a transaction
-     *
-     * @return bool
+     * inheritDoc
      */
     public function begin(): bool
     {
@@ -333,9 +277,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Commits transaction
-     *
-     * @return bool
+     * inheritDoc
      */
     public function commit(): bool
     {
@@ -343,9 +285,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Rollbacks transaction
-     *
-     * @return bool
+     * inheritDoc
      */
     public function rollback(): bool
     {
@@ -353,12 +293,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Sets the current database
-     *
-     * @param $string $database
-     * @param string $database
-     *
-     * @return IDatabase
+     * inheritDoc
      */
     public function set_database(string $database): IDatabase
     {
@@ -368,11 +303,7 @@ final class Pdo implements IDatabase
     }
 
     /**
-     * Sets the current database host
-     *
-     * @param string $host
-     *
-     * @return IDatabase
+     * inheritDoc
      */
     public function set_host(string $host): IDatabase
     {
