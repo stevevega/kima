@@ -9,7 +9,7 @@
     "homepage": "https://github.com/stevevega/kima",
     "license": "BSD-3-Clause",
     "require": {
-        "php": ">=7.0",
+        "php": ">=7.1",
         "mongodb/mongodb": "^1.0.0"
     },
     "autoload": {
