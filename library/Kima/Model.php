@@ -196,7 +196,7 @@ abstract class Model
     /**
      * Database connection
      *
-     * @var ADatabase
+     * @var IDatabase
      */
     private $connection;
 

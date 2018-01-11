@@ -17,7 +17,7 @@ use PDOStatement;
  *
  * @see  http://php.net/manual/en/class.pdo.php
  */
-final class Pdo implements IDatabase
+final class Pdo implements IMysql
 {
     /**
      * instance

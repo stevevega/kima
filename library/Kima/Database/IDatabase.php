@@ -1,6 +1,6 @@
 <?php
 /**
- * Kima Database Ins
+ * Kima Database Interface
  *
  * @author Oscar Fernández
  */

@@ -1,8 +1,8 @@
 <?php
 /**
- * Kima PDO
+ * Kima Database Mysql Interface
  *
- * @author Steve Vega
+ * @author Óscar Fernández
  */
 namespace Kima\Database;
 
@@ -10,7 +10,7 @@ use Kima\Error;
 use PDOStatement;
 
 /**
- * Handles database using PDO driver
+ * Defines the behaviour of mysql database.
  *
  * @see  http://php.net/manual/en/class.pdo.php
  */
