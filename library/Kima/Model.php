@@ -6,6 +6,7 @@
  */
 namespace Kima;
 
+use Kima\Database\IDatabase;
 use Kima\Model\Mongo;
 use Kima\Model\Mysql;
 use Kima\Model\ResultSet;
@@ -29,9 +30,9 @@ abstract class Model
     const ERROR_NO_JOIN_TABLE = 'Required join table field is empty';
     const ERROR_INVALID_FUNCTION = 'Function "%s" is not available for %s models';
 
-     /**
-      * Join constants
-      */
+    /**
+     * Join constants
+     */
     const JOIN_TABLE = 'table';
     const JOIN_TYPE = 'type';
     const JOIN_LEFT = 'left';
@@ -39,16 +40,16 @@ abstract class Model
     const JOIN_RIGHT = 'right';
     const JOIN_ON = 'on';
 
-     /**
-      * Order constants
-      */
-     const ORDER_ASC = 'ASC';
+    /**
+     * Order constants
+     */
+    const ORDER_ASC = 'ASC';
     const ORDER_DESC = 'DESC';
 
     /**
-      * Common formats
-      */
-     const FORMAT_UNIXTIME = 'UNIX_TIMESTAMP(%s)';
+     * Common formats
+     */
+    const FORMAT_UNIXTIME = 'UNIX_TIMESTAMP(%s)';
     const FORMAT_MAX = 'MAX(%s)';
     const GROUP_CONCAT_DISTINCT = 'GROUP_CONCAT(DISTINCT(%s) SEPARATOR "%s")';
 
@@ -193,6 +194,13 @@ abstract class Model
     private $debug = false;
 
     /**
+     * Database connection
+     *
+     * @var IDatabase
+     */
+    private $connection;
+
+    /**
      * constructor
      */
     public function __construct()
@@ -213,6 +221,20 @@ abstract class Model
         if (isset($config->database[$this->db_engine]['prefix'])) {
             $this->set_prefix($config->database[$this->db_engine]['prefix']);
         }
+    }
+
+    /**
+     * Sets the database connection
+     *
+     * @param IDatabase $connection
+     *
+     * @return Model
+     */
+    public function set_conn(IDatabase $connection)
+    {
+        $this->connection = $connection;
+
+        return $this;
     }
 
     /**
@@ -494,7 +516,12 @@ abstract class Model
         ];
 
         // get result from the query
-        $result = Database::get_instance($this->db_engine)->aggregate($options);
+        $conn = $this->get_connection();
+        if (!$conn instanceof IMongo) {
+            Error::set('Agregate expected an instance of IMongo');
+        }
+
+        $result = $conn->aggregate($options);
 
         $this->clear_query_params();
 
@@ -523,7 +550,11 @@ abstract class Model
         ];
 
         // get result from the query
-        $result = Database::get_instance($this->db_engine)->distinct($options);
+        $conn = $this->get_connection();
+        if (!$conn instanceof IMongo) {
+            Error::set('Distinct expected an instance of IMongo');
+        }
+        $result = $conn->distinct($options);
 
         $result = $result['objects'];
 
@@ -559,7 +590,7 @@ abstract class Model
         // run the query
         $this->clear_query_params();
 
-        return Database::get_instance($this->db_engine)->put($options);
+        return $this->get_connection()->put($options);
     }
 
     /**
@@ -591,13 +622,13 @@ abstract class Model
 
         $this->clear_query_params();
 
-        return Database::get_instance($this->db_engine)->put($options);
+        return $this->get_connection()->put($options);
     }
 
     /**
      * Clones a row in the database using the fields requested and filters
      *
-     * @param array $fields
+     * @param array  $fields
      * @param string $source to be used in the select
      */
     public function copy(array $fields = [], string $source = '')
@@ -622,7 +653,12 @@ abstract class Model
         // run the query
         $this->clear_query_params();
 
-        return Database::get_instance($this->db_engine)->copy($options);
+        $conn = $this->get_connection();
+        if (!$conn instanceof IMysql) {
+            Error::set('Copy expected an instance of IMysql');
+        }
+
+        return $conn->copy($options);
     }
 
     /**
@@ -648,7 +684,7 @@ abstract class Model
 
         $this->clear_query_params();
 
-        return Database::get_instance($this->db_engine)->delete($options);
+        return $this->get_connection()->delete($options);
     }
 
     /**
@@ -812,7 +848,7 @@ abstract class Model
         }
 
         // get result from the query
-        $result = Database::get_instance($this->db_engine)->fetch($options);
+        $result = $this->get_connection()->fetch($options);
 
         if ($return_as_array) {
             $result['objects'] = $this->to_array($result['objects']);
@@ -853,6 +889,7 @@ abstract class Model
 
     /**
      * Clears the basic query params
+     *
      * @param array& $params
      */
     private function clear_params_array(array &$params)
@@ -863,5 +900,15 @@ abstract class Model
         $params['limit'] = 0;
         $params['i'] = 1;
         $params['binds'] = [];
+    }
+
+    /**
+     * Retrieves a database connection
+     *
+     * @return IDatabase
+     */
+    private function get_connection(): IDatabase
+    {
+        return $this->connection ?? Database::get_instance($this->db_engine);
     }
 }
