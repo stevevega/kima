@@ -391,9 +391,13 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * inheritDoc
+     * Gets the sort value formatted for mongo queries         +     * inheritDoc
+     *
+     * @param array $sorts
+     *
+     * @return int
      */
-    private function get_sort(array $sorts): int
+    private function get_sort(array $sorts): array
     {
         foreach ($sorts as &$sort) {
             $sort = 'DESC' === $sort ? -1 : 1;
@@ -403,7 +407,18 @@ final class Mongo implements IDatabase
     }
 
     /**
-     * inheritDoc
+     * Checks whether the operation is a set or replace operation, the main
+     * difference is that the replace op will change the whole document while
+     * the update op can change only part of the document. The only thing to
+     * check to determine the king of operation is the array key of the first
+     * element in the array, if the key begins with a $ symbol then it is an
+     * update operation, otherwise, it is a replace operation.
+     *
+     * @see https://github.com/mongodb/specifications/blob/master/source/crud/crud.rst#update-vs-replace-validation
+     *
+     * @param array $fields document fields to update.
+     *
+     * @return bool
      */
     private function is_update_op(array $fields): bool
     {
