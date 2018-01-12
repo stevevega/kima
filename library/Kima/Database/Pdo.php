@@ -249,7 +249,7 @@ final class Pdo implements IMysql
     /**
      * inheritDoc
      */
-    public function escape($string)
+    public function escape(string $string): string
     {
         // escape strings
         if (is_string($string)) {
