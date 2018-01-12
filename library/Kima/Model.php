@@ -516,12 +516,7 @@ abstract class Model
         ];
 
         // get result from the query
-        $conn = $this->get_connection();
-        if (!$conn instanceof IMongo) {
-            Error::set('Agregate expected an instance of IMongo');
-        }
-
-        $result = $conn->aggregate($options);
+        $result = $this->get_connection()->aggregate($options);
 
         $this->clear_query_params();
 
@@ -550,11 +545,7 @@ abstract class Model
         ];
 
         // get result from the query
-        $conn = $this->get_connection();
-        if (!$conn instanceof IMongo) {
-            Error::set('Distinct expected an instance of IMongo');
-        }
-        $result = $conn->distinct($options);
+        $result = $this->get_connection()->distinct($options);
 
         $result = $result['objects'];
 
@@ -653,12 +644,7 @@ abstract class Model
         // run the query
         $this->clear_query_params();
 
-        $conn = $this->get_connection();
-        if (!$conn instanceof IMysql) {
-            Error::set('Copy expected an instance of IMysql');
-        }
-
-        return $conn->copy($options);
+        return $this->get_connection()->copy($options);
     }
 
     /**

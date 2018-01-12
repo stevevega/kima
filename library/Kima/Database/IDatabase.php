@@ -92,4 +92,44 @@ interface IDatabase
      * @return IDatabase
      */
     public function set_host(string $host): IDatabase;
+
+    /**
+     * Call a store procedure
+     *
+     * @param array $options The execution options
+     *
+     * @return array
+     */
+    public function call(array $options): array;
+
+    /**
+     * Copy a database row
+     *
+     * @param array $options The execution options
+     *
+     * @return bool
+     */
+    public function copy(array $options): bool;
+
+    /**
+     * Applies an aggreate method to a mongo collection
+     *
+     * @see    http://php.net/manual/en/mongocollection.aggregate.php
+     *
+     * @param array $options
+     *
+     * @return array
+     */
+    public function aggregate(array $options): array;
+
+    /**
+     * Applies a distinct method to a mongo collection
+     *
+     * @see http://php.net/manual/en/mongocollection.distinct.php
+     *
+     * @param array $options
+     *
+     * @return array
+     */
+    public function distinct(array $options): array;
 }

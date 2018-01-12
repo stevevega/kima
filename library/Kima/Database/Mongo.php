@@ -20,8 +20,19 @@ use MongoDB\Exception\UnexpectedValueException;
  * Mongo
  * Mongo database handler
  */
-final class Mongo implements IMongo
+final class Mongo implements IDatabase
 {
+    /**
+     * Error messages
+     */
+    const ERROR_NO_MONGO = 'Mongo extension is not present on this server';
+    const ERROR_NO_COLLECTION = 'Mongo error: empty collection name';
+    const ERROR_NO_COPY = 'Copy not implemented for Mongo';
+    const ERROR_NO_CALL = 'Call not implemented for Mongo';
+    const ERROR_MONGO_QUERY = 'Mongo query error: "%s"';
+    const ERROR_MONGO_AGGREGATION = 'Mongo aggregation error: "%s"';
+    const ERROR_WRONG_UPDATE_LIMIT = 'You shouldn\'t perform an update, using a limit value different than 1';
+
     /**
      * The Mongo intance
      *
@@ -291,6 +302,30 @@ final class Mongo implements IMongo
         } catch (Exception $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
+    }
+
+    /**
+     * Copy a database row
+     *
+     * @param array $options The execution options
+     *
+     * @return bool
+     */
+    public function copy(array $options): bool
+    {
+        Error::set(self::ERROR_NO_COPY);
+    }
+
+    /**
+     * Call a store procedure
+     *
+     * @param array $options The execution options
+     *
+     * @return bool
+     */
+    public function call(array $options): array
+    {
+        Error::set(self::ERROR_NO_CALL);
     }
 
     /**

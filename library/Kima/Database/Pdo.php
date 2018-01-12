@@ -17,8 +17,21 @@ use PDOStatement;
  *
  * @see  http://php.net/manual/en/class.pdo.php
  */
-final class Pdo implements IMysql
+final class Pdo implements IDatabase, ITransaction
 {
+    /**
+     * Error messages
+     */
+    const ERROR_NO_PDO = 'PDO extension is not present on this server';
+    const ERROR_NO_AGGREGATE = 'Aggregate not implemented for PDO';
+    const ERROR_NO_DISTINCT = 'Distinct not implemented for PDO';
+    const ERROR_PDO_CONNECTION_FAILED = 'PDO Connection failed: "%s"';
+    const ERROR_PDO_EMPTY_QUERY = 'PDO query error: Query is empty';
+    const ERROR_PDO_EMPTY_MODEL = 'PDO query error: Model is empty';
+    const ERROR_PDO_QUERY_ERROR = 'PDO query error: "%s"';
+    const ERROR_PDO_EXECUTE_ERROR = 'PDO execute error: "%s"';
+    const ERROR_INVALID_BIND_VALUE = 'PDO invalid bind value "%s"';
+
     /**
      * instance
      *
@@ -154,6 +167,26 @@ final class Pdo implements IMysql
     }
 
     /**
+     * Not implemented for PDO
+     *
+     * @param array $options
+     */
+    public function aggregate(array $options): array
+    {
+        Error::set(self::ERROR_NO_AGGREGATE);
+    }
+
+    /**
+     * Not implemented for PDO
+     *
+     * @param array $options
+     */
+    public function distinct(array $options): array
+    {
+        Error::set(self::ERROR_NO_DISTINCT);
+    }
+
+    /**
      * inheritDoc
      */
     public function put(array $options)
@@ -221,34 +254,6 @@ final class Pdo implements IMysql
     /**
      * inheritDoc
      */
-    public function bind_values(PDOStatement &$statement, array $binds): void
-    {
-        foreach ($binds as $key => $bind) {
-            switch (true) {
-                case is_int($bind):
-                    $type = PdoDriver::PARAM_INT;
-                    break;
-                case is_bool($bind):
-                    $type = PdoDriver::PARAM_BOOL;
-                    break;
-                case is_null($bind):
-                    $type = PdoDriver::PARAM_NULL;
-                    break;
-                case is_object($bind):
-                case is_array($bind):
-                    Error::set(sprintf(self::ERROR_INVALID_BIND_VALUE, print_r($bind, true)));
-                default:
-                    $type = PdoDriver::PARAM_STR;
-                    break;
-            }
-
-            $statement->bindValue($key, $bind, $type);
-        }
-    }
-
-    /**
-     * inheritDoc
-     */
     public function escape(string $string): string
     {
         // escape strings
@@ -310,5 +315,33 @@ final class Pdo implements IMysql
         $this->host = $host;
 
         return $this;
+    }
+
+    /**
+     * inheritDoc
+     */
+    private function bind_values(PDOStatement &$statement, array $binds): void
+    {
+        foreach ($binds as $key => $bind) {
+            switch (true) {
+                case is_int($bind):
+                    $type = PdoDriver::PARAM_INT;
+                    break;
+                case is_bool($bind):
+                    $type = PdoDriver::PARAM_BOOL;
+                    break;
+                case is_null($bind):
+                    $type = PdoDriver::PARAM_NULL;
+                    break;
+                case is_object($bind):
+                case is_array($bind):
+                    Error::set(sprintf(self::ERROR_INVALID_BIND_VALUE, print_r($bind, true)));
+                default:
+                    $type = PdoDriver::PARAM_STR;
+                    break;
+            }
+
+            $statement->bindValue($key, $bind, $type);
+        }
     }
 }
