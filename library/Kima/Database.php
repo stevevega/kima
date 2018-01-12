@@ -1,12 +1,14 @@
 <?php
 /**
  * Kima Database
+ *
  * @author Steve Vega
  */
 namespace Kima;
 
-use Kima\Database\Pdo;
+use Kima\Database\IDatabase;
 use Kima\Database\Mongo;
+use Kima\Database\Pdo;
 
 /**
  * Database
@@ -14,7 +16,6 @@ use Kima\Database\Mongo;
  */
 class Database
 {
-
     /**
      * Error messages
      */
@@ -29,14 +30,18 @@ class Database
     /**
      * constructor
      */
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     /**
      * Gets a Database instance
-     * @param  string $db_engine The database engine
-     * @return Pdo    | Mongo
+     *
+     * @param string $db_engine The database engine
+     *
+     * @return IDatabase
      */
-    public static function get_instance($db_engine = null)
+    public static function get_instance($db_engine = null): IDatabase
     {
         switch ($db_engine) {
             case self::MYSQL:
@@ -48,5 +53,4 @@ class Database
                 break;
         }
     }
-
 }

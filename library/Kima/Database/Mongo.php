@@ -20,7 +20,7 @@ use MongoDB\Exception\UnexpectedValueException;
  * Mongo
  * Mongo database handler
  */
-class Mongo extends ADatabase
+final class Mongo implements IDatabase
 {
     /**
      * Error messages
@@ -34,18 +34,25 @@ class Mongo extends ADatabase
     const ERROR_WRONG_UPDATE_LIMIT = 'You shouldn\'t perform an update, using a limit value different than 1';
 
     /**
+     * The Mongo intance
+     *
+     * @var Mongo $instance
+     */
+    private static $instance;
+
+    /**
      * The current database
      *
      * @var string $database
      */
-    protected $database;
+    private $database;
 
     /**
      * The current host
      *
      * @var string $host
      */
-    protected $host;
+    private $host;
 
     /**
      * The Mongo Client connection
@@ -53,13 +60,6 @@ class Mongo extends ADatabase
      * @var Client $connection
      */
     private $connection;
-
-    /**
-     * The Mongo intance
-     *
-     * @var Mongo $instance
-     */
-    private static $instance;
 
     /**
      * constructor
@@ -82,13 +82,9 @@ class Mongo extends ADatabase
     }
 
     /**
-     * Gets the Database instance
-     *
-     * @param string $db_engine The database engine
-     *
-     * @return Client
+     * inheritDoc
      */
-    public static function get_instance($db_engine)
+    public static function get_instance(string $db_engine): IDatabase
     {
         isset(self::$instance) || self::$instance = new self();
 
@@ -96,10 +92,7 @@ class Mongo extends ADatabase
     }
 
     /**
-     * Checks database connection status
-     * if theres no connection creates a new one
-     *
-     * @return mixed
+     * inheritDoc
      */
     public function get_connection()
     {
@@ -122,14 +115,9 @@ class Mongo extends ADatabase
     }
 
     /**
-     * Creates a new database connection
-     *
-     * @param string $user
-     * @param string $password
-     *
-     * @return mixed
+     * inheritDoc
      */
-    public function connect($user = '', $password = '')
+    public function connect(string $user = '', string $password = ''): void
     {
         // make the database connection
         try {
@@ -137,19 +125,13 @@ class Mongo extends ADatabase
 
             $this->connection =
                 new Client('mongodb://' . $credentials . $this->host . ':27017/' . $this->database);
-
-            return $this->connection;
         } catch (DriverException $e) {
             Error::set('Mongo Connection failed: ' . $e->getMessage());
         }
     }
 
     /**
-     * Fetch results from the database
-     *
-     * @param array $options The execution options
-     *
-     * @return mixed
+     * inheritDoc
      */
     public function fetch(array $options)
     {
@@ -195,15 +177,9 @@ class Mongo extends ADatabase
     }
 
     /**
-     * Applies an aggreate method to a mongo collection
-     *
-     * @see    http://php.net/manual/en/mongocollection.aggregate.php
-     *
-     * @param array $options
-     *
-     * @return array
+     * inheritDoc
      */
-    public function aggregate(array $options)
+    public function aggregate(array $options): array
     {
         $collection = $this->execute($options);
         $pipeline = [];
@@ -237,15 +213,9 @@ class Mongo extends ADatabase
     }
 
     /**
-     * Applies a distinct method to a mongo collection
-     *
-     * @see    http://php.net/manual/en/mongocollection.distinct.php
-     *
-     * @param array $options
-     *
-     * @return array
+     * inheritDoc
      */
-    public function distinct(array $options)
+    public function distinct(array $options): array
     {
         $collection = $this->execute($options);
 
@@ -270,11 +240,7 @@ class Mongo extends ADatabase
     }
 
     /**
-     * Update/Inserts to the database
-     *
-     * @param array $options The execution options
-     *
-     * @return mixed
+     * inheritDoc
      */
     public function put(array $options)
     {
@@ -330,10 +296,9 @@ class Mongo extends ADatabase
             } elseif ($this->is_update_op($fields)) {
                 // @see http://mongodb.github.io/mongo-php-library/classes/collection/#updateone
                 return $collection->updateOne(...$params);
-            } else {
+            }
                 // @see http://mongodb.github.io/mongo-php-library/classes/collection/#replaceone
                 return $collection->replaceOne(...$params);
-            }
         } catch (Exception $e) {
             Error::set(sprintf(self::ERROR_MONGO_QUERY, $e->getMessage()));
         }
@@ -346,11 +311,9 @@ class Mongo extends ADatabase
      *
      * @return bool
      */
-    public function copy(array $options)
+    public function copy(array $options): bool
     {
         Error::set(self::ERROR_NO_COPY);
-
-        return true;
     }
 
     /**
@@ -360,19 +323,13 @@ class Mongo extends ADatabase
      *
      * @return bool
      */
-    public function call(array $options)
+    public function call(array $options): array
     {
         Error::set(self::ERROR_NO_CALL);
-
-        return true;
     }
 
     /**
-     * Deletes to the database
-     *
-     * @param array $options The execution options
-     *
-     * @return mixed
+     * inheritDoc
      */
     public function delete(array $options)
     {
@@ -386,11 +343,7 @@ class Mongo extends ADatabase
     }
 
     /**
-     * Executes an operation
-     *
-     * @param array $options The executions options
-     *
-     * @return mixed
+     * inheritDoc
      */
     public function execute(array $options)
     {
@@ -418,13 +371,33 @@ class Mongo extends ADatabase
     }
 
     /**
-     * Gets the sort value formatted for mongo queries
+     * inheritDoc
+     */
+    public function set_database(string $database): IDatabase
+    {
+        $this->database = $database;
+
+        return $this;
+    }
+
+    /**
+     * inheritDoc
+     */
+    public function set_host(string $host): IDatabase
+    {
+        $this->host = $host;
+
+        return $this;
+    }
+
+    /**
+     * Gets the sort value formatted for mongo queries         +     * inheritDoc
      *
      * @param array $sorts
      *
      * @return int
      */
-    private function get_sort(array $sorts)
+    private function get_sort(array $sorts): array
     {
         foreach ($sorts as &$sort) {
             $sort = 'DESC' === $sort ? -1 : 1;
