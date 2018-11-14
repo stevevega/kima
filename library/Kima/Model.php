@@ -467,6 +467,18 @@ abstract class Model
     }
 
     /**
+     * Enables the locking of the row(s) that will be read to prevent updates from another transaction
+     *
+     * @see  https://dev.mysql.com/doc/refman/5.6/en/innodb-locking-reads.html
+     */
+    public function lock_for_update()
+    {
+        $this->lock_for_update = true;
+
+        return $this;
+    }
+
+    /**
      * Fetch one result of data from the database
      * Example $fields values:
      * array('id_user', 'name', 'id_city', 'city.name' => 'city_name')
@@ -767,7 +779,8 @@ abstract class Model
             'order' => $this->order,
             'limit' => $this->limit,
             'start' => $this->start,
-            'async' => $this->async
+            'async' => $this->async,
+            'lock_for_update' => $this->lock_for_update,
         ];
     }
 
@@ -789,6 +802,7 @@ abstract class Model
         $this->limit = 0;
         $this->start = 0;
         $this->async = null;
+        $this->lock_for_update = false;
     }
 
     /**

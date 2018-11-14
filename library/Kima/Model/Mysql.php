@@ -345,6 +345,10 @@ class Mysql implements IModel
                 $this->prepare_order($params['order']) .
                 $this->prepare_limit($params['binds'], $params['limit'], $params['start']);
 
+        if (true === $params['lock_for_update']) {
+            $query_string .= ' FOR UPDATE ';
+        }
+
         if ($is_count_query && !empty($params['group'])) {
             $query_string = 'SELECT COUNT(*) AS count FROM (' . $query_string . ') AS count';
         }
