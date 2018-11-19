@@ -201,6 +201,15 @@ abstract class Model
     private $connection;
 
     /**
+     * Sets the locking of the row(s) that will be read to prevent updates from another transaction
+     *
+     * @see  https://dev.mysql.com/doc/refman/5.6/en/innodb-locking-reads.html
+     * 
+     * @var bool
+     */
+    private $lock_for_update;
+
+    /**
      * constructor
      */
     public function __construct()
