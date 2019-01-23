@@ -432,6 +432,7 @@ class View
         $property_tag = sprintf('property="%s"', $property);
 
         $meta = sprintf($meta, $name_tag, $property_tag, $content_tag);
+        $meta = preg_replace('/\s+/', ' ', $meta);
 
         // avoid duplicates
         if (!in_array($meta, $this->meta_tags)) {
