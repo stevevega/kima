@@ -415,18 +415,24 @@ class View
      * @param string  $name
      * @param string  $content
      * @param boolean $http_equiv
+     * @param string  $property
      */
-    public function meta($name, $content, $http_equiv = false)
+    public function meta($name, $content, $http_equiv = false, $property = '')
     {
         // make sure we are on a html template
         if (self::HTML !== $this->content_type) {
             Error::set(sprintf(self::ERROR_HTML_ONLY, 'Meta tags'), Error::WARNING);
         }
 
-        // set the meta
-        $meta = '<meta ' .
-            ($http_equiv ? 'http-equiv="' . $name . '"' : 'name="' . $name . '"')
-            . ' content="' . $content . '" />';
+        $meta_format = '<meta %s %s %s />';
+        $name_tag_format = $http_equiv ? 'http-equiv="%s"' : 'name="%s"';
+
+        $name_tag = sprintf($name_tag_format, $name);
+        $content_tag = sprintf('content="%s"', $content);
+        $property_tag = sprintf('property="%s"', $property);
+
+        $meta = sprintf($meta, $name_tag, $property_tag, $content_tag);
+        $meta = preg_replace('/\s+/', ' ', $meta);
 
         // avoid duplicates
         if (!in_array($meta, $this->meta_tags)) {
