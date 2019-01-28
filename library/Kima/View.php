@@ -427,9 +427,9 @@ class View
         $meta_format = '<meta %s %s %s />';
         $name_tag_format = $http_equiv ? 'http-equiv="%s"' : 'name="%s"';
 
-        $name_tag = sprintf($name_tag_format, $name);
+        $name_tag = empty($name) ? '' : sprintf($name_tag_format, $name);
         $content_tag = sprintf('content="%s"', $content);
-        $property_tag = sprintf('property="%s"', $property);
+        $property_tag = empty($property) ? '' : sprintf('property="%s"', $property);
 
         $meta = sprintf($meta_format, $name_tag, $property_tag, $content_tag);
         $meta = preg_replace('/\s+/', ' ', $meta);
