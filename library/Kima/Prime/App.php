@@ -119,11 +119,10 @@ class App
      * Setup the basic application config
      *
      * @param string $custom_config a custom config file
-     * @param bool   $skip_config
      *
      * @return App
      */
-    public function setup($custom_config = null, $skip_config = false): App
+    public function setup($custom_config = null): App
     {
         // get the module and HTTP method
         switch (true) {
@@ -143,10 +142,7 @@ class App
         $this->set_method($method);
         $this->set_is_https();
 
-        // Sets the config only if it isn't skipped
-        if (!$skip_config) {
-            $this->set_config($custom_config);
-        }
+        $this->set_config($custom_config);
 
         // set the default language
         $lang_config = $this->get_config()->get('language');
@@ -168,7 +164,7 @@ class App
 
         return self::$instance;
     }
-
+    
     /**
      * Run the application
      *
@@ -179,18 +175,16 @@ class App
      */
     public function run(array $urls, $custom_config = null)
     {
-        $this->set_config($custom_config);
+        $this->setup($custom_config);
 
         // Sets the datadog tracer config
         $this->setup_datadog();
-
-        $this->setup($custom_config, true);
 
         $action = (new Action($urls))->run();
         
         // Finishes the span execution after action run
         GlobalTracer::get()->getRootScope()->getSpan()->finish();
-
+        
         return $action;
     }
 
