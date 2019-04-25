@@ -3,6 +3,7 @@ namespace Kima\Prime;
 
 use DDTrace\GlobalTracer;
 use DDTrace\NoopTracer;
+use DDTrace\Tag;
 use Kima\Error;
 use Kima\Http\Request;
 
@@ -558,19 +559,29 @@ class App
     {
         $tracing_config = $this->config->get('tracing');
 
-        // If the config isn't set or isn't enabled then sets the tracer as a NoopTracer
+        // If the config isn't setted or isn't enabled then sets the tracer as a NoopTracer
         if (!isset($tracing_config) || empty($tracing_config['enabled'])) {
             GlobalTracer::set(NoopTracer::create());
 
             return $this;
         };
 
-        // Overwrites the operation name only if it's exists
+        // Gets the span in order to be used whenever it's necessary
+        $span = GlobalTracer::get()->getRootScope()->getSpan();
+
+        // Overwrites the operation name only if it exists
         if (!empty($tracing_config['weboperation']['name'])) {
-            GlobalTracer::get()
-                ->getRootScope()
-                ->getSpan()
-                ->overwriteOperationName($tracing_config['weboperation']['name']);
+            $span->overwriteOperationName($tracing_config['weboperation']['name']);
+        }
+
+        // Overwrites the service name only if it exists
+        if (!empty($tracing_config['webservice']['name'])) {
+            $span->setTag(Tag::SERVICE_NAME, $tracing_config['webservice']['name']);
+        }
+
+        // Sets the environment tag only if it exists
+        if (!empty($tracing_config['env'])) {
+            $span->setTag(Tag::ENV, $tracing_config['env']);
         }
 
         return $this;
