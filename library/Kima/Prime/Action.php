@@ -1,14 +1,17 @@
 <?php
 /**
  * Kima Action
+ *
  * @author Steve Vega
  */
 namespace Kima\Prime;
 
+use Bootstrap;
+use DDTrace\GlobalTracer;
+use DDTrace\Tag;
 use Kima\Error;
 use Kima\Http\Redirector;
 use Kima\Http\Request;
-use Bootstrap;
 
 /**
  * Action
@@ -38,18 +41,21 @@ class Action
 
     /**
      * Controller class name
+     *
      * @var string
      */
     private $controller;
 
     /**
      * Url parameters
+     *
      * @var array
      */
     private $url_parameters = [];
 
     /**
      * Construct
+     *
      * @param array $urls
      */
     public function __construct(array $urls)
@@ -78,6 +84,11 @@ class Action
 
         $controller = $this->get_controller_instance();
 
+        // Sets the resource name with the method and controller name
+        GlobalTracer::get()->getRootScope()
+            ->getSpan()
+            ->setTag(Tag::RESOURCE_NAME, strtolower($method . ' ' . get_class($controller)));
+
         // validate controller is instance of Controller
         if (!$controller instanceof Controller) {
             Error::set(sprintf(self::ERROR_NO_CONTROLLER_INSTANCE, $this->controller));
@@ -95,7 +106,9 @@ class Action
      * Gets the action definition
      * - Includes the required controller to process the action
      * - Includes the language handler for detecting the action language
-     * @param  array $urls
+     *
+     * @param array $urls
+     *
      * @return Action
      */
     private function set_controller(array $urls)
@@ -119,6 +132,7 @@ class Action
                 if (preg_match('/^' . $pattern . '$/', $subject)) {
                     $this->controller = $controller;
                     $app->set_controller($controller);
+
                     return $this;
                 }
             }
@@ -151,13 +165,14 @@ class Action
 
     /**
      * Sets the url parameters
+     *
      * @param int $base_pos What position to start looking for a match
      */
     private function set_url_parameters($base_pos = 0)
     {
         // get the URL path
         $path = parse_url(Request::server('REQUEST_URI'), PHP_URL_PATH);
-        $url_parameters = array_values(array_filter(explode('/', $path), array($this,"validate_filter")));
+        $url_parameters = array_values(array_filter(explode('/', $path), [$this, 'validate_filter']));
 
         $this->url_parameters = $base_pos > 0
             ? array_slice($url_parameters, $base_pos)
@@ -203,7 +218,9 @@ class Action
 
     /**
      * Validate if the filter is a valid filter
-     * @param  obj  $param
+     *
+     * @param obj $param
+     *
      * @return bool
      */
     private function validate_filter($param)
@@ -213,6 +230,7 @@ class Action
 
     /**
      * Gets the controller instance
+     *
      * @return Controller
      */
     private function get_controller_instance()
