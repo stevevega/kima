@@ -11,7 +11,7 @@
     "require": {
         "php": ">=7.1",
         "mongodb/mongodb": "^1.0.0",
-        "datadog/dd-trace": "^0.20.0"
+        "datadog/dd-trace": "0.28.*"
     },
     "autoload": {
         "psr-0": {
