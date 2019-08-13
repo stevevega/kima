@@ -5,6 +5,7 @@
  */
 namespace Kima;
 
+use DDTrace\GlobalTracer;
 use Kima\Prime\App;
 use Exception;
 
