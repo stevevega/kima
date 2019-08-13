@@ -5,6 +5,8 @@
  */
 namespace Kima;
 
+use DDTrace\GlobalTracer;
+use DDTrace\Tag;
 use Kima\Prime\App;
 use Exception;
 
@@ -69,6 +71,16 @@ class Error
         $config = App::get_instance()->get_config();
         if (isset($config->database) && !empty($config->database['mongo']['host'])) {
             Logger::log($error_message, 'error', $error_level_name);
+        }
+
+        //When the severity is error, properly close the span so it can be traced correctly by ddtrace 
+        if($error_level === self::ERROR) {
+            $span = GlobalTracer::get()->getRootScope()->getSpan();
+            if(isset($span)) {
+                $span->setTag(Tag::HTTP_STATUS_CODE, '500');
+                $span->setTag(Tag::ERROR, new Exception($error_message));
+                $span->finish();
+            }
         }
 
         // send the error
