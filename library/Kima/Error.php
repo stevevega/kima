@@ -6,6 +6,7 @@
 namespace Kima;
 
 use DDTrace\GlobalTracer;
+use DDTrace\Tag;
 use Kima\Prime\App;
 use Exception;
 
