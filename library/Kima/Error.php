@@ -71,6 +71,16 @@ class Error
             Logger::log($error_message, 'error', $error_level_name);
         }
 
+        //When the severity is error, properly close the span so it can be traced correctly by ddtrace 
+        if($error_level === self::ERROR) {
+            $span = GlobalTracer::get()->getRootScope()->getSpan();
+            if(isset($span)) {
+                $span->setTag(Tag::HTTP_STATUS_CODE, '500');
+                $span->setTag(Tag::ERROR, new Exception($error_message));
+                $span->finish();
+            }
+        }
+
         // send the error
         trigger_error($error_message, $error_level);
     }
