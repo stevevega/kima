@@ -99,6 +99,12 @@ class View
     private $apply_styles_inline = false;
 
     /**
+     * Should the tag of styles by skip when cleaned
+     * @var bool
+     */
+    private $skip_style_tag = false;
+
+    /**
      * Cache instance
      * @var \Kima\Cache
      */
@@ -573,6 +579,11 @@ class View
             }
 
             $inlineCss = new CssToInline($result, $css);
+
+            if ($this->skip_style_tag) {
+                $inlineCss->skip_style_tag();
+            }
+
             $result = $inlineCss->convert();
         }
 
@@ -617,10 +628,12 @@ class View
 
     /**
      * Enable convertion of CSS styles to html inline styles
+     * @param bool $skip_style_tag
      */
-    public function apply_styles_inline()
+    public function apply_styles_inline($skip_style_tag = false)
     {
         $this->apply_styles_inline = true;
+        $this->skip_style_tag = $skip_style_tag;
 
         return $this;
     }

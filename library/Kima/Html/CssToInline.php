@@ -67,6 +67,12 @@ class CssToInline
     private $include_media_queries = false;
 
     /**
+     * Should the tag of styles by skip when cleaned
+     * @var bool
+     */
+    private $skip_style_tag = false;
+
+    /**
      * Creates a CssToInline instance
      * Optionally sets the html and css to use
      * @param string $html The HTML to process.
@@ -76,6 +82,14 @@ class CssToInline
     {
         $this->set_html($html);
         $this->set_css($css);
+    }
+
+    /**
+     * Set the flag of "skip_style_tag" in true
+     */
+    public function skip_style_tag()
+    {
+        $this->skip_style_tag = true;
     }
 
     /**
@@ -371,8 +385,9 @@ class CssToInline
     /**
      * Cleanup the generated HTML
      *
-     * @return string
      * @param  string $html The HTML to cleanup.
+     *
+     * @return string
      */
     private function cleanup_html($html)
     {
@@ -383,9 +398,11 @@ class CssToInline
         $html = preg_replace('/(\s)+id="(.*)"(\s)+/U', ' ', $html);
 
         // remove style tags
-        $html = preg_replace('|<style(.*)>(.*)</style>|isU', '', $html);
-        $html = preg_replace('|<link(.*)>(.*)>|isU', '', $html);
+        if(!$this->skip_style_tag) {
+            $html = preg_replace('|<style(.*)>(.*)</style>|isU', '', $html);
+        }
 
+        $html = preg_replace('|<link(.*)>(.*)>|isU', '', $html);
         // return
         return $html;
     }
