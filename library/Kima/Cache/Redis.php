@@ -104,6 +104,7 @@ class Redis extends PhpRedis implements ICache
             : self::DEFAULT_DATABASE;
 
         $this->connect($host, $port, $weight, $database);
+        $this->select($database);
 
         // set data serializer after connection
         if (isset($options['redis']['serializer'])) {
@@ -187,20 +188,18 @@ class Redis extends PhpRedis implements ICache
     /**
      * Connects to a redis server
      *
-     * @param string $host
-     * @param string $port
-     * @param string $timeout
-     * @param string $database
+     * @param string   $host
+     * @param string   $port
+     * @param string   $timeout
+     * @param int|null $retry_interval
      *
      * @return bool
      */
-    public function connect($host, $port, $timeout, $database)
+    public function connect($host, $port = null, $timeout = null, $retry_interval = null)
     {
         $this->connection_type === self::PERSISTENT
-            ? parent::pconnect($host, $port, $timeout)
-            : parent::connect($host, $port, $timeout);
-
-        $this->select($database);
+            ? parent::pconnect($host, $port, $timeout, $retry_interval)
+            : parent::connect($host, $port, $timeout, $retry_interval);
 
         return $this;
     }
