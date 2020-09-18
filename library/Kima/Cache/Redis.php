@@ -148,6 +148,9 @@ class Redis extends PhpRedis implements ICache
         }
 
         $item = parent::get($this->prepare_key($key));
+        if (false === $item) {
+            return null;
+        }
 
         return (filemtime($file_path) <= $item['timestamp']) ? $item['value'] : null;
     }
