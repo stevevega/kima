@@ -1,21 +1,21 @@
 {
-    "name": "stevevega/kima",
-    "description": "Kima Framework",
-    "type": "library",
-    "keywords": [
-        "kima",
-        "framework"
-    ],
-    "homepage": "https://github.com/stevevega/kima",
-    "license": "BSD-3-Clause",
-    "require": {
-        "php": ">=7.4",
-        "mongodb/mongodb": "^1.7.0",
-        "datadog/dd-trace": "0.48.*"
-    },
-    "autoload": {
-        "psr-0": {
-            "Kima\\": "library/"
-        }
+  "name": "stevevega/kima",
+  "description": "Kima Framework",
+  "type": "library",
+  "keywords": [
+    "kima",
+    "framework"
+  ],
+  "homepage": "https://github.com/stevevega/kima",
+  "license": "BSD-3-Clause",
+  "require": {
+    "php": ">=7.4",
+    "mongodb/mongodb": "^1.7.0",
+    "datadog/dd-trace": ">=0.48.0"
+  },
+  "autoload": {
+    "psr-0": {
+      "Kima\\": "library/"
     }
+  }
 }
