@@ -177,6 +177,12 @@ class View
     private $use_compression;
 
     /**
+     * Blocks loaded in current process
+     * @var array
+     */
+    private $blocks_cache = [];
+
+    /**
      * Constructor
      * @param array $options
      */
@@ -224,7 +230,13 @@ class View
         // get the blocks from cache?
         $file_path = $this->get_view_file_path($file, $view_path);
         $cache_key = str_replace(DIRECTORY_SEPARATOR, '-', $file_path);
-        $blocks = $this->cache->get_by_file($cache_key, $file_path);
+
+        // was it already loaded?
+        if (!empty($this->blocks_cache[$cache_key])) {
+            $blocks = $this->blocks_cache[$cache_key];
+        } else {
+            $blocks = $this->cache->get_by_file($cache_key, $file_path);
+        }
 
         // do we have cached content?
         if (empty($blocks)) {
@@ -237,6 +249,8 @@ class View
             // set the blocks on cache
             $this->cache->set($cache_key, $blocks);
         }
+
+        $this->blocks_cache[$cache_key] = $blocks;
 
         $blocks = $this->get_block_l10n($blocks, $file);
 
