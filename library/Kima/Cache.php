@@ -41,9 +41,14 @@ class Cache
     const ENABLED = 'enabled';
 
     /**
+     * Connection pool
+     */
+    private static $instances = [];
+
+    /**
      * private construct
      */
-     private function __construct() {}
+    private function __construct() {}
 
     /**
      * Get an instance of the required cache system
@@ -62,35 +67,45 @@ class Cache
             return new NullObject($options);
         }
 
+        // reuse connection if possible
+        if (isset($type) && isset(self::$instances[$type])) {
+            return self::$instances[$type];
+        }
+
+        $instance = null;
         switch ($type) {
             case self::DEFAULT_KEY:
             case '':
             case null:
                 if (isset($options[self::DEFAULT_KEY])) {
-                    return self::get_instance($options[self::DEFAULT_KEY], $options);
+                    $instance = self::get_instance($options[self::DEFAULT_KEY], $options);
                 } else {
                     Error::set(self::ERROR_DEFAULT_NOT_SET, false);
                 }
                 break;
             case self::APC:
-                return new Apc($options);
+                $instance = new Apc($options);
                 break;
             case self::FILE:
-                return new File($options);
+                $instance = new File($options);
                 break;
             case self::MEMCACHED:
-                return new Memcached($options);
+                $instance = new Memcached($options);
                 break;
             case self::REDIS:
-                return new Redis($options);
+                $instance = new Redis($options);
                 break;
             case self::NULL_OBJECT:
-                return new NullObject($options);
+                $instance = new NullObject($options);
                 break;
             default:
                 Error::set(sprintf(self::ERROR_INVALID_CACHE_SYSTEM, $type));
                 break;
         }
+
+        self::$instances[$type] = $instance;
+
+        return $instance;
     }
 
 }
