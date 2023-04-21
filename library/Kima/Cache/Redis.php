@@ -43,7 +43,7 @@ class Redis extends PhpRedis implements ICache
      */
     const DEFAULT_HOST = '127.0.0.1';
     const DEFAULT_PORT = 6379;
-    const DEFAULT_TIMEOUT = null;
+    const DEFAULT_TIMEOUT = 0;
 
     /**
      * Connection type
@@ -198,7 +198,7 @@ class Redis extends PhpRedis implements ICache
      *
      * @return bool
      */
-    public function connect($host, $port = null, $timeout = null, $retry_interval = null)
+    public function connect($host, $port = 6379, $timeout = 0, $retry_interval = 0)
     {
         $this->connection_type === self::PERSISTENT
             ? parent::pconnect($host, $port, $timeout, $retry_interval)
