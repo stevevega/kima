@@ -191,10 +191,10 @@ class Redis extends PhpRedis implements ICache
     /**
      * Connects to a redis server
      *
-     * @param string   $host
-     * @param string   $port
-     * @param string   $timeout
-     * @param int|null $retry_interval
+     * @param string $host
+     * @param int    $port
+     * @param int    $timeout
+     * @param int    $retry_interval
      *
      * @return bool
      */
