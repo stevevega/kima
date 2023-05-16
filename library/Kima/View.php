@@ -313,6 +313,11 @@ class View
      */
     public function set($name, $value, $template = null, $escaped = true, $apply_nl2br = false)
     {
+        // Sometimes values are passed as null value.
+        // These values are used in htmlentities, however now they are deprecated by php
+        if (!isset($value)) {
+            $value = '';
+        }
         // escape value if required
         if ($escaped) {
             $value = htmlentities($value, ENT_QUOTES, 'UTF-8', false);
@@ -797,7 +802,7 @@ class View
 
                     // get the localization string and replace it in the block
                     $string = L10n::t($string_key, $args);
-                    // Only replace the string if this exists
+                    // Only replace the string if it exists
                     if (isset($string)) {
                         $block = str_replace($var, $string, $block);
                     }
@@ -913,7 +918,7 @@ class View
     {
         if ($element) {
             foreach ($element as $item => $value) {
-                $this->populate_value($item, $value, $template);
+                $this->populate_value($item, $value ?? '', $template);
             }
         }
         $this->show($template);
