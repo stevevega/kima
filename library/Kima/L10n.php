@@ -1,6 +1,7 @@
 <?php
 /**
  * Kima L10n
+ *
  * @author Steve Vega
  */
 namespace Kima;
@@ -12,7 +13,6 @@ use Kima\Prime\App;
  */
 class L10n
 {
-
     /**
      * Error messages
      */
@@ -20,36 +20,42 @@ class L10n
 
     /**
      * The strings used on this action
+     *
      * @var array
      */
     protected static $strings;
 
     /**
      * The cache key
+     *
      * @var string
      */
     protected static $cache_key;
 
     /**
      * The prefix of the cache key
+     *
      * @var string
      */
     protected static $cache_key_prefix;
 
     /**
      * Array with the paths of the l10n resources.
+     *
      * @var array
      */
     protected static $l10n_paths = [];
 
     /**
      * Flag that indicates if store the keys
-     * @var boolean
+     *
+     * @var bool
      */
     protected static $store_keys = true;
 
     /**
      * Sets the value of store_keys
+     *
      * @param bool $store_keys
      */
     public static function set_store_keys($store_keys)
@@ -59,6 +65,7 @@ class L10n
 
     /**
      * Sets the value of l10n_paths
+     *
      * @param array $paths
      */
     public static function set_l10n_paths(array $paths)
@@ -68,6 +75,7 @@ class L10n
 
     /**
      * Sets the value of cache key prefix
+     *
      * @param string $prefix
      */
     public static function set_cache_key_prefix($prefix)
@@ -77,9 +85,11 @@ class L10n
 
     /**
      * Gets the key wanted for translation
-     * @param  string $key
-     * @param  array  $args
-     * @param  string $language
+     *
+     * @param string $key
+     * @param array  $args
+     * @param string $language
+     *
      * @return string
      */
     public static function t($key, array $args = [], $language = '')
@@ -91,7 +101,8 @@ class L10n
 
         // check if we do have the language strings loaded
         if (empty(self::$strings[$language]) || !self::$store_keys) {
-            $controller = strtolower($app->get_controller());
+            $app_controller = $app->get_controller() ?? '';
+            $controller = strtolower($app_controller);
             $method = $app->get_method();
 
             // get the string path and sets the cache key
@@ -125,8 +136,10 @@ class L10n
     /**
      * Validates whether there is any change in data of the files stored cached.
      * Using the timestamp of the file and cache.
-     * @param  array   $strings_paths
-     * @return boolean
+     *
+     * @param array $strings_paths
+     *
+     * @return bool
      */
     private static function is_valid_strings_paths_timestamp(array $strings_paths)
     {
@@ -143,7 +156,9 @@ class L10n
 
     /**
      * Gets the strings paths for the current language
-     * @param  string $language
+     *
+     * @param string $language
+     *
      * @return array
      */
     private static function get_strings_paths($language)
@@ -169,9 +184,11 @@ class L10n
     /**
      * Retrieves and parse the language strings from the l10n string files
      * Sets the strings on cache
-     * @param  string $controller
-     * @param  string $method
-     * @param  array  $strings_paths
+     *
+     * @param string $controller
+     * @param string $method
+     * @param array  $strings_paths
+     *
      * @return array
      */
     private static function get_strings($controller, $method, array $strings_paths)
@@ -198,7 +215,7 @@ class L10n
 
                 $method_strings = array_merge(
                     $method_strings,
-                    self::get_section_strings($strings_data, $controller . '-'. $method)
+                    self::get_section_strings($strings_data, $controller . '-' . $method)
                 );
             }
         }
@@ -213,8 +230,10 @@ class L10n
 
     /**
      * Gets the strings data for a section
-     * @param  array  $strings_data
-     * @param  string $section
+     *
+     * @param array  $strings_data
+     * @param string $section
+     *
      * @return array
      */
     private static function get_section_strings(array $strings_data, $section)
@@ -228,6 +247,7 @@ class L10n
 
     /**
      * Sets the cache key for the strings
+     *
      * @param string $language
      * @param string $controller
      * @param string $method
