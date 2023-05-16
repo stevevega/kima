@@ -1,6 +1,7 @@
 <?php
 /**
  * Kima View
+ *
  * @author Steve Vega
  */
 namespace Kima;
@@ -10,11 +11,11 @@ use Kima\Html\CssToInline;
 /**
  * View
  * Handles the view template system for better views
+ *
  * @package Kima
  */
 class View
 {
-
     /**
      * Error messages
      */
@@ -64,126 +65,147 @@ class View
 
     /**
      * Available content types
+     *
      * @var array
      */
     private $content_types = [self::HTML, self::XML, self::TXT];
 
     /**
      * Template content type
+     *
      * @var string
      */
     private $content_type;
 
     /**
      * Template default view path
+     *
      * @var string
      */
     private $view_path;
 
     /**
      * Template failover view path
+     *
      * @var string
      */
     private $failover_path;
 
     /**
      * Should we use the layout?
-     * @var boolean
+     *
+     * @var bool
      */
     private $use_layout = false;
 
     /**
      * Should apply css styles inline?
-     * @var boolean
+     *
+     * @var bool
      */
     private $apply_styles_inline = false;
 
     /**
      * Should the tag of styles by skip when cleaned
+     *
      * @var bool
      */
     private $skip_style_tag = false;
 
     /**
      * Cache instance
+     *
      * @var \Kima\Cache
      */
     private $cache;
 
     /**
      * Global template variables
+     *
      * @var array
      */
     private $globals = [];
 
     /**
      * Template variables
+     *
      * @var array
      */
     private $vars = [];
 
     /**
      * Template js scripts
+     *
      * @var array
      */
     private $scripts = [];
 
     /**
      * Lazy loaded js scripts
+     *
      * @var array
      */
     private $lazy_scripts = [];
 
     /**
      * Template css styles
+     *
      * @var array
      */
     private $styles = [];
 
     /**
      * Stored in case we want to apply styles inline
+     *
      * @var array
      */
     private $style_files = [];
 
     /**
      * Template meta tags
+     *
      * @var array
      */
     private $meta_tags = [];
 
     /**
      * Template blocks where we store every section apart
+     *
      * @var array
      */
     private $blocks = [];
 
     /**
      * Template blocks that were already parsed
+     *
      * @var array
      */
     private $parsed_blocks = [];
 
     /**
      * Auto display result option
-     * @var boolean
+     *
+     * @var bool
      */
     private $auto_display;
 
     /**
      * Result compression option
-     * @var boolean
+     *
+     * @var bool
      */
     private $use_compression;
 
     /**
      * Blocks loaded in current process
+     *
      * @var array
      */
     private $blocks_cache = [];
 
     /**
      * Constructor
+     *
      * @param array $options
      */
     public function __construct(array $options = [])
@@ -215,7 +237,26 @@ class View
     }
 
     /**
+    * Destructor
+    */
+    public function __destruct()
+    {
+        // flush the content if auto display option is on
+        if ($this->auto_display) {
+            $main_template = $this->get_main_template();
+            if ($main_template) {
+                if ($this->use_layout) {
+                    $this->show($main_template);
+                }
+
+                $this->flush($main_template);
+            }
+        }
+    }
+
+    /**
      * Loads a view and set it into blocks
+     *
      * @param string $file
      * @param string $view_path custom view path
      */
@@ -261,15 +302,22 @@ class View
     /**
      * Sets a value to a variable
      * If no template is passed, it will send a global variable
-     * @param  string  $name
-     * @param  string  $value
-     * @param  string  $template
-     * @param  boolean $escaped     Escaped by default
-     * @param  boolean $apply_nl2br Whether to apply nl2br to values or not
+     *
+     * @param string $name
+     * @param string $value
+     * @param string $template
+     * @param bool   $escaped     Escaped by default
+     * @param bool   $apply_nl2br Whether to apply nl2br to values or not
+     *
      * @return View
      */
     public function set($name, $value, $template = null, $escaped = true, $apply_nl2br = false)
     {
+        // Sometimes values is passed as null value.
+        // This values is used in htmlentities, however now this is deprecated por php
+        if (!isset($value)) {
+            $value = '';
+        }
         // escape value if required
         if ($escaped) {
             $value = htmlentities($value, ENT_QUOTES, 'UTF-8', false);
@@ -296,8 +344,9 @@ class View
     /**
      * Parse and renders the template content and merge it with the final result
      * prepared to flush
-     * @param string  $template
-     * @param boolean $keep_values
+     *
+     * @param string $template
+     * @param bool   $keep_values
      */
     public function render($template, $keep_values = false)
     {
@@ -348,16 +397,18 @@ class View
         }
 
         // set this as a parsed block
-        $this->parsed_blocks[$template] =  isset($this->parsed_blocks[$template])
+        $this->parsed_blocks[$template] = isset($this->parsed_blocks[$template])
             ? $this->parsed_blocks[$template] .= $copy
             : $this->parsed_blocks[$template] = $copy;
     }
 
     /**
      * Alias of render
+     *
      * @see self::render()
-     * @param string  $template
-     * @param boolean $keep_values
+     *
+     * @param string $template
+     * @param bool   $keep_values
      */
     public function show($template, $keep_values = false)
     {
@@ -366,9 +417,9 @@ class View
 
     /**
      * Populates a template with an array data
-     * @param  string $template
-     * @param  mixed  $data
-     * @return void
+     *
+     * @param string $template
+     * @param mixed  $data
      */
     public function populate($template, $data)
     {
@@ -405,6 +456,7 @@ class View
 
     /**
      * Clear a template
+     *
      * @param string $template
      */
     public function clear($template)
@@ -419,7 +471,9 @@ class View
 
     /**
      * Hides a template
+     *
      * @access public
+     *
      * @param string $template
      */
     public function hide($template)
@@ -431,11 +485,13 @@ class View
 
     /**
      * Sets a meta value to html type templates
+     *
      * @access public
-     * @param string  $name
-     * @param string  $content
-     * @param boolean $http_equiv
-     * @param string  $property
+     *
+     * @param string $name
+     * @param string $content
+     * @param bool   $http_equiv
+     * @param string $property
      */
     public function meta($name, $content, $http_equiv = false, $property = '')
     {
@@ -462,8 +518,11 @@ class View
 
     /**
      * Sets a script value to html type templates
-     * @param string  $script
-     * @param boolean $lazyLoad
+     *
+     * @param string     $script
+     * @param bool       $lazyLoad
+     * @param mixed      $lazy_load
+     * @param null|mixed $attrs
      */
     public function script($script, $lazy_load = false, $attrs = null)
     {
@@ -477,7 +536,7 @@ class View
             $target = 'lazy_scripts';
         } else {
             $attrs_str = $this->format_attrs($attrs);
-            $script = '<script src="' . $script . '" ' .  $attrs_str . ' type="text/javascript"></script>';
+            $script = '<script src="' . $script . '" ' . $attrs_str . ' type="text/javascript"></script>';
             $target = 'scripts';
         }
 
@@ -489,9 +548,10 @@ class View
 
     /**
      * Sets a style value to html type templates
-     * @param string  $style_file     (Requires full path wehn load_in_header is true)
-     * @param string  $media_type
-     * @param boolean $load_in_header
+     *
+     * @param string $style_file     (Requires full path wehn load_in_header is true)
+     * @param string $media_type
+     * @param bool   $load_in_header
      */
     public function style($style_file, $media_type = null, $load_in_header = false)
     {
@@ -522,8 +582,10 @@ class View
     /**
      * Gets the view path, it may be the module view if exists
      * otherwise it returns the global scope view path
-     * @param  string $file
-     * @param  string $view_path
+     *
+     * @param string $file
+     * @param string $view_path
+     *
      * @return string
      */
     public function get_view_file_path($file, $view_path = null)
@@ -546,8 +608,10 @@ class View
 
     /**
      * Gets a template content with the corresponding information
-     * @param  string  $template
-     * @param  boolean $set_headers
+     *
+     * @param string $template
+     * @param bool   $set_headers
+     *
      * @return string
      */
     public function get_view($template, $set_headers = true)
@@ -620,28 +684,33 @@ class View
 
     /**
      * Sets the auto display option for the main template
-     * @param boolean $auto_display
+     *
+     * @param bool $auto_display
      */
     public function set_auto_display($auto_display)
     {
-        $this->auto_display = (boolean) $auto_display;
+        $this->auto_display = (bool) $auto_display;
 
         return $this;
     }
 
     /**
      * Sets the compress option from the template
+     *
      * @access public
+     *
+     * @param mixed $compression
      */
     public function set_compression($compression)
     {
-        $this->use_compression = (boolean) $compression;
+        $this->use_compression = (bool) $compression;
 
         return $this;
     }
 
     /**
      * Enable convertion of CSS styles to html inline styles
+     *
      * @param bool $skip_style_tag
      */
     public function apply_styles_inline($skip_style_tag = false)
@@ -653,25 +722,8 @@ class View
     }
 
     /**
-    * Destructor
-    */
-    public function __destruct()
-    {
-        // flush the content if auto display option is on
-        if ($this->auto_display) {
-            $main_template = $this->get_main_template();
-            if ($main_template) {
-                if ($this->use_layout) {
-                    $this->show($main_template);
-                }
-
-                $this->flush($main_template);
-            }
-        }
-    }
-
-    /**
      * Set the proper content type of the main template to use
+     *
      * @param string $view_file
      */
     private function set_content_type($view_file)
@@ -687,8 +739,10 @@ class View
 
     /**
      * Set the folder path where the views are located
-     * @param  string  $view_path
-     * @param  boolean $is_failover
+     *
+     * @param string $view_path
+     * @param bool   $is_failover
+     *
      * @return self
      */
     private function set_view_path($view_path, $is_failover = false)
@@ -710,6 +764,7 @@ class View
 
     /**
      * Set the cache handler
+     *
      * @param array $options
      */
     private function set_cache(array $options)
@@ -720,8 +775,10 @@ class View
 
     /**
      * Get block strings based on l10n strings
-     * @param  array  $blocks
-     * @param  string $view_file
+     *
+     * @param array  $blocks
+     * @param string $view_file
+     *
      * @return array
      */
     private function get_block_l10n(array $blocks, $view_file)
@@ -745,7 +802,10 @@ class View
 
                     // get the localization string and replace it in the block
                     $string = L10n::t($string_key, $args);
-                    $block = str_replace($var, $string, $block);
+                    // Only replace the string if this exists
+                    if (isset($string)) {
+                        $block = str_replace($var, $string, $block);
+                    }
                 }
             }
         }
@@ -755,7 +815,9 @@ class View
 
     /**
      * Validates the file_path and returns the file contents
-     * @param  string $file_path
+     *
+     * @param string $file_path
+     *
      * @return string
      */
     private function get_file_content($file_path)
@@ -770,7 +832,9 @@ class View
 
     /**
      * Breaks the template content into blocks
-     * @param  string $template
+     *
+     * @param string $template
+     *
      * @return array
      */
     private function get_blocks($template)
@@ -790,7 +854,7 @@ class View
             $res = [];
 
             // set block structure
-            if (preg_match_all('/' . $regex . "/ims", $block, $res, PREG_SET_ORDER)) {
+            if (preg_match_all('/' . $regex . '/ims', $block, $res, PREG_SET_ORDER)) {
                 // set the block parts
                 $block_tag = $res[0][1];
                 $block_name = $res[0][2];
@@ -838,7 +902,10 @@ class View
                 while (preg_match('/<!--\s*include:\s*([A-Za-z0-9_]+)\s*-->/', $blocks[$tmp], $res)) {
                     // replace the tag with the block definition
                     $blocks[$tmp] = preg_replace(
-                        '\''.preg_quote($res[0]).'\'', '{_BLOCK_.'.$res[1].'}', $blocks[$tmp]);
+                        '\'' . preg_quote($res[0]) . '\'',
+                        '{_BLOCK_.' . $res[1] . '}',
+                        $blocks[$tmp]
+                    );
                 }
             }
         }
@@ -851,7 +918,7 @@ class View
     {
         if ($element) {
             foreach ($element as $item => $value) {
-                $this->populate_value($item, $value, $template);
+                $this->populate_value($item, $value ?? '', $template);
             }
         }
         $this->show($template);
@@ -859,6 +926,7 @@ class View
 
     /**
      * Populates a view value based on the type
+     *
      * @param string $item
      * @param mixed  $value
      * @param string $template
@@ -875,10 +943,13 @@ class View
     /**
      * Replace the tag var with the value on a template
      * also doing some data cleaning
-     * @param  string  $var
-     * @param  string  $value
+     *
+     * @param string $var
+     * @param string $value
      * @param string template
-     * @param  boolean $is_block
+     * @param bool  $is_block
+     * @param mixed $template
+     *
      * @return string
      */
     private function set_value($var, $value, $template, $is_block = true)
@@ -917,7 +988,9 @@ class View
 
     /**
      * Add the meta tags and styles to the html type templates
+     *
      * @param string @template
+     * @param mixed $template
      */
     private function add_headers($template)
     {
@@ -940,8 +1013,11 @@ class View
 
     /**
      * Add javascripts to the html type templates
+     *
      * @access private
+     *
      * @param string @template
+     * @param mixed $template
      */
     private function add_scripts($template)
     {
@@ -968,8 +1044,11 @@ class View
 
     /**
      * Removes innecesary spaces and chars from the output
-     * @param  string $output
+     *
+     * @param string $output
+     *
      * @return string
+     *
      * @todo fix google ads bug
      */
     private function compress($output)
@@ -985,10 +1064,11 @@ class View
         return $output;
     }
 
-   /**
-    * Outputs a template content
-    * @param string $template
-    */
+    /**
+     * Outputs a template content
+     *
+     * @param string $template
+     */
     private function flush($template)
     {
         $html = $this->get_view($template);
@@ -999,7 +1079,9 @@ class View
     /**
      * Receives an array of key value attributes and converts them
      * into a string of key values for an HTML tags
-     * @param  [array]  $attrs array of key values
+     *
+     * @param [array] $attrs array of key values
+     *
      * @return [string]
      */
     private function format_attrs(array $attrs = null)
@@ -1016,5 +1098,4 @@ class View
 
         return $formatted_attrs;
     }
-
 }
