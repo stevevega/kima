@@ -313,8 +313,8 @@ class View
      */
     public function set($name, $value, $template = null, $escaped = true, $apply_nl2br = false)
     {
-        // Sometimes values is passed as null value.
-        // This values is used in htmlentities, however now this is deprecated por php
+        // Sometimes values are passed as null value.
+        // These values are used in htmlentities, however now they are deprecated by php
         if (!isset($value)) {
             $value = '';
         }
