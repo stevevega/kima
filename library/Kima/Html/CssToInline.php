@@ -9,9 +9,9 @@
  */
 namespace Kima\Html;
 
-use Kima\Error;
 use DOMDocument;
 use DOMXPath;
+use Kima\Error;
 
 /**
  * HTML CSS to Inline library
@@ -19,55 +19,61 @@ use DOMXPath;
  */
 class CssToInline
 {
-
     /**
      * Error messages
      */
-    const ERROR_NO_HTML = 'No HTML was provided';
+    public const ERROR_NO_HTML = 'No HTML was provided';
 
     /**
      * Original styles
      */
-    const ORIGINAL_STYLES = 'data-original-styles';
+    public const ORIGINAL_STYLES = 'data-original-styles';
 
     /**
      * The HTML to process
+     *
      * @var string
      */
     private $html;
 
     /**
      * The css
+     *
      * @var string
      */
     private $css;
 
     /**
      * The css rules
+     *
      * @var array
      */
     private $css_rules;
 
     /**
      * Should the generated HTML be cleaned
+     *
      * @var bool
      */
     private $cleanup = true;
 
     /**
      * The encoding to use
+     *
      * @var string
      */
     private $encoding = 'UTF-8';
 
     /**
      * Include the media queries to the inlined styles
+     *
      * @var bool
      */
     private $include_media_queries = false;
 
     /**
      * Should the tag of styles by skip when cleaned
+     *
      * @var bool
      */
     private $skip_style_tag = false;
@@ -75,6 +81,7 @@ class CssToInline
     /**
      * Creates a CssToInline instance
      * Optionally sets the html and css to use
+     *
      * @param string $html The HTML to process.
      * @param string $css  The CSS to use.
      */
@@ -94,6 +101,7 @@ class CssToInline
 
     /**
      * Set HTML to process
+     *
      * @param string $html The HTML to process.
      */
     public function set_html($html)
@@ -103,6 +111,7 @@ class CssToInline
 
     /**
      * Set CSS to use
+     *
      * @param string $css The CSS to use.
      */
     public function set_css($css)
@@ -121,6 +130,7 @@ class CssToInline
 
     /**
      * Set the encoding to use with the DOMDocument
+     *
      * @param string $encoding
      */
     public function set_encoding($encoding)
@@ -138,6 +148,7 @@ class CssToInline
 
     /**
      * Convert HTML/CSS to HTML inline style
+     *
      * @return string
      */
     public function convert()
@@ -230,7 +241,10 @@ class CssToInline
 
     /**
      * Gets the style properties for an atribute
+     *
      * @param  DOMAtrr
+     * @param mixed $attribute
+     *
      * @return array
      */
     private function get_properties($attribute)
@@ -266,11 +280,12 @@ class CssToInline
 
     /**
      * Sets the properties to the defined element
+     *
      * @param array      $original_properties
      * @param array      $properties
      * @param DOMELement $element
      */
-    private function set_properties($original_properties, $properties, &$element)
+    private function set_properties($original_properties, $properties, & $element)
     {
         // add new properties into the list
         foreach ($original_properties as $key => $value) {
@@ -298,8 +313,10 @@ class CssToInline
 
     /**
      * Convert a CSS-selector into an xpath-query
+     *
+     * @param string $selector The CSS-selector.
+     *
      * @return string
-     * @param  string $selector The CSS-selector.
      */
     private function build_xpath_query($selector)
     {
@@ -362,6 +379,7 @@ class CssToInline
 
     /**
      * Sets the original styles in the html to the DOMElement
+     *
      * @param DOMElement $element
      */
     private function set_original_styles(&$element)
@@ -385,20 +403,20 @@ class CssToInline
     /**
      * Cleanup the generated HTML
      *
-     * @param  string $html The HTML to cleanup.
+     * @param string $html The HTML to cleanup.
      *
      * @return string
      */
     private function cleanup_html($html)
     {
         // remove classes
-        $html = preg_replace('/(\s)+class="(.*)"(\s)+/U', ' ', $html);
+        $html = preg_replace('/(\s)+class="(.*)"(\s)*/U', ' ', $html);
 
         // remove IDs
-        $html = preg_replace('/(\s)+id="(.*)"(\s)+/U', ' ', $html);
+        $html = preg_replace('/(\s)+id="(.*)"(\s)*/U', ' ', $html);
 
         // remove style tags
-        if(!$this->skip_style_tag) {
+        if (!$this->skip_style_tag) {
             $html = preg_replace('|<style(.*)>(.*)</style>|isU', '', $html);
         }
 
@@ -409,6 +427,7 @@ class CssToInline
 
     /**
      * Get the encoding to use
+     *
      * @return string
      */
     private function get_encoding()
@@ -418,8 +437,6 @@ class CssToInline
 
     /**
      * Process the loaded CSS
-     *
-     * @return void
      */
     private function process_css()
     {
@@ -489,7 +506,9 @@ class CssToInline
 
     /**
      * Cleans the css string
-     * @param  string $css
+     *
+     * @param string $css
+     *
      * @return string
      */
     private function clean_css($css)
@@ -511,7 +530,9 @@ class CssToInline
 
     /**
      * Process the CSS-properties
-     * @param  string $property_string The CSS-properties.
+     *
+     * @param string $property_string The CSS-properties.
+     *
      * @return array
      */
     private function process_properties($property_string)
@@ -527,7 +548,9 @@ class CssToInline
             $chunks = explode(':', $property, 2);
 
             // validate
-            if(!isset($chunks[1])) continue;
+            if (!isset($chunks[1])) {
+                continue;
+            }
 
             // cleanup
             $chunks[0] = trim($chunks[0]);
@@ -535,8 +558,7 @@ class CssToInline
 
             // add to pairs array
             if (!isset($pairs[$chunks[0]])
-                || !in_array($chunks[1], $pairs[$chunks[0]]))
-            {
+                || !in_array($chunks[1], $pairs[$chunks[0]])) {
                 $pairs[$chunks[0]][] = $chunks[1];
             }
         }
@@ -551,8 +573,9 @@ class CssToInline
     /**
      * Calculate the specifity for the CSS-selector
      *
+     * @param string $selector The selector to calculate the specifity for.
+     *
      * @return int
-     * @param  string $selector The selector to calculate the specifity for.
      */
     private function get_specifity($selector)
     {
@@ -572,7 +595,7 @@ class CssToInline
                 $specifity += 100;
             }
             // classes are more important than a tag, but less important then an ID
-            else if ((strstr($chunk, '.'))) {
+            elseif ((strstr($chunk, '.'))) {
                 $specifity += 10;
             }
             // anything else isn't that important
@@ -587,8 +610,10 @@ class CssToInline
 
     /**
      * Sort an array on the specifity element
-     * @param  array $e1 The first element.
-     * @param  array $e2 The second element.
+     *
+     * @param array $e1 The first element.
+     * @param array $e2 The second element.
+     *
      * @return int
      */
     private function sort_on_specifity($e1, $e2)
@@ -606,5 +631,4 @@ class CssToInline
         // fallback
         return 0;
     }
-
 }
