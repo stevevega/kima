@@ -382,7 +382,7 @@ class CssToInline
      *
      * @param DOMElement $element
      */
-    private function set_original_styles(& $element)
+    private function set_original_styles(&$element)
     {
         // no styles stored?
         if (null == $element->attributes->getNamedItem(self::ORIGINAL_STYLES)) {
