@@ -285,7 +285,7 @@ class CssToInline
      * @param array      $properties
      * @param DOMELement $element
      */
-    private function set_properties($original_properties, $properties, & $element)
+    private function set_properties($original_properties, $properties, &$element)
     {
         // add new properties into the list
         foreach ($original_properties as $key => $value) {
@@ -421,6 +421,7 @@ class CssToInline
         }
 
         $html = preg_replace('|<link(.*)>(.*)>|isU', '', $html);
+
         // return
         return $html;
     }
