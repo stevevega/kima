@@ -7,6 +7,7 @@
  * The name of the author may not be used to endorse or promote products derived from this software without specific prior written permission.
  * This software is provided by the author "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the author be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.
  */
+
 namespace Kima\Html;
 
 use Kima\Error;
@@ -19,16 +20,15 @@ use DOMXPath;
  */
 class CssToInline
 {
-
     /**
      * Error messages
      */
-    const ERROR_NO_HTML = 'No HTML was provided';
+    public const ERROR_NO_HTML = 'No HTML was provided';
 
     /**
      * Original styles
      */
-    const ORIGINAL_STYLES = 'data-original-styles';
+    public const ORIGINAL_STYLES = 'data-original-styles';
 
     /**
      * The HTML to process
@@ -392,10 +392,10 @@ class CssToInline
     private function cleanup_html($html)
     {
         // remove classes
-        $html = preg_replace('/(\s)+class="(.*)"(\s)+/U', ' ', $html);
+        $html = preg_replace('/(\s)+class="(.*)"(\s)*/U', ' ', $html);
 
         // remove IDs
-        $html = preg_replace('/(\s)+id="(.*)"(\s)+/U', ' ', $html);
+        $html = preg_replace('/(\s)+id="(.*)"(\s)*/U', ' ', $html);
 
         // remove style tags
         if(!$this->skip_style_tag) {
@@ -527,7 +527,9 @@ class CssToInline
             $chunks = explode(':', $property, 2);
 
             // validate
-            if(!isset($chunks[1])) continue;
+            if(!isset($chunks[1])) {
+                continue;
+            }
 
             // cleanup
             $chunks[0] = trim($chunks[0]);
@@ -535,8 +537,7 @@ class CssToInline
 
             // add to pairs array
             if (!isset($pairs[$chunks[0]])
-                || !in_array($chunks[1], $pairs[$chunks[0]]))
-            {
+                || !in_array($chunks[1], $pairs[$chunks[0]])) {
                 $pairs[$chunks[0]][] = $chunks[1];
             }
         }
@@ -572,7 +573,7 @@ class CssToInline
                 $specifity += 100;
             }
             // classes are more important than a tag, but less important then an ID
-            else if ((strstr($chunk, '.'))) {
+            elseif ((strstr($chunk, '.'))) {
                 $specifity += 10;
             }
             // anything else isn't that important
