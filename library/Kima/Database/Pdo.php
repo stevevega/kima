@@ -113,8 +113,15 @@ final class Pdo implements IDatabase, ITransaction
         // make the database connection
         $dsn = 'mysql:dbname=' . $this->database . ';host=' . $this->host;
         try {
-            $this->connection = new PdoDriver($dsn, $user, $password,
-                [PdoDriver::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'"]);
+            $this->connection = new PdoDriver(
+                $dsn,
+                $user,
+                $password,
+                [
+                    PdoDriver::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'",
+                    PdoDriver::ATTR_EMULATE_PREPARES => true,
+                ]
+            );
         } catch (PDOException $e) {
             Error::set(sprintf(self::ERROR_PDO_CONNECTION_FAILED, $e->getMessage()));
         }
@@ -336,6 +343,7 @@ final class Pdo implements IDatabase, ITransaction
                 case is_object($bind):
                 case is_array($bind):
                     Error::set(sprintf(self::ERROR_INVALID_BIND_VALUE, print_r($bind, true)));
+                    // no break
                 default:
                     $type = PdoDriver::PARAM_STR;
                     break;
