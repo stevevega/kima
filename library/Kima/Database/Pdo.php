@@ -119,7 +119,7 @@ final class Pdo implements IDatabase, ITransaction
                 $password,
                 [
                     PdoDriver::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'",
-                    PdoDriver::ATTR_EMULATE_PREPARES => true,
+                    PdoDriver::ATTR_STRINGIFY_FETCHES => true,
                 ]
             );
         } catch (PDOException $e) {
