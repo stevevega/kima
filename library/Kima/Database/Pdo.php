@@ -293,7 +293,8 @@ final class Pdo implements IDatabase, ITransaction
      */
     public function commit(): bool
     {
-        return $this->get_connection()->commit();
+        $connection = $this->get_connection();
+        return $connection->inTransaction() ? $connection->commit() : false;
     }
 
     /**
@@ -301,7 +302,8 @@ final class Pdo implements IDatabase, ITransaction
      */
     public function rollback(): bool
     {
-        return $this->get_connection()->rollBack();
+        $connection = $this->get_connection();
+        return $connection->inTransaction() ? $connection->rollBack() : false;
     }
 
     /**
