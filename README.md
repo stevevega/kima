@@ -120,6 +120,7 @@ While the "Core Components" section describes the Kima framework's internal libr
 
 A Kima application generally follows this kind of folder organization:
 
+```
 ├── application/        # Core application code
 │   ├── config/         # Configuration files (e.g., application.ini)
 │   ├── controller/     # Controller classes
@@ -136,6 +137,7 @@ A Kima application generally follows this kind of folder organization:
 ├── resource/           # Application resources
 │   └── l10n/           # Localization files (e.g., en.ini)
 └── vendor/             # Composer dependencies (including Kima framework itself)
+```
 
 ### Key Parts of a Kima Application:
 
