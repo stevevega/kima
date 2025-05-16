@@ -111,3 +111,42 @@ Kima PHP Framework requires the following:
 * `datadog/dd-trace`: >=0.86.3
 
 It also suggests or implicitly requires PHP extensions like `pdo_mysql`, `memcached`, `redis`, `apc`, `imagick`, and `solr` depending on the features used.
+
+## Understanding a Kima Application Structure (Based on Kima Skeleton)
+
+While the "Core Components" section describes the Kima framework's internal libraries, this section provides context on how a typical web application built with Kima is structured, using the [Kima Skeleton app](https://github.com/stevevega/kima-skeleton) as a reference. This skeleton helps developers get started quickly.
+
+### Typical Directory Structure
+
+A Kima application generally follows this kind of folder organization:
+
+├── application/        # Core application code
+│   ├── config/         # Configuration files (e.g., application.ini)
+│   ├── controller/     # Controller classes
+│   ├── model/          # Model classes
+│   ├── module/         # Application-specific modules (each with its own MVC structure)
+│   ├── view/           # View templates and layouts
+│   ├── library/        # Custom application-specific libraries
+│   └── Bootstrap.php   # Application-specific bootstrap logic
+├── public/             # Web server's document root
+│   ├── css/            # CSS files
+│   ├── js/             # JavaScript files
+│   ├── img/            # Image files (typically)
+│   └── index.php       # Application entry point (front controller)
+├── resource/           # Application resources
+│   └── l10n/           # Localization files (e.g., en.ini)
+└── vendor/             # Composer dependencies (including Kima framework itself)
+
+### Key Parts of a Kima Application:
+
+* **Entry Point (`public/index.php`)**: This is where the Kima application is initialized. It typically loads Composer's autoloader, sets up the Kima `App` instance, and defines the URL routes that map to controller actions.
+* **Configuration (`application/config/application.ini`)**: Kima applications use `.ini` files for configuration. This file is crucial for setting up database connections, cache parameters, language settings, view options, and other application-specific or Kima framework configurations.
+* **Controllers (`application/controller/`)**: Controllers handle incoming HTTP requests, process user input, interact with models to fetch or modify data, and then select a view to render the response. They extend the Kima framework's base `Controller` class.
+* **Models (`application/model/`)**: Models encapsulate the application's business logic and data interaction. They extend Kima's base `Model` class and are used to perform database operations (CRUD, etc.).
+* **Views (`application/view/`)**: Views are responsible for the presentation layer. They typically consist of HTML templates. Kima's `View` component is used by controllers to pass data to views and render them. A common `layout.html` often defines the main page structure, with specific views rendering content within that layout.
+* **Modules (`application/module/`)**: Kima supports a modular structure, allowing developers to organize larger applications into smaller, more manageable parts. Each module can have its own set of controllers, models, and views, effectively acting as a mini-application within the main one.
+* **Application Bootstrap (`application/Bootstrap.php`)**: This optional file allows for application-specific initialization logic that runs before the main controller action is executed. This can include setting up global configurations, initializing services, or defining constants.
+* **Custom Libraries (`application/library/`)**: For application-specific helper classes or libraries that don't fit into the MVC structure, this directory provides a conventional place.
+* **Localization (`resource/l10n/`)**: Language files (e.g., `en.ini`, `es.ini`) are stored here, enabling the application to be translated into multiple languages using Kima's L10n component.
+
+This structure, based on the Kima Skeleton, provides a solid foundation for building applications with the Kima framework, leveraging its components like routing, ORM, templating, and more.
