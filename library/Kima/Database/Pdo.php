@@ -200,8 +200,9 @@ final class Pdo implements IDatabase, ITransaction
      */
     public function put(array $options)
     {
+        $feature_enable = App::get_instance()->get_config()->feature['clean_4byte_chars'] ?? false;
         // Clean emojis from all string binds before saving
-        if (!empty($options['query']['binds'])) {
+        if (!empty($options['query']['binds']) && $feature_enable) {
             foreach ($options['query']['binds'] as $key => $value) {
                 if (is_string($value)) {
                     $options['query']['binds'][$key] = self::remove4ByteChars($value);
