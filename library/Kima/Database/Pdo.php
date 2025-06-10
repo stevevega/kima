@@ -1,9 +1,11 @@
 <?php
+
 /**
  * Kima PDO
  *
  * @author Steve Vega
  */
+
 namespace Kima\Database;
 
 use Kima\Error;
@@ -22,15 +24,15 @@ final class Pdo implements IDatabase, ITransaction
     /**
      * Error messages
      */
-    const ERROR_NO_PDO = 'PDO extension is not present on this server';
-    const ERROR_NO_AGGREGATE = 'Aggregate not implemented for PDO';
-    const ERROR_NO_DISTINCT = 'Distinct not implemented for PDO';
-    const ERROR_PDO_CONNECTION_FAILED = 'PDO Connection failed: "%s"';
-    const ERROR_PDO_EMPTY_QUERY = 'PDO query error: Query is empty';
-    const ERROR_PDO_EMPTY_MODEL = 'PDO query error: Model is empty';
-    const ERROR_PDO_QUERY_ERROR = 'PDO query error: "%s"';
-    const ERROR_PDO_EXECUTE_ERROR = 'PDO execute error: "%s"';
-    const ERROR_INVALID_BIND_VALUE = 'PDO invalid bind value "%s"';
+    public const ERROR_NO_PDO = 'PDO extension is not present on this server';
+    public const ERROR_NO_AGGREGATE = 'Aggregate not implemented for PDO';
+    public const ERROR_NO_DISTINCT = 'Distinct not implemented for PDO';
+    public const ERROR_PDO_CONNECTION_FAILED = 'PDO Connection failed: "%s"';
+    public const ERROR_PDO_EMPTY_QUERY = 'PDO query error: Query is empty';
+    public const ERROR_PDO_EMPTY_MODEL = 'PDO query error: Model is empty';
+    public const ERROR_PDO_QUERY_ERROR = 'PDO query error: "%s"';
+    public const ERROR_PDO_EXECUTE_ERROR = 'PDO execute error: "%s"';
+    public const ERROR_INVALID_BIND_VALUE = 'PDO invalid bind value "%s"';
 
     /**
      * instance
@@ -198,8 +200,17 @@ final class Pdo implements IDatabase, ITransaction
      */
     public function put(array $options)
     {
-        $this->execute($options);
+        $feature_enable = App::get_instance()->get_config()->feature['clean_4byte_chars'] ?? false;
+        // Clean emojis from all string binds before saving
+        if (!empty($options['query']['binds']) && $feature_enable) {
+            foreach ($options['query']['binds'] as $key => $value) {
+                if (is_string($value)) {
+                    $options['query']['binds'][$key] = self::remove4ByteChars($value);
+                }
+            }
+        }
 
+        $this->execute($options);
         return true;
     }
 
@@ -351,5 +362,13 @@ final class Pdo implements IDatabase, ITransaction
 
             $statement->bindValue($key, $bind, $type);
         }
+    }
+
+    /**
+     * Removes 4-byte UTF-8 chars (emojis, etc.) from a string.
+     */
+    public static function remove4ByteChars(string $text): string
+    {
+        return preg_replace('/[\x{1F000}-\x{1FAFF}\x{2600}-\x{27BF}\x{200D}\x{FE0F}]/u', '', $text);
     }
 }
