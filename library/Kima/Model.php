@@ -18,7 +18,9 @@ use ReflectionProperty;
 /**
  * Model
  * Gets a model with the corresponding db engine
+ * Allows dynamic properties: fetch results are hydrated as one property per column/field
  */
+#[\AllowDynamicProperties]
 abstract class Model
 {
     /**
