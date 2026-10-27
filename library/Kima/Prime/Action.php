@@ -7,11 +7,11 @@
 namespace Kima\Prime;
 
 use Bootstrap;
-use DDTrace\GlobalTracer;
 use DDTrace\Tag;
 use Kima\Error;
 use Kima\Http\Redirector;
 use Kima\Http\Request;
+use Kima\Tracing;
 
 /**
  * Action
@@ -85,9 +85,8 @@ class Action
         $controller = $this->get_controller_instance();
 
         // Sets the resource name with the method and controller name
-        GlobalTracer::get()->getRootScope()
-            ->getSpan()
-            ->setTag(Tag::RESOURCE_NAME, strtolower($method . ' ' . get_class($controller)));
+        Tracing::get_root_span()
+            ?->setTag(Tag::RESOURCE_NAME, strtolower($method . ' ' . get_class($controller)));
 
         // validate controller is instance of Controller
         if (!$controller instanceof Controller) {

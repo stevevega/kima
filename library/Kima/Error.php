@@ -5,7 +5,6 @@
  */
 namespace Kima;
 
-use DDTrace\GlobalTracer;
 use DDTrace\Tag;
 use Kima\Prime\App;
 use Exception;
@@ -75,7 +74,7 @@ class Error
 
         //When the severity is error, properly close the span so it can be traced correctly by ddtrace 
         if($error_level === self::ERROR) {
-            $span = GlobalTracer::get()->getRootScope()->getSpan();
+            $span = Tracing::get_root_span();
             if(isset($span)) {
                 $span->setTag(Tag::HTTP_STATUS_CODE, '500');
                 $span->setTag(Tag::ERROR, new Exception($error_message));

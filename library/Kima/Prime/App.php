@@ -6,6 +6,7 @@ use DDTrace\NoopTracer;
 use DDTrace\Tag;
 use Kima\Error;
 use Kima\Http\Request;
+use Kima\Tracing;
 
 /**
  * Kima Prime App
@@ -183,7 +184,7 @@ class App
         $action = (new Action($urls))->run();
         
         // Finishes the span execution after action run
-        GlobalTracer::get()->getRootScope()->getSpan()->finish();
+        Tracing::get_root_span()?->finish();
         
         return $action;
     }
@@ -561,7 +562,10 @@ class App
         };
 
         // Gets the span in order to be used whenever it's necessary
-        $span = GlobalTracer::get()->getRootScope()->getSpan();
+        $span = Tracing::get_root_span();
+        if (!isset($span)) {
+            return $this;
+        }
 
         // Overwrites the operation name only if it exists
         if (!empty($tracing_config['weboperation']['name'])) {
