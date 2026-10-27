@@ -58,6 +58,40 @@ final class FileTest extends TestCase
         $this->assertSame([], $this->raised_errors);
     }
 
+    public function test_get_returns_an_unexpired_value(): void
+    {
+        $this->cache->set('key', ['a' => 1], 60);
+
+        $this->assertSame(['a' => 1], $this->cache->get('key'));
+        $this->assertSame([], $this->raised_errors);
+    }
+
+    public function test_get_returns_a_cached_false(): void
+    {
+        $this->cache->set('key', false);
+
+        $this->assertFalse($this->cache->get('key'));
+        $this->assertSame([], $this->raised_errors);
+    }
+
+    public function test_get_treats_an_expired_item_as_a_miss(): void
+    {
+        $item = ['expiration' => time() - 1, 'value' => 'value'];
+        file_put_contents($this->folder . '/key' . File::FILE_EXTENSION, serialize($item));
+
+        $this->assertNull($this->cache->get('key'));
+        $this->assertSame([], $this->raised_errors);
+    }
+
+    #[DataProvider('unusable_cache_contents')]
+    public function test_get_treats_an_unusable_cache_file_as_a_miss(string $contents): void
+    {
+        file_put_contents($this->folder . '/key' . File::FILE_EXTENSION, $contents);
+
+        $this->assertNull($this->cache->get('key'));
+        $this->assertSame([], $this->raised_errors);
+    }
+
     public static function unusable_cache_contents(): array
     {
         return [
@@ -65,6 +99,7 @@ final class FileTest extends TestCase
             'not serialized' => ['corrupt'],
             'serialized false' => [serialize(false)],
             'not a cache item' => [serialize('value')],
+            'item without expiration' => [serialize(['value' => 'value'])],
             'empty' => [''],
         ];
     }

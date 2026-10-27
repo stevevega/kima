@@ -57,7 +57,11 @@ class File implements ICache
             return null;
         }
 
-        $item = @unserialize(file_get_contents($cache_path));
+        $item = $this->read_item($cache_path);
+        if (!isset($item)) {
+            return null;
+        }
+
         $is_valid_cache = $item['expiration'] <= 0 || time() < $item['expiration'];
 
         return $is_valid_cache ? $item['value'] : null;
@@ -103,7 +107,9 @@ class File implements ICache
             restore_error_handler();
         }
 
-        return is_array($item) && array_key_exists('value', $item) ? $item : null;
+        $is_item = is_array($item) && array_key_exists('expiration', $item) && array_key_exists('value', $item);
+
+        return $is_item ? $item : null;
     }
 
     /**
