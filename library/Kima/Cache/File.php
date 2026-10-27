@@ -78,10 +78,32 @@ class File implements ICache
 
         $cache_path = $this->folder_path . DIRECTORY_SEPARATOR . $key . self::FILE_EXTENSION;
         if (is_readable($cache_path) && filemtime($file_path) <= filemtime($cache_path)) {
-            $item = unserialize(file_get_contents($cache_path));
+            $item = $this->read_item($cache_path);
 
-            return $item['value'];
+            return isset($item) ? $item['value'] : null;
         }
+    }
+
+    /**
+     * Reads a cache item, or null when the file does not hold one
+     * @param  string $cache_path
+     * @return array|null
+     */
+    private function read_item($cache_path)
+    {
+        $contents = file_get_contents($cache_path);
+
+        // a corrupt file raises E_NOTICE (PHP < 8.3) or E_WARNING (PHP 8.3+) and returns false
+        set_error_handler(static function () {
+            return true;
+        }, E_NOTICE | E_WARNING);
+        try {
+            $item = unserialize($contents);
+        } finally {
+            restore_error_handler();
+        }
+
+        return is_array($item) && array_key_exists('value', $item) ? $item : null;
     }
 
     /**
