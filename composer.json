@@ -13,9 +13,21 @@
     "mongodb/mongodb": "^1.15.0",
     "datadog/dd-trace": ">=0.86.3"
   },
+  "require-dev": {
+    "phpunit/phpunit": "^10.5"
+  },
   "autoload": {
     "psr-0": {
       "Kima\\": "library/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Kima\\Tests\\": "tests/Kima/",
+      "Controller\\": "tests/fixture/application/controller/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
   }
 }
