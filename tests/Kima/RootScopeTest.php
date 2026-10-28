@@ -1,6 +1,8 @@
 <?php
 namespace Kima\Tests;
 
+use DDTrace\Contracts\Scope;
+use DDTrace\Contracts\Span;
 use DDTrace\Contracts\Tracer;
 use DDTrace\GlobalTracer;
 use DDTrace\NoopSpan;
@@ -45,7 +47,41 @@ final class RootScopeTest extends TestCase
         $this->assertSame('index', App::get_instance()->run(['/' => 'Index']));
     }
 
+    public function test_app_run_closes_the_root_scope_instead_of_finishing_its_span(): void
+    {
+        $this->set_root_scope_that_must_be_closed_once();
+
+        $this->assertSame('index', App::get_instance()->run(['/' => 'Index']));
+    }
+
+    public function test_error_set_closes_the_root_scope_instead_of_finishing_its_span(): void
+    {
+        $this->set_root_scope_that_must_be_closed_once();
+
+        $this->expectException(ErrorException::class);
+        $this->set_error();
+    }
+
     public function test_error_set_raises_the_user_error(): void
+    {
+        $this->expectException(ErrorException::class);
+        $this->expectExceptionMessage('root scope probe');
+        $this->set_error();
+    }
+
+    private function set_root_scope_that_must_be_closed_once(): void
+    {
+        $span = $this->createMock(Span::class);
+        $span->expects($this->never())->method('finish');
+        $scope = $this->createMock(Scope::class);
+        $scope->method('getSpan')->willReturn($span);
+        $scope->expects($this->once())->method('close');
+        $tracer = $this->createStub(Tracer::class);
+        $tracer->method('getRootScope')->willReturn($scope);
+        GlobalTracer::set($tracer);
+    }
+
+    private function set_error(): void
     {
         App::get_instance()->set_config();
         set_error_handler(static function (int $level, string $message): bool {
@@ -56,8 +92,6 @@ final class RootScopeTest extends TestCase
         });
 
         try {
-            $this->expectException(ErrorException::class);
-            $this->expectExceptionMessage('root scope probe');
             Error::set('root scope probe');
         } finally {
             restore_error_handler();

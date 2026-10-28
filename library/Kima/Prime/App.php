@@ -183,8 +183,8 @@ class App
 
         $action = (new Action($urls))->run();
         
-        // Finishes the span execution after action run
-        Tracing::get_root_span()?->finish();
+        // Closes the root scope after action run
+        Tracing::close_root_scope();
         
         return $action;
     }

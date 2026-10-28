@@ -78,7 +78,7 @@ class Error
             if(isset($span)) {
                 $span->setTag(Tag::HTTP_STATUS_CODE, '500');
                 $span->setTag(Tag::ERROR, new Exception($error_message));
-                $span->finish();
+                Tracing::close_root_scope();
             }
         }
 
