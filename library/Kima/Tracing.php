@@ -22,4 +22,13 @@ class Tracing
         return GlobalTracer::get()->getRootScope()?->getSpan();
     }
 
+    /**
+     * Closes the root scope, which finishes its span only when userland opened it
+     * Finishing the extension's own root span makes ddtrace log "There is no user-span on the top of the stack"
+     */
+    public static function close_root_scope(): void
+    {
+        GlobalTracer::get()->getRootScope()?->close();
+    }
+
 }
